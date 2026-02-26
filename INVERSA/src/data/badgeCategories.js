@@ -1,0 +1,23 @@
+export const categories = [
+    { id: 'novel', name: 'Novel', description: 'Karya fiksi panjang dengan plot kompleks', color: '#818CF8', textColor: '#FFFFFF', bgClass: 'bg-indigo-400' },
+    { id: 'cerpen', name: 'Cerpen', description: 'Cerita pendek dengan plot sederhana', color: '#E5E7EB', textColor: '#1E293B', bgClass: 'bg-gray-200' },
+    { id: 'blog', name: 'Blog', description: 'Artikel atau tulisan blog', color: '#94A3B8', textColor: '#FFFFFF', bgClass: 'bg-slate-400' },
+    { id: 'skenario', name: 'Skenario', description: 'Naskah untuk film atau drama', color: '#0F172A', textColor: '#E5E7EB', bgClass: 'bg-slate-900' },
+    { id: 'fabel', name: 'Fabel', description: 'Cerita dengan pesan moral', color: '#020617', textColor: '#E5E7EB', bgClass: 'bg-slate-950' },
+    { id: 'komedi', name: 'Naskah Komedi', description: 'Naskah dengan tujuan menghibur', color: '#818CF8', textColor: '#FFFFFF', bgClass: 'bg-indigo-400' },
+    { id: 'character', name: 'Character', description: 'Pengembangan karakter dan profil', color: '#94A3B8', textColor: '#FFFFFF', bgClass: 'bg-slate-400' },
+];
+
+// Load categories from JSON
+export const loadCategories = async () => {
+    try {
+        const response = await fetch('/Datajson/categories.json');
+        if (response.ok) {
+            const data = await response.json();
+            return data.categories || categories;
+        }
+    } catch (error) {
+        console.warn('Failed to load categories from JSON, using fallback');
+    }
+    return categories;
+};
