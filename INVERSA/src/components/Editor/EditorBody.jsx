@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import EditorNavigation from "./EditorNavigation";
 import EditorActions from "./EditorActions";
+import TextEditorSection from "./TextEditorSection";
 
 const EditorBody = ({
   chapter,
@@ -122,14 +123,11 @@ const EditorBody = ({
             </button>
 
             {section.type === "text" && (
-              <textarea
-                value={section.content}
-                onChange={(e) =>
-                  updateSection(section.id, { content: e.target.value })
+              <TextEditorSection
+                content={section.content}
+                onChange={(html) =>
+                  updateSection(section.id, { content: html })
                 }
-                rows="6"
-                placeholder="Write your paragraph..."
-                className="w-full p-4 border rounded-lg bg-white dark:bg-dark-surface"
               />
             )}
 
@@ -161,7 +159,7 @@ const EditorBody = ({
                     updateSection(section.id, { caption: e.target.value })
                   }
                   className="w-full p-2 border rounded-lg bg-white dark:bg-dark-surface"
-              
+
                 />
               </div>
             )}
