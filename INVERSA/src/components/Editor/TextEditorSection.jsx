@@ -18,7 +18,7 @@ const TextEditorSection = ({ content, onChange }) => {
       <EditorToolbar editor={editor} />
       <EditorContent
         editor={editor}
-        className="border p-4 rounded-lg min-h-[150px] bg-white dark:bg-dark-surface"
+        className="prose dark:prose-invert max-w-none border p-4 rounded-lg min-h-[150px] bg-white dark:bg-dark-surface"
       />
     </div>
   )
