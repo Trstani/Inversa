@@ -65,6 +65,7 @@ export const saveProject = async (project) => {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString(),
             likes: 0,
+            views: 0,
             totalChapters: 0,
             collaborators: project.collaborators || [],
         };
@@ -350,6 +351,18 @@ export const incrementLikes = async (projectId) => {
     }
     
     return projects;
+};
+
+export const incrementViews = async (projectId) => {
+  const projects = await loadProjects();
+  const project = projects.find(p => p.id === projectId);
+
+  if (project) {
+    project.views = (project.views || 0) + 1;
+    await saveProject(project);
+  }
+
+  return projects;
 };
 
 export const decrementLikes = async (projectId) => {
