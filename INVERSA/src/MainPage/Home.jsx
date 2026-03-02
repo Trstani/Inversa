@@ -7,8 +7,6 @@ import ProjectCarousel from "../section/ProjectCarousel";
 import RoleAction from "../section/RoleAction";
 import Recommendation from "../section/Recommendation";
 
-import { FiTrendingUp, FiHeart } from "react-icons/fi";
-
 const Home = () => {
   const { isAuthenticated } = useAuth();
   const [projects, setProjects] = useState([]);
