@@ -1,4 +1,4 @@
-import { FiCheck, FiX } from "react-icons/fi";
+import { FiCheck, FiX, FiUsers } from "react-icons/fi";
 
 const CollaborationRequest = ({
  requests,
@@ -14,7 +14,7 @@ const CollaborationRequest = ({
   if (pendingRequests.length === 0) return null;
 
   return (
-    <div className="card p-6 mb-8">
+    <div className="mb-8 mt-8">
       <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
         <FiUsers /> Collaboration Requests ({pendingRequests.length})
       </h2>

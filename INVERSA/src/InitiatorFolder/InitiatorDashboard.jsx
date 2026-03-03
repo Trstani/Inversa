@@ -36,17 +36,16 @@ const InitiatorDashboard = () => {
 
                 <CreateProjects onCreate={createProject} />
 
+                <ProjectList
+                    projects={projects}
+                    onDelete={removeProject}
+                />
+
                 <CollaborationRequest
                     requests={requests}
                     projects={projects}
                     onApprove={approve}
                     onReject={reject}
-                />
-
-
-                <ProjectList
-                    projects={projects}
-                    onDelete={removeProject}
                 />
 
             </div>
