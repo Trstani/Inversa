@@ -14,10 +14,10 @@ const EditorToolbar = ({ editor }) => {
   if (!editor) return null;
 
   const buttonClass =
-    "px-2 py-1 border rounded hover:bg-gray-200 text-sm";
+    "px-2 py-1 border rounded bg- hover:bg-gray-200 hover:text-black text-sm";
 
   return (
-    <div className="flex flex-wrap gap-2 mb-4 p-3 border rounded">
+    <div className="inline-flex rounded-base shadow-xs -space-x-px" role="group">
 
       {/* Heading */}
       <button
