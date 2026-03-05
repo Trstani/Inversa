@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import EditorNavigation from "./EditorNavigation";
 import EditorActions from "./EditorActions";
 import TextEditorSection from "./TextEditorSection";
+import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
 
 const EditorBody = ({
@@ -191,11 +192,10 @@ const EditorBody = ({
           <button
             onClick={addTextSection}
             disabled={!canAddText}
-            className={`${
-              canAddText
+            className={`${canAddText
                 ? "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 rounded-lg"
                 : "bg-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Add Text
           </button>
@@ -203,11 +203,10 @@ const EditorBody = ({
           <button
             onClick={addImageSection}
             disabled={!canAddImage}
-            className={`${
-              canAddImage
+            className={`${canAddImage
                 ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 rounded-lg"
                 : "bg-gray-400 cursor-not-allowed"
-            }`}
+              }`}
           >
             Add Image
           </button>
@@ -216,79 +215,35 @@ const EditorBody = ({
 
       {/* RENDER SECTIONS */}
       <div className="space-y-8">
-        {sections.map((section) => (
-          <div key={section.id} className="card p-6 relative">
-            {canEdit && (
-              <button
-                onClick={() => deleteSection(section.id)}
-                title="Delete section"
-                className="absolute top-4 right-1 text-white bg-red-600 rounded-lg px-4 py-2"
-              >
-                ✕
-              </button>
-            )}
-
-            {section.type === "text" && (
+        {sections.map((section) => {
+          if (section.type === "text") {
+            return (
               <TextEditorSection
-                content={section.content}
-                readOnly={!canEdit}
-                onChange={(html) =>
-                  updateSection(section.id, { content: html })
-                }
+                key={section.id}
+                section={section}
+                canEdit={canEdit}
+                onDelete={deleteSection}
+                onUpdate={updateSection}
               />
-            )}
+            );
+          }
 
-            {section.type === "image" && (
-              <div>
-                {section.imageUrl ? (
-                  <div className="w-full h-[300px] rounded-xl overflow-hidden mb-4">
-                    <img
-                      src={section.imageUrl}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                ) : (
-                  canEdit && (
-                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-light-border dark:border-dark-border rounded-xl cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-surface dark:bg-dark-surface mb-4">
-                      
-                      <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
-                        <span className="font-medium">Click to upload</span>
-                        <span className="text-xs mt-1">PNG, JPG up to 5MB</span>
-                      </div>
+          if (section.type === "image") {
+            return (
+              <ImageSection
+                key={section.id}
+                section={section}
+                canEdit={canEdit}
+                onDelete={deleteSection}
+                onUpdate={updateSection}
+                onUpload={handleImageUpload}
+              />
+            );
+          }
 
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) =>
-                          handleImageUpload(
-                            section.id,
-                            e.target.files[0]
-                          )
-                        }
-                        className="hidden"/>
-                    </label>    
-                  )
-                )}
-
-                <input
-                  type="text"
-                  placeholder="Caption (optional)"
-                  value={section.caption}
-                  disabled={!canEdit}
-                  onChange={(e) =>
-                    updateSection(section.id, {
-                      caption: e.target.value,
-                    })
-                  }
-                  className="w-full p-2 border rounded-lg bg-white dark:bg-dark-surface disabled:opacity-60"
-                />
-              </div>
-            )}
-          </div>
-        ))}
+          return null;
+        })}
       </div>
-
       {/* NAVIGATION */}
       {chapters && chapters.length > 0 && (
         <EditorNavigation
