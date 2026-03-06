@@ -16,6 +16,7 @@ import EditorPage from "../InitiatorFolder/EditorPage";
 import InitiatorDashboard from "../InitiatorFolder/InitiatorDashboard";
 import CollaboratorDashboard from "../CollaboratorFolder/CollaboratorDashboard";
 import ChapterReader from "../components/ChapterReader";
+import AdminDashboard from "../AdminFolder/AdminDashboard";
 
 const AppRoutes = () => {
   return (
@@ -46,6 +47,15 @@ const AppRoutes = () => {
           }
         />
 
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
         {/* Protected Routes */}
         <Route
           path="/Home"

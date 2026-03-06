@@ -50,7 +50,7 @@ const saveUsersToJSON = async (users) => {
     } catch (error) {
         console.warn('API unavailable, saving to localStorage only');
     }
-    
+
     // Fallback: save to localStorage
     localStorage.setItem(USERS_KEY, JSON.stringify(users));
     return true;
@@ -67,13 +67,31 @@ const initializeDefaultUsers = async () => {
             const fallbackUsers = [
                 {
                     id: 1,
+                    name: 'Admin',
+                    email: 'admin@inversa.com',
+                    password: hashPassword('admin123'),
+                    role: 'admin',
+                    avatar: null,
+                    createdAt: new Date().toISOString(),
+                },
+                {
+                    id: 2,
                     name: 'Demo User',
                     email: 'demo@example.com',
-                    password: 'demo123',
+                    password: hashPassword('demo123'),
                     role: 'user',
                     avatar: null,
                     createdAt: new Date().toISOString(),
                 },
+                {
+                    id: 3,
+                    name: 'Demo User2',
+                    email: 'demo@lego.com',
+                    password: hashPassword('demo123'),
+                    role: 'user',
+                    avatar: null,
+                    createdAt: new Date().toISOString(),
+                }
             ];
             localStorage.setItem(USERS_KEY, JSON.stringify(fallbackUsers));
         }
@@ -113,12 +131,12 @@ export const getAllUsersSync = () => {
 // Register new user
 export const registerUser = (name, email, password) => {
     const users = getAllUsers();
-    
+
     // Check if user already exists
     if (findUserByEmail(email)) {
         return { success: false, error: 'Email already registered' };
     }
-    
+
     // Create new user with hashed password
     const newUser = {
         id: Date.now(),
@@ -129,12 +147,12 @@ export const registerUser = (name, email, password) => {
         avatar: null,
         createdAt: new Date().toISOString(),
     };
-    
+
     users.push(newUser);
     saveUsers(users);
-    
-    return { 
-        success: true, 
+
+    return {
+        success: true,
         user: {
             id: newUser.id,
             name: newUser.name,
@@ -149,16 +167,16 @@ export const registerUser = (name, email, password) => {
 // Login user
 export const loginUser = (email, password) => {
     const user = findUserByEmail(email);
-    
+
     if (!user) {
         return { success: false, error: 'User not found' };
     }
-    
+
     // Verify hashed password
     if (!verifyPassword(password, user.password)) {
         return { success: false, error: 'Invalid password' };
     }
-    
+
     return {
         success: true,
         user: {
@@ -176,11 +194,11 @@ export const loginUser = (email, password) => {
 export const updateUserProfile = (userId, updates) => {
     const users = getAllUsers();
     const userIndex = users.findIndex(u => u.id === userId);
-    
+
     if (userIndex < 0) {
         return { success: false, error: 'User not found' };
     }
-    
+
     users[userIndex] = {
         ...users[userIndex],
         ...updates,
@@ -188,9 +206,9 @@ export const updateUserProfile = (userId, updates) => {
         email: users[userIndex].email, // Don't allow email change
         createdAt: users[userIndex].createdAt, // Don't allow date change
     };
-    
+
     saveUsers(users);
-    
+
     return {
         success: true,
         user: {
