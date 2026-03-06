@@ -15,7 +15,7 @@ const CardProjectMini = ({ project, rank }) => {
       <div
         className="relative rounded-2xl overflow-hidden 
                    hover:shadow-lg hover:-translate-y-1
-                   transition-all duration-300 group"
+                   transition-all duration-300 group mb-2"
       >
         {hasBackground ? (
           <>
