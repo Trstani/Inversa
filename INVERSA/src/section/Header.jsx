@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiSun, FiMoon, FiMenu, FiX, FiUser, FiLogOut, FiHome, FiGrid, FiCompass, FiChevronDown, FiEdit, FiUsers } from 'react-icons/fi';
+import { FiSun, FiMoon, FiMenu, FiX, FiUser, FiLogOut, FiHome, FiGrid, FiCompass, FiChevronDown, FiEdit, FiUsers, FiCommand } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
@@ -84,9 +84,10 @@ const Header = () => {
                         {isAdmin && (
                             <Link
                                 to="/admin"
-                                className="text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary transition-colors"
+                                className="text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary transition-colors flex items-center space-x-1"
                             >
-                                Admin
+                                <FiCommand className="w-4 h-4" />
+                                <span>Admin</span>
                             </Link>
                         )}
                     </nav>

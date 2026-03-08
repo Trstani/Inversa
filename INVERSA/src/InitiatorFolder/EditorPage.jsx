@@ -179,15 +179,13 @@ const EditorPage = () => {
   =========================
   */
 
-  if (!currentChapter) {
-
-    return (
-      <div className="flex items-center justify-center h-screen text-gray-500">
-        No chapter selected
-      </div>
-    );
-
-  }
+  if (!project) {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      Loading editor...
+    </div>
+  );
+}
 
 
   /*

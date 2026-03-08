@@ -11,14 +11,17 @@ const AdminStats = () => {
 
   useEffect(() => {
 
-    const projects =
-      JSON.parse(localStorage.getItem("projects")) || [];
+    const projectsData =
+      JSON.parse(localStorage.getItem("inversa_projects")) || { projects: [] };
 
     const users =
-      JSON.parse(localStorage.getItem("users")) || [];
+      JSON.parse(localStorage.getItem("inversa_users")) || [];
 
-    const reports =
-      JSON.parse(localStorage.getItem("reports")) || [];
+    const reportsData =
+      JSON.parse(localStorage.getItem("inversa_reports")) || { reports: [] };
+
+    const projects = projectsData.projects || [];
+    const reports = reportsData.reports || [];
 
     const hiddenProjects =
       projects.filter(p => p.hidden).length;
@@ -34,26 +37,68 @@ const AdminStats = () => {
 
   return (
 
-    <div className="grid grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-10">
 
-      <div className="bg-white shadow p-4 rounded">
-        <p className="text-gray-500 text-sm">Projects</p>
-        <p className="text-2xl font-bold">{stats.projects}</p>
+      {/* Projects */}
+
+      <div className="bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 text-white shadow-lg p-6 rounded-xl">
+
+        <p className="text-sm opacity-80">
+          Projects
+        </p>
+
+        <p className="text-3xl font-bold mt-2">
+          {stats.projects}
+        </p>
+
       </div>
 
-      <div className="bg-white shadow p-4 rounded">
-        <p className="text-gray-500 text-sm">Users</p>
-        <p className="text-2xl font-bold">{stats.users}</p>
+      {/* Users */}
+
+      <div className="bg-gradient-to-r from-emerald-500 via-emerald-600 to-emerald-700 text-white shadow-lg p-6 rounded-xl">
+
+        <p className="text-sm opacity-80">
+          Users
+        </p>
+
+        <p className="text-3xl font-bold mt-2">
+          {stats.users}
+        </p>
+
       </div>
 
-      <div className="bg-white shadow p-4 rounded">
-        <p className="text-gray-500 text-sm">Reports</p>
-        <p className="text-2xl font-bold">{stats.reports}</p>
+      {/* Reports */}
+
+      <div className="bg-gradient-to-r from-rose-500 via-rose-600 to-rose-700 text-white shadow-lg p-6 rounded-xl">
+
+        <p className="text-sm opacity-80">
+          Reports
+        </p>
+
+        <p className="text-3xl font-bold mt-2">
+          {stats.reports}
+        </p>
+
       </div>
 
-      <div className="bg-white shadow p-4 rounded">
-        <p className="text-gray-500 text-sm">Hidden Projects</p>
-        <p className="text-2xl font-bold">{stats.hiddenProjects}</p>
+      {/* Hidden Projects */}
+
+      <div className="
+        bg-light-surface
+        dark:bg-dark-surface
+        border border-light-border
+        dark:border-dark-border
+        shadow p-6 rounded-xl
+      ">
+
+        <p className="text-light-secondary dark:text-dark-secondary text-sm">
+          Hidden Projects
+        </p>
+
+        <p className="text-3xl font-bold text-light-primary dark:text-dark-primary mt-2">
+          {stats.hiddenProjects}
+        </p>
+
       </div>
 
     </div>

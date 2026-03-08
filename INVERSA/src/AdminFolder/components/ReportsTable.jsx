@@ -6,7 +6,7 @@ const ReportsTable = ({ reports, reloadReports }) => {
 
     <table className="w-full border">
 
-      <thead className="bg-gray-100">
+      <thead>
 
         <tr>
           <th className="p-3 border">Project</th>

@@ -1,17 +1,24 @@
 const ReportRow = ({ report, onAction }) => {
 
-  const handleDeleteProject = () => {
+  const projects =
+    JSON.parse(localStorage.getItem("inversa_projects"))?.projects || [];
 
-    const projects =
-      JSON.parse(localStorage.getItem("projects")) || [];
+  const users =
+    JSON.parse(localStorage.getItem("inversa_users")) || [];
+
+  const project = projects.find(p => p.id === report.projectId);
+
+  const reporter = users.find(u => u.id === report.reportedBy);
+
+  const handleDeleteProject = () => {
 
     const updated = projects.filter(
       p => p.id !== report.projectId
     );
 
     localStorage.setItem(
-      "projects",
-      JSON.stringify(updated)
+      "inversa_projects",
+      JSON.stringify({ projects: updated })
     );
 
     alert("Project deleted");
@@ -21,16 +28,12 @@ const ReportRow = ({ report, onAction }) => {
 
   const handleRestoreProject = () => {
 
-    const projects =
-      JSON.parse(localStorage.getItem("projects")) || [];
-
     const updated = projects.map(p => {
 
       if (p.id === report.projectId) {
         return {
           ...p,
-          hidden: false,
-          hiddenReason: null
+          hidden: false
         };
       }
 
@@ -38,8 +41,8 @@ const ReportRow = ({ report, onAction }) => {
     });
 
     localStorage.setItem(
-      "projects",
-      JSON.stringify(updated)
+      "inversa_projects",
+      JSON.stringify({ projects: updated })
     );
 
     alert("Project restored");
@@ -49,12 +52,9 @@ const ReportRow = ({ report, onAction }) => {
 
   const handleSuspendUser = () => {
 
-    const users =
-      JSON.parse(localStorage.getItem("users")) || [];
-
     const updated = users.map(u => {
 
-      if (u.username === report.initiator) {
+      if (u.id === project?.initiatorId) {
         return {
           ...u,
           suspended: true
@@ -65,7 +65,7 @@ const ReportRow = ({ report, onAction }) => {
     });
 
     localStorage.setItem(
-      "users",
+      "inversa_users",
       JSON.stringify(updated)
     );
 
@@ -76,14 +76,14 @@ const ReportRow = ({ report, onAction }) => {
 
   return (
 
-    <tr>
+    <tr className="text-center">
 
       <td className="p-3 border">
-        {report.projectTitle}
+        {project?.title || "Unknown Project"}
       </td>
 
       <td className="p-3 border">
-        {report.reporter}
+        {reporter?.name || "Unknown User"}
       </td>
 
       <td className="p-3 border">
@@ -95,7 +95,7 @@ const ReportRow = ({ report, onAction }) => {
       </td>
 
       <td className="p-3 border">
-        {new Date(report.date).toLocaleDateString()}
+        {new Date(report.createdAt).toLocaleDateString()}
       </td>
 
       <td className="p-3 border">
@@ -128,7 +128,9 @@ const ReportRow = ({ report, onAction }) => {
       </td>
 
     </tr>
+
   );
+
 };
 
 export default ReportRow;
