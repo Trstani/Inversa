@@ -2,9 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { loadProjects } from "../utils/dataManager";
 
-import Hero from "../section/Hero";
+import BentoGrid from "../section/BentoGrid"; 
 import ProjectCarousel from "../section/ProjectCarousel";
-import RoleAction from "../section/RoleAction";
 import Recommendation from "../section/Recommendation";
 
 const Home = () => {
@@ -29,14 +28,18 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      <Hero />
+      {/* Bento Grid baru menggantikan Hero + RoleAction */}
+      <BentoGrid
+        trending={trending}
+        mostLiked={mostLiked}
+        isAuthenticated={isAuthenticated}
+        totalProjects={projects.length}   // jumlah proyek real
+        totalCreators="1.2k"              // bisa diganti dengan data sesungguhnya
+      />
 
-      {isAuthenticated && <RoleAction />}
-
+      {/* Bagian bawah tetap sama */}
       <ProjectCarousel />
-
       <Recommendation type="trending" projects={trending} />
-      
       <Recommendation type="likes" projects={mostLiked} />
     </div>
   );
