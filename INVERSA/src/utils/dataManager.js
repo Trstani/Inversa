@@ -690,6 +690,146 @@ export const addComment = async (chapterId, comment) => {
     return chapters;
 };
 
+// ============= FOLLOW PROJECTS =============
+
+export const loadFollowedProjects = async (userId) => {
+
+    const data = loadFromLocalStorage('follows');
+    const follows = data?.follows || [];
+
+    const userFollows = follows.filter(
+        f => f.userId === userId
+    );
+
+    const projects = await loadProjects();
+
+    return projects.filter(project =>
+        userFollows.some(f => f.projectId === project.id)
+    );
+
+};
+
+export const followProject = (userId, projectId) => {
+
+    const data = loadFromLocalStorage('follows');
+    const follows = data?.follows || [];
+
+    const alreadyFollowed = follows.find(
+        f => f.userId === userId && f.projectId === projectId
+    );
+
+    if (alreadyFollowed) return follows;
+
+    follows.push({
+        id: Date.now(),
+        userId,
+        projectId,
+        followedAt: new Date().toISOString()
+    });
+
+    saveToLocalStorage('follows', { follows });
+
+    return follows;
+};
+
+export const unfollowProject = (userId, projectId) => {
+
+    const data = loadFromLocalStorage('follows');
+    const follows = data?.follows || [];
+
+    const filtered = follows.filter(
+        f => !(f.userId === userId && f.projectId === projectId)
+    );
+
+    saveToLocalStorage('follows', { follows: filtered });
+
+    return filtered;
+};
+
+// ============= READING HISTORY =============
+
+export const loadReadingHistory = async (userId) => {
+
+  const data = loadFromLocalStorage('readingHistory');
+  const history = data?.history || [];
+
+  const projects = await loadProjects();
+
+  const userHistory = history
+    .filter(h => String(h.userId) === String(userId))
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+
+  const result = userHistory
+    .map(h => {
+
+      const project = projects.find(
+        p => String(p.id) === String(h.projectId)
+      );
+
+      if (!project) return null;
+
+      return {
+        ...project,
+        chapterId: h.chapterId,
+        updatedAt: h.updatedAt
+      };
+
+    })
+    .filter(Boolean);
+
+  return result;
+};
+
+export const saveReadingHistory = (entry) => {
+
+    const data = loadFromLocalStorage('readingHistory');
+    const history = data?.history || [];
+
+    const existingIndex = history.findIndex(
+        h => h.userId === entry.userId && h.projectId === entry.projectId
+    );
+
+    if (existingIndex >= 0) {
+
+        history[existingIndex] = {
+            ...history[existingIndex],
+            chapterId: entry.chapterId,
+            updatedAt: new Date().toISOString()
+        };
+
+    } else {
+
+        history.push({
+            id: Date.now(),
+            userId: entry.userId,
+            projectId: entry.projectId,
+            chapterId: entry.chapterId,
+            updatedAt: new Date().toISOString()
+        });
+
+    }
+
+    saveToLocalStorage('readingHistory', { history });
+
+    return history;
+};
+
+export const getContinueReading = async (userId) => {
+
+    const history = loadReadingHistory(userId);
+
+    if (!history.length) return null;
+
+    const latest = history[0];
+
+    const project = await getProjectById(latest.projectId);
+
+    return {
+        project,
+        chapterId: latest.chapterId
+    };
+};
+
 export const getComments = async (chapterId) => {
     const chapters = await loadChapters();
     const chapter = chapters.find(c => c.id === parseInt(chapterId));
