@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import CardProjectMini from "../components/CardProjectMini";
+import HistoryCarousel from "./design/HistoryCarousel";
 
 const BentoGrid = ({
   isAuthenticated,
@@ -119,7 +120,7 @@ const BentoGrid = ({
 
             <h4 className="font-semibold text-lg mb-3">
               ⭐ Followed
-            </h4>
+            </h4> 
 
             {follows.length === 0 ? (
               <p className="text-sm opacity-70">
@@ -138,24 +139,13 @@ const BentoGrid = ({
           </div>
 
           {/* HISTORY */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl  shadow-md">
 
-            <h4 className="font-semibold text-lg mb-3">
+            <h4 className="font-semibold text-lg mb-3 p-4">
               🕘 Recently Read
             </h4>
 
-            {history.length === 0 ? (
-              <p className="text-sm opacity-70">
-                Your reading history will appear here
-              </p>
-            ) : (
-              history.slice(0, 3).map((project) => (
-                <CardProjectMini
-                  key={project.id}
-                  project={project}
-                />
-              ))
-            )}
+            <HistoryCarousel history={history} />
 
           </div>
 

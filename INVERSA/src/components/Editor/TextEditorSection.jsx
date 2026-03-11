@@ -59,7 +59,7 @@ const TextEditorSection = ({
         <div className="flex-1">
           <EditorContent
             editor={editor}
-            className="prose dark:prose-invert border max-w-none rounded-lg min-h-[200px] p-4 bg-white dark:bg-dark-surface focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500"
+            className="border rounded-lg min-h-[200px] p-4 bg-white dark:bg-dark-surface focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:cursor-text [&_.ProseMirror_p]:m-0"
           />
         </div>
 

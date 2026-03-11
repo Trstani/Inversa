@@ -106,6 +106,7 @@ export const getProjectById = async (id) => {
     return projects.find(p => p.id === parseInt(id));
 };
 
+
 // ============= CHAPTERS =============
 
 export const loadChapters = async (projectId = null) => {
