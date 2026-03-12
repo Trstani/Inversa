@@ -133,6 +133,7 @@ export const loadChapters = async (projectId = null) => {
     return allChapters;
 };
 
+// ngelock chapter untuk memastikan user lain gabisa masuk dan edit chapter ketika chapter sedang di edit //
 export const lockChapter = (chapterId, userId) => {
 
     const data = loadFromLocalStorage('chapters')
@@ -168,6 +169,7 @@ export const lockChapter = (chapterId, userId) => {
     saveToLocalStorage('chapters', { chapters: updated })
 }
 
+// membuka lock chapter ketika user selesai edit //
 export const unlockChapter = (chapterId, userId) => {
 
     const data = loadFromLocalStorage('chapters')
@@ -190,6 +192,8 @@ export const unlockChapter = (chapterId, userId) => {
 
     saveToLocalStorage('chapters', { chapters: updated })
 }
+
+//save chapter//
 
 export const saveChapter = async (chapter) => {
     try {
