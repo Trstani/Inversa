@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getProjectById, loadChapters, saveReadingHistory } from '../utils/dataManager';
+import { getProjectById, loadChapters, saveReadingHistory } from '../utils/dataManager/index';
 import { FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Button from './Button';
 

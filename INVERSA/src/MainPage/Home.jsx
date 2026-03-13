@@ -6,7 +6,7 @@ import {
   loadFollowedProjects,
   loadReadingHistory,
   getContinueReading
-} from "../utils/dataManager";
+} from '../utils/dataManager/index';
 
 import BentoGrid from "../section/BentoGrid";
 import ProjectCarousel from "../section/ProjectCarousel";

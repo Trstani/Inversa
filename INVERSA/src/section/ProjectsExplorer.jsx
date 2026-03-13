@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch, FiTrendingUp } from "react-icons/fi";
 import { genres } from "../data/mockData";
-import { loadProjects } from "../utils/dataManager";
+import { loadProjects } from '../utils/dataManager/index';
 import CardProject from "../components/CardProject";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";

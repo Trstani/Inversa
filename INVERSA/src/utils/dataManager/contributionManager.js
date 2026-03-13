@@ -1,7 +1,6 @@
 import { saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
 import { loadChapters } from "./chapterManager";
 
-
 // =======================
 // LOAD CONTRIBUTIONS
 // =======================
@@ -18,7 +17,6 @@ export const loadContributions = (chapterId = null) => {
     }
 
     return contributions;
-
 };
 
 
@@ -135,7 +133,8 @@ export const approveContribution = async (contributionId) => {
 
     if (!contribution) return null;
 
-    const chapters = await loadChapters();
+    // LOAD CHAPTERS FROM THE CORRECT PROJECT
+    const chapters = await loadChapters(contribution.projectId);
 
     const chapterIndex = chapters.findIndex(
         c => c.id === contribution.chapterId

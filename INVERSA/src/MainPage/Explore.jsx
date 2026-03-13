@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadProjects } from "../utils/dataManager";
+import { loadProjects } from '../utils/dataManager/index';
 import RecommendationSidebar from "../section/RecommendationSidebar";
 import ProjectsExplorer from "../section/ProjectsExplorer";
 

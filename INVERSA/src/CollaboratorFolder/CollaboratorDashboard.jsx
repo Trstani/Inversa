@@ -6,7 +6,7 @@ import {
   loadProjects,
   loadCollaborations,
   updateCollaborationStatus
-} from "../utils/dataManager";
+} from '../utils/dataManager/index';
 
 import { FiSearch, FiClock, FiBook, FiStar } from "react-icons/fi";
 import Button from "../components/Button";

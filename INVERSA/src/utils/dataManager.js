@@ -1,4 +1,4 @@
-// Data Manager - Hybrid approach (localStorage + API)
+/* // Data Manager - Hybrid approach (localStorage + API)
 // Falls back to localStorage if API server is not available
 
 const API_BASE_URL = 'http://localhost:3001/api';
@@ -411,6 +411,7 @@ export const reportProject = async (reportData) => {
     =========================
     */
 
+    /*
     const projectReports = reports.filter(
         r => r.projectId === parseInt(reportData.projectId)
     );
@@ -904,3 +905,4 @@ export const createNewChapter = async (projectId, chapterData) => {
 
     return newChapter;
 };
+*/

@@ -4,6 +4,7 @@ import EditorActions from "./EditorActions";
 import TextEditorSection from "./TextEditorSection";
 import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
+import { submitContribution } from "../../utils/dataManager";
 
 const EditorBody = ({
   chapter,
@@ -115,6 +116,7 @@ const EditorBody = ({
   };
 
   const handleSave = (publish = false) => {
+
     if (!user) {
       alert("You must be logged in.");
       return;
@@ -130,6 +132,29 @@ const EditorBody = ({
       return;
     }
 
+    // =============================
+    // COLLABORATOR FLOW
+    // =============================
+
+    if (!isInitiator) {
+
+      submitContribution({
+        projectId: chapter.projectId,
+        chapterId: chapter.id,
+        authorId: user.id,
+        content: sections,
+        originalContent: chapter.sections
+      });
+
+      alert("Contribution submitted for review.");
+
+      return;
+    }
+
+    // =============================
+    // INITIATOR FLOW (DIRECT SAVE)
+    // =============================
+
     const newVersionNumber = (chapter.currentVersion || 0) + 1;
 
     const newVersion = {
@@ -139,9 +164,6 @@ const EditorBody = ({
       createdAt: new Date().toISOString(),
     };
 
-    // 🔥 Status Logic:
-    // - Kalau initiator edit published → tetap published
-    // - Kalau collaborator save draft → tetap draft
     let newStatus = chapter.status;
 
     if (publish && isInitiator) {
@@ -159,6 +181,7 @@ const EditorBody = ({
     };
 
     onSave(updatedChapter, publish);
+
   };
 
   return (
@@ -193,8 +216,8 @@ const EditorBody = ({
             onClick={addTextSection}
             disabled={!canAddText}
             className={`${canAddText
-                ? "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 rounded-lg"
-                : "bg-gray-400 cursor-not-allowed"
+              ? "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 rounded-lg"
+              : "bg-gray-400 cursor-not-allowed"
               }`}
           >
             Add Text
@@ -204,8 +227,8 @@ const EditorBody = ({
             onClick={addImageSection}
             disabled={!canAddImage}
             className={`${canAddImage
-                ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 rounded-lg"
-                : "bg-gray-400 cursor-not-allowed"
+              ? "bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-base text-sm px-4 py-2.5 text-center leading-5 rounded-lg"
+              : "bg-gray-400 cursor-not-allowed"
               }`}
           >
             Add Image

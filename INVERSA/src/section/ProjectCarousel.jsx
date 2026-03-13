@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
-import { loadProjects } from "../utils/dataManager";
+import { loadProjects } from '../utils/dataManager/index';
 import CardProject from "../components/CardProject";
 import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 

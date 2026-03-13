@@ -1,3 +1,4 @@
+/*
 // User Manager - Simple user database using localStorage + JSON
 // Stores user credentials and profile data
 
@@ -558,3 +559,5 @@ export const listAllUsers = () => {
 // ==============================
 
 initializeDefaultUsers();
+
+*/

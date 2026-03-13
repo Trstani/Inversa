@@ -2,11 +2,11 @@ import { saveToLocalStorage, loadFromLocalStorage } from './storageUtils';
 
 const USERS_KEY = "users";
 
-const getAllUsers = () => {
+export const getAllUsers = () => {
     return loadFromLocalStorage(USERS_KEY) || [];
 };
 
-const saveUsers = (users) => {
+export const saveUsers = (users) => {
     saveToLocalStorage(USERS_KEY, users);
 };
 

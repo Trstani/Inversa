@@ -4,7 +4,7 @@ import ChapterSidebar from "./ChapterSidebar";
 import EditorHeader from "./EditorHeader";
 import EditorBody from "./EditorBody";
 import CreateChapterModal from "./CreateChapterModal";
-import { createNewChapter, deleteChapter } from "../../utils/dataManager";
+import { createNewChapter, deleteChapter } from '../../utils/dataManager/index';
 
 const EditorLayout = ({
   project,

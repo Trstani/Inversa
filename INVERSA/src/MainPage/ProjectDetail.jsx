@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getProjectById, loadChapters, saveCollaborationRequest, loadCollaborationRequests, reportProject } from '../utils/dataManager';
-import { findUserById } from '../utils/userManager';
+import { getProjectById, loadChapters, saveCollaborationRequest, loadCollaborationRequests, reportProject } from '../utils/dataManager/index';
+import { findUserById } from '../utils/dataManager/index';
 
 import {
   FiArrowLeft,

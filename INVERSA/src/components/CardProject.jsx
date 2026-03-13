@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiHeart, FiUser, FiUsers, FiClock } from 'react-icons/fi';
 import BadgeGenre from './BadgeGenre';
 import BadgeCategories from './BadgeCategories';
-import { findUserById } from '../utils/userManager';
-import { incrementLikes, decrementLikes } from '../utils/dataManager';
+import { findUserById, incrementLikes, decrementLikes } from '../utils/dataManager/index';
 
 const CardProject = ({ project, showCollabStatus = false }) => {
     const [isLiked, setIsLiked] = useState(false);
