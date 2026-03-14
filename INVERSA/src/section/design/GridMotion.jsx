@@ -13,7 +13,9 @@ const GridMotion = ({ items = [], gradientColor = "black" }) => {
   );
 
   const combinedItems =
-    items.length > 0 ? items.slice(0, totalItems) : defaultItems;
+    items.length > 0
+      ? Array.from({ length: totalItems }, (_, i) => items[i % items.length])
+      : defaultItems;
 
   useEffect(() => {
     gsap.ticker.lagSmoothing(0);
@@ -69,8 +71,7 @@ const GridMotion = ({ items = [], gradientColor = "black" }) => {
                   <div key={itemIndex} className="relative">
                     <div className="relative w-full h-full overflow-hidden rounded-[10px] bg-[#111] flex items-center justify-center text-white text-[1.5rem]">
 
-                      {typeof content === "string" &&
-                      content.startsWith("http") ? (
+                      {typeof content === "string" ? (
                         <div
                           className="w-full h-full bg-cover bg-center absolute top-0 left-0"
                           style={{

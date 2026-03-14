@@ -4,13 +4,22 @@ import { FiArrowRight } from 'react-icons/fi';
 import Button from '../components/Button';
 import GridMotion from './design/GridMotion';
 
+import img1 from '../assets/imggrid/img1.jpg';
+import img2 from '../assets/imggrid/img2.jpg';
+import img3 from '../assets/imggrid/img3.jpg';
+import img4 from '../assets/imggrid/img4.jpg';
+import img5 from '../assets/imggrid/img5.jpg';
+import img6 from '../assets/imggrid/img6.jpg';
+import img7 from '../assets/imggrid/img7.jpg';
+
 const items = [
-  "https://images.unsplash.com/photo-1748370987492-eb390a61dcda?q=80&w=3464&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1748370987492-eb390a61dcda?q=80&w=3464&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1748370987492-eb390a61dcda?q=80&w=3464&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1748370987492-eb390a61dcda?q=80&w=3464&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1748370987492-eb390a61dcda?q=80&w=3464&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1748370987492-eb390a61dcda?q=80&w=3464&auto=format&fit=crop",
+  img1,
+  img2,
+  img3,
+  img4,
+  img5,
+  img6,
+  img7
 ];
 
 const HeroFst = () => {
@@ -31,7 +40,7 @@ const HeroFst = () => {
 
           <h1 className="text-4xl md:text-6xl font-bold font-logo leading-tight">
             Kolaborasi Kreatif
-            <span className="block text-light-primary">
+            <span className="block text-zinc-500">
               Tanpa Batas
             </span>
           </h1>
