@@ -266,3 +266,58 @@ export const getChapterByNumber = async (projectId, chapterNumber) => {
     return chapters.find(c => c.chapterNumber === parseInt(chapterNumber));
 
 };
+
+// =======================
+// CREATE NEW CHAPTER
+// =======================
+
+export const createNewChapter = async (projectId, chapterData) => {
+
+    const chapters = await loadChapters();
+    const projectChapters = chapters.filter(
+        c => c.projectId === parseInt(projectId)
+    );
+
+    const newChapter = {
+        ...chapterData,
+
+        id: Date.now(),
+        projectId: parseInt(projectId),
+
+        chapterNumber: projectChapters.length + 1,
+        status: "draft",
+
+        lockedBy: null,
+        lockedAt: null,
+
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+
+        comments: [],
+    };
+
+    chapters.push(newChapter);
+
+    saveToLocalStorage("chapters", { chapters });
+
+    // update project total chapters
+    const projects = await loadProjects();
+    const projectIndex = projects.findIndex(
+        p => p.id === parseInt(projectId)
+    );
+
+    if (projectIndex >= 0) {
+
+        projects[projectIndex].totalChapters =
+            projectChapters.length + 1;
+
+        projects[projectIndex].updatedAt =
+            new Date().toISOString();
+
+        saveToLocalStorage("projects", { projects });
+
+    }
+
+    return newChapter;
+
+};

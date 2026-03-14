@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import {
-  loadProjects,
+  loadAllProjects,
   saveProject,
   deleteProject,
   loadCollaborationRequests,
   updateCollaborationRequest,
-} from "../../utils/dataManager";
+} from "../../utils/dataManager/index";
 
 const useInitiatorDashboard = (user) => {
   const [projects, setProjects] = useState([]);
@@ -19,7 +19,7 @@ const useInitiatorDashboard = (user) => {
   const loadData = async () => {
     setLoading(true);
 
-    const allProjects = await loadProjects();
+    const allProjects = await loadAllProjects();
     const userProjects = allProjects.filter(
       (p) => p.initiatorId === user?.id
     );
@@ -42,6 +42,7 @@ const useInitiatorDashboard = (user) => {
       collaborators: [],
       likes: 0,
       totalChapters: 0,
+      status: "draft"
     });
     await loadData();
   };

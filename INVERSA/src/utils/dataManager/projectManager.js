@@ -13,8 +13,14 @@ export const loadProjects = async () => {
         });
 
         if (response.ok) {
+
             const data = await response.json();
-            return data?.projects || [];
+            const projects = data?.projects || [];
+
+            return projects.filter(
+                p => !p.hidden && p.status === "published"
+            );
+
         }
 
     } catch (error) {
@@ -22,7 +28,23 @@ export const loadProjects = async () => {
     }
 
     const data = loadFromLocalStorage("projects");
+    const projects = data?.projects || [];
+
+    return projects.filter(
+        p => !p.hidden && p.status === "published"
+    );
+
+};
+
+// =======================
+// LOAD ALL PROJECTS (PRIVATE)
+// =======================
+
+export const loadAllProjects = async () => {
+
+    const data = loadFromLocalStorage("projects");
     return data?.projects || [];
+
 };
 
 
@@ -79,7 +101,8 @@ export const saveProject = async (project) => {
             totalChapters: 0,
             likes: 0,
             views: 0,
-            collaborators: []
+            collaborators: [],
+            status: "draft"
         };
 
         projects.push(newProject);
@@ -91,6 +114,8 @@ export const saveProject = async (project) => {
     return projects;
 
 };
+
+
 
 
 // =======================
@@ -131,7 +156,7 @@ export const deleteProject = async (id) => {
 
 export const getProjectById = async (id) => {
 
-    const projects = await loadProjects();
+    const projects = await loadAllProjects();
 
     return projects.find(p => p.id === parseInt(id));
 

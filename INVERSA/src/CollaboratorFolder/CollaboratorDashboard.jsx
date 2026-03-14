@@ -4,9 +4,9 @@ import { useAuth } from "../context/AuthContext";
 
 import {
   loadProjects,
-  loadCollaborations,
-  updateCollaborationStatus
-} from '../utils/dataManager/index';
+  loadCollaborationRequests,
+  updateCollaborationRequest
+} from "../utils/dataManager/index";
 
 import { FiSearch, FiClock, FiBook, FiStar } from "react-icons/fi";
 import Button from "../components/Button";
@@ -17,7 +17,6 @@ const CollaboratorDashboard = () => {
   const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
-
   const [suggestedProjects, setSuggestedProjects] = useState([]);
   const [joinedProjects, setJoinedProjects] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -36,8 +35,10 @@ const CollaboratorDashboard = () => {
   const loadData = async () => {
     setLoading(true);
 
+    // only published projects
     const projectsData = await loadProjects();
-    const collaborations = await loadCollaborations();
+
+    const collaborations = await loadCollaborationRequests();
 
     setProjects(projectsData);
 
@@ -82,7 +83,11 @@ const CollaboratorDashboard = () => {
         (c) => c.projectId === p.id
       );
 
-      return p.status === "open" && !alreadyRequested;
+      const alreadyJoined = approvedCollaborations.some(
+        (c) => c.projectId === p.id
+      );
+
+      return !alreadyRequested && !alreadyJoined;
     });
 
     setAllProjects(available);
@@ -125,7 +130,7 @@ const CollaboratorDashboard = () => {
 
   const handleCancelRequest = async (collabId) => {
     if (window.confirm("Cancel this collaboration request?")) {
-      await updateCollaborationStatus(collabId, "cancelled");
+      await updateCollaborationRequest(collabId, "cancelled");
       await loadData();
     }
   };
@@ -146,7 +151,7 @@ const CollaboratorDashboard = () => {
   });
 
   // =============================
-  // LOADING STATE
+  // LOADING
   // =============================
 
   if (loading) {
@@ -167,6 +172,7 @@ const CollaboratorDashboard = () => {
           <h1 className="text-4xl font-bold text-light-primary dark:text-dark-primary mb-2">
             Collaborator Dashboard
           </h1>
+
           <p className="text-light-secondary dark:text-dark-secondary">
             Discover and join collaborative writing projects
           </p>
@@ -195,14 +201,15 @@ const CollaboratorDashboard = () => {
                     key={request.id}
                     className="flex items-center justify-between p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
                   >
+
                     <div>
                       <p className="font-semibold">
                         {project?.title || "Project"}
                       </p>
 
                       <p className="text-sm text-light-secondary dark:text-dark-secondary">
-                        Requested role:{" "}
-                        <span className="font-medium">
+                        Requested role:
+                        <span className="font-medium ml-1">
                           {request.role}
                         </span>
                       </p>
@@ -218,6 +225,7 @@ const CollaboratorDashboard = () => {
                     >
                       Cancel Request
                     </button>
+
                   </div>
                 );
               })}
@@ -250,11 +258,12 @@ const CollaboratorDashboard = () => {
               ))}
 
             </div>
+
           </div>
         )}
 
         {/* ============================= */}
-        {/* SUGGESTED PROJECTS */}
+        {/* SUGGESTED */}
         {/* ============================= */}
 
         {suggestedProjects.length > 0 && (
@@ -277,11 +286,12 @@ const CollaboratorDashboard = () => {
               ))}
 
             </div>
+
           </div>
         )}
 
         {/* ============================= */}
-        {/* DISCOVER PROJECTS */}
+        {/* DISCOVER */}
         {/* ============================= */}
 
         <div>
@@ -325,8 +335,6 @@ const CollaboratorDashboard = () => {
 
             </div>
           </div>
-
-          {/* PROJECT GRID */}
 
           {filteredProjects.length === 0 ? (
             <div className="card p-8 text-center">

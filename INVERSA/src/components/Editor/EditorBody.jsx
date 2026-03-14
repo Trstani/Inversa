@@ -4,7 +4,7 @@ import EditorActions from "./EditorActions";
 import TextEditorSection from "./TextEditorSection";
 import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
-import { submitContribution } from "../../utils/dataManager";
+import { submitContribution } from "../../utils/dataManager/index";
 
 const EditorBody = ({
   chapter,

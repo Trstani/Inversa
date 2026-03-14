@@ -10,7 +10,7 @@ import {
   getProjectById,
   lockChapter,
   unlockChapter
-} from "../utils/dataManager";
+} from "../utils/dataManager/index";
 
 import EditorLayout from "../components/Editor/EditorLayout";
 
