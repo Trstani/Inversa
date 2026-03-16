@@ -1,13 +1,8 @@
-// utils/dataManager/collaborationManager.js
-
-import { loadFromLocalStorage, saveToLocalStorage } from "./storageUtils";
+import { API_BASE_URL, saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
 import { loadProjects } from "./projectManager";
 
-const API_BASE_URL = "http://localhost:3001/api";
 
-// ==============================
-// LOAD REQUESTS
-// ==============================
+// ============= COLLABORATION REQUESTS =============
 
 export const loadCollaborationRequests = async (projectId = null) => {
 
@@ -18,29 +13,31 @@ export const loadCollaborationRequests = async (projectId = null) => {
       : `${API_BASE_URL}/collaborations`;
 
     const response = await fetch(url, {
-      signal: AbortSignal.timeout(2000),
+      signal: AbortSignal.timeout(2000)
     });
 
     if (response.ok) {
 
       const data = await response.json();
+
       return data?.requests || [];
 
     }
 
   } catch (error) {
 
-    console.warn("API unavailable, using localStorage");
+    console.warn('API unavailable, using localStorage');
 
   }
 
-  const data = loadFromLocalStorage("collaborations");
+  const data = loadFromLocalStorage('collaborations');
+
   const allRequests = data?.requests || [];
 
   if (projectId) {
 
     return allRequests.filter(
-      (r) => r.projectId === parseInt(projectId)
+      r => r.projectId === parseInt(projectId)
     );
 
   }
@@ -49,8 +46,10 @@ export const loadCollaborationRequests = async (projectId = null) => {
 
 };
 
+
+
 // ==============================
-// SAVE REQUEST
+// SAVE COLLAB REQUEST
 // ==============================
 
 export const saveCollaborationRequest = async (request) => {
@@ -59,11 +58,9 @@ export const saveCollaborationRequest = async (request) => {
 
     const response = await fetch(`${API_BASE_URL}/collaborations`, {
 
-      method: "POST",
+      method: 'POST',
 
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { 'Content-Type': 'application/json' },
 
       body: JSON.stringify(request),
 
@@ -79,7 +76,7 @@ export const saveCollaborationRequest = async (request) => {
 
   } catch (error) {
 
-    console.warn("API unavailable, using localStorage");
+    console.warn('API unavailable, using localStorage');
 
   }
 
@@ -91,7 +88,7 @@ export const saveCollaborationRequest = async (request) => {
 
     id: Date.now(),
 
-    status: "pending",
+    status: 'pending',
 
     createdAt: new Date().toISOString(),
 
@@ -99,27 +96,27 @@ export const saveCollaborationRequest = async (request) => {
 
   requests.push(newRequest);
 
-  saveToLocalStorage("collaborations", { requests });
+  saveToLocalStorage('collaborations', { requests });
 
   return requests;
 
 };
 
+
+
 // ==============================
 // UPDATE REQUEST
 // ==============================
 
-export const updateCollaborationRequest = async (
-  id,
-  status,
-  role = null
-) => {
+export const updateCollaborationRequest = async (id, status, role = null) => {
 
   try {
 
     const requests = await loadCollaborationRequests();
 
-    const request = requests.find((r) => r.id === id);
+    const request = requests.find(
+      r => r.id === id
+    );
 
     if (request) {
 
@@ -127,15 +124,17 @@ export const updateCollaborationRequest = async (
 
       if (role) updateData.requestedRole = role;
 
-      const response = await fetch(
-        `${API_BASE_URL}/collaborations/${id}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(updateData),
-          signal: AbortSignal.timeout(2000),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/collaborations/${id}`, {
+
+        method: 'PUT',
+
+        headers: { 'Content-Type': 'application/json' },
+
+        body: JSON.stringify(updateData),
+
+        signal: AbortSignal.timeout(2000),
+
+      });
 
       if (response.ok) {
 
@@ -147,33 +146,36 @@ export const updateCollaborationRequest = async (
 
   } catch (error) {
 
-    console.warn("API unavailable, using localStorage");
+    console.warn('API unavailable, using localStorage');
 
   }
 
   const requests = await loadCollaborationRequests();
 
-  const requestIndex = requests.findIndex((r) => r.id === id);
+  const requestIndex = requests.findIndex(
+    r => r.id === id
+  );
 
   if (requestIndex >= 0) {
 
     requests[requestIndex].status = status;
 
-    // jika approve -> tambahkan collaborator ke project
-    if (status === "approved") {
+    if (status === 'approved') {
 
       const request = requests[requestIndex];
 
       const projects = await loadProjects();
 
       const projectIndex = projects.findIndex(
-        (p) => p.id === request.projectId
+        p => p.id === request.projectId
       );
 
       if (projectIndex >= 0) {
 
         if (!projects[projectIndex].collaborators) {
+
           projects[projectIndex].collaborators = [];
+
         }
 
         projects[projectIndex].collaborators.push({
@@ -182,7 +184,7 @@ export const updateCollaborationRequest = async (
 
           role: role || request.requestedRole,
 
-          status: "approved",
+          status: 'approved',
 
           assignedChapters: [],
 
@@ -190,19 +192,21 @@ export const updateCollaborationRequest = async (
 
         });
 
-        saveToLocalStorage("projects", { projects });
+        saveToLocalStorage('projects', { projects });
 
       }
 
     }
 
-    saveToLocalStorage("collaborations", { requests });
+    saveToLocalStorage('collaborations', { requests });
 
   }
 
   return requests;
 
 };
+
+
 
 // ==============================
 // DELETE REQUEST
@@ -212,13 +216,13 @@ export const deleteCollaborationRequest = async (id) => {
 
   try {
 
-    const response = await fetch(
-      `${API_BASE_URL}/collaborations/${id}`,
-      {
-        method: "DELETE",
-        signal: AbortSignal.timeout(2000),
-      }
-    );
+    const response = await fetch(`${API_BASE_URL}/collaborations/${id}`, {
+
+      method: 'DELETE',
+
+      signal: AbortSignal.timeout(2000),
+
+    });
 
     if (response.ok) {
 
@@ -228,15 +232,17 @@ export const deleteCollaborationRequest = async (id) => {
 
   } catch (error) {
 
-    console.warn("API unavailable, using localStorage");
+    console.warn('API unavailable, using localStorage');
 
   }
 
   const requests = await loadCollaborationRequests();
 
-  const filtered = requests.filter((r) => r.id !== id);
+  const filtered = requests.filter(
+    r => r.id !== id
+  );
 
-  saveToLocalStorage("collaborations", { requests: filtered });
+  saveToLocalStorage('collaborations', { requests: filtered });
 
   return filtered;
 

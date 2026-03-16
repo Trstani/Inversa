@@ -1,279 +1,305 @@
+// projectManager.js
+
 import { API_BASE_URL, saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
 
-// =======================
-// LOAD PROJECTS
-// =======================
+// ============= PROJECTS =============
 
 export const loadProjects = async () => {
 
-    try {
+  try {
 
-        const response = await fetch(`${API_BASE_URL}/projects`, {
-            signal: AbortSignal.timeout(2000)
-        });
+    const response = await fetch(`${API_BASE_URL}/projects`, {
+      signal: AbortSignal.timeout(2000)
+    });
 
-        if (response.ok) {
+    if (response.ok) {
 
-            const data = await response.json();
-            const projects = data?.projects || [];
+      const data = await response.json();
 
-            return projects.filter(
-                p => !p.hidden && p.status === "published"
-            );
+      const projects = data?.projects || [];
 
-        }
+      return projects.filter(p => !p.hidden);
 
-    } catch (error) {
-        console.warn("API unavailable, using localStorage");
     }
 
-    const data = loadFromLocalStorage("projects");
-    const projects = data?.projects || [];
+  } catch (error) {
 
-    return projects.filter(
-        p => !p.hidden && p.status === "published"
-    );
+    console.warn('API unavailable, using localStorage');
 
-};
+  }
 
-// =======================
-// LOAD ALL PROJECTS (PRIVATE)
-// =======================
+  const data = loadFromLocalStorage('projects');
 
-export const loadAllProjects = async () => {
+  const projects = data?.projects || [];
 
-    const data = loadFromLocalStorage("projects");
-    return data?.projects || [];
+  return projects.filter(p => !p.hidden);
 
 };
 
-
-// =======================
-// SAVE PROJECT
-// =======================
 
 export const saveProject = async (project) => {
 
-    try {
+  try {
 
-        const method = project.id ? "PUT" : "POST";
+    const method = project.id ? 'PUT' : 'POST';
 
-        const url = project.id
-            ? `${API_BASE_URL}/projects/${project.id}`
-            : `${API_BASE_URL}/projects`;
+    const url = project.id
+      ? `${API_BASE_URL}/projects/${project.id}`
+      : `${API_BASE_URL}/projects`;
 
-        const response = await fetch(url, {
+    const response = await fetch(url, {
 
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(project),
-            signal: AbortSignal.timeout(2000)
+      method,
 
-        });
+      headers: { 'Content-Type': 'application/json' },
 
-        if (response.ok) {
-            return await loadProjects();
-        }
+      body: JSON.stringify(project),
 
-    } catch (error) {
-        console.warn("API unavailable, using localStorage");
-    }
+      signal: AbortSignal.timeout(2000),
 
-    const projects = await loadProjects();
+    });
 
-    const existingIndex = projects.findIndex(p => p.id === project.id);
+    if (response.ok) {
 
-    if (existingIndex >= 0) {
-
-        projects[existingIndex] = {
-            ...projects[existingIndex],
-            ...project,
-            updatedAt: new Date().toISOString()
-        };
-
-    } else {
-
-        const newProject = {
-            ...project,
-            id: Date.now(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            totalChapters: 0,
-            likes: 0,
-            views: 0,
-            collaborators: [],
-            status: "draft"
-        };
-
-        projects.push(newProject);
+      return await loadProjects();
 
     }
 
-    saveToLocalStorage("projects", { projects });
+  } catch (error) {
 
-    return projects;
+    console.warn('API unavailable, using localStorage');
+
+  }
+
+  const projects = await loadProjects();
+
+  const existingIndex = projects.findIndex(
+    p => p.id === project.id
+  );
+
+  if (existingIndex >= 0) {
+
+    projects[existingIndex] = {
+
+      ...projects[existingIndex],
+
+      ...project,
+
+      updatedAt: new Date().toISOString(),
+
+    };
+
+  } else {
+
+    const newProject = {
+
+      ...project,
+
+      id: Date.now(),
+
+      createdAt: new Date().toISOString(),
+
+      updatedAt: new Date().toISOString(),
+
+      likes: 0,
+
+      views: 0,
+
+      totalChapters: 0,
+
+      collaborators: project.collaborators || [],
+
+      hidden: false
+
+    };
+
+    projects.push(newProject);
+
+  }
+
+  saveToLocalStorage('projects', { projects });
+
+  return projects;
 
 };
 
-
-
-
-// =======================
-// DELETE PROJECT
-// =======================
 
 export const deleteProject = async (id) => {
 
-    try {
+  try {
 
-        const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
-            method: "DELETE",
-            signal: AbortSignal.timeout(2000)
-        });
+    const response = await fetch(`${API_BASE_URL}/projects/${id}`, {
 
-        if (response.ok) {
-            return await loadProjects();
-        }
+      method: 'DELETE',
 
-    } catch (error) {
-        console.warn("API unavailable, using localStorage");
+      signal: AbortSignal.timeout(2000),
+
+    });
+
+    if (response.ok) {
+
+      return await loadProjects();
+
     }
 
-    const projects = await loadProjects();
+  } catch (error) {
 
-    const filtered = projects.filter(p => p.id !== id);
+    console.warn('API unavailable, using localStorage');
 
-    saveToLocalStorage("projects", { projects: filtered });
+  }
 
-    return filtered;
+  const projects = await loadProjects();
+
+  const filtered = projects.filter(
+    p => p.id !== id
+  );
+
+  saveToLocalStorage('projects', { projects: filtered });
+
+  return filtered;
 
 };
 
-
-// =======================
-// GET PROJECT BY ID
-// =======================
 
 export const getProjectById = async (id) => {
 
-    const projects = await loadAllProjects();
+  const projects = await loadProjects();
 
-    return projects.find(p => p.id === parseInt(id));
-
-};
-
-
-// =======================
-// HIDE PROJECT
-// =======================
-
-export const hideProject = async (projectId) => {
-
-    const projects = await loadProjects();
-
-    const updated = projects.map(project => {
-
-        if (project.id === projectId) {
-
-            return {
-                ...project,
-                hidden: true
-            };
-
-        }
-
-        return project;
-
-    });
-
-    saveToLocalStorage("projects", { projects: updated });
-
-    return updated;
+  return projects.find(
+    p => p.id === parseInt(id)
+  );
 
 };
 
 
-// =======================
-// LIKE SYSTEM
-// =======================
+// ============= PROJECT UTILS =============
 
 export const incrementLikes = async (projectId) => {
 
-    const projects = await loadProjects();
+  const projects = await loadProjects();
 
-    const updated = projects.map(project => {
+  const project = projects.find(
+    p => p.id === projectId
+  );
 
-        if (project.id === projectId) {
+  if (project) {
 
-            return {
-                ...project,
-                likes: (project.likes || 0) + 1
-            };
+    project.likes = (project.likes || 0) + 1;
 
-        }
+    await saveProject(project);
 
-        return project;
+  }
 
-    });
-
-    saveToLocalStorage("projects", { projects: updated });
-
-    return updated;
+  return projects;
 
 };
 
 
 export const decrementLikes = async (projectId) => {
 
-    const projects = await loadProjects();
+  const projects = await loadProjects();
 
-    const updated = projects.map(project => {
+  const project = projects.find(
+    p => p.id === projectId
+  );
 
-        if (project.id === projectId) {
+  if (project) {
 
-            return {
-                ...project,
-                likes: Math.max((project.likes || 0) - 1, 0)
-            };
+    project.likes = Math.max(0, (project.likes || 0) - 1);
 
-        }
+    await saveProject(project);
 
-        return project;
+  }
 
-    });
-
-    saveToLocalStorage("projects", { projects: updated });
-
-    return updated;
+  return projects;
 
 };
 
 
-// =======================
-// VIEW COUNTER
-// =======================
-
 export const incrementViews = async (projectId) => {
 
-    const projects = await loadProjects();
+  const projects = await loadProjects();
 
-    const updated = projects.map(project => {
+  const project = projects.find(
+    p => p.id === projectId
+  );
 
-        if (project.id === projectId) {
+  if (project) {
 
-            return {
-                ...project,
-                views: (project.views || 0) + 1
-            };
+    project.views = (project.views || 0) + 1;
 
-        }
+    await saveProject(project);
 
-        return project;
+  }
 
-    });
+  return projects;
 
-    saveToLocalStorage("projects", { projects: updated });
+};
 
-    return updated;
+
+// ============= COLLABORATOR ASSIGNMENT =============
+
+export const assignCollaboratorToChapter = async (
+  projectId,
+  userId,
+  chapterId
+) => {
+
+  const projects = await loadProjects();
+
+  const project = projects.find(
+    p => p.id === projectId
+  );
+
+  if (project) {
+
+    const collaborator = project.collaborators?.find(
+      c => c.userId === userId
+    );
+
+    if (collaborator) {
+
+      if (!collaborator.assignedChapters) {
+
+        collaborator.assignedChapters = [];
+
+      }
+
+      if (!collaborator.assignedChapters.includes(chapterId)) {
+
+        collaborator.assignedChapters.push(chapterId);
+
+        await saveProject(project);
+
+      }
+
+    }
+
+  }
+
+  return projects;
+
+};
+
+
+// ============= PROJECT MODERATION =============
+
+export const hideProject = async (projectId) => {
+
+  const projects = await loadProjects();
+
+  const projectIndex = projects.findIndex(
+    p => p.id === parseInt(projectId)
+  );
+
+  if (projectIndex >= 0) {
+
+    projects[projectIndex].hidden = true;
+
+    projects[projectIndex].hiddenAt = new Date().toISOString();
+
+    saveToLocalStorage('projects', { projects });
+
+  }
 
 };

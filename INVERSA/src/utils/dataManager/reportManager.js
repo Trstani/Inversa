@@ -1,229 +1,205 @@
-import { saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
+import { API_BASE_URL, saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
+import { hideProject } from "./projectManager";
 
-const API_BASE_URL = "http://localhost:3001/api";
 
-// =======================
-// LOAD REPORTS
-// =======================
+// ============= REPORTS =============
 
 export const loadReports = async (projectId = null) => {
 
-    try {
+  try {
 
-        const url = projectId
-            ? `${API_BASE_URL}/reports?projectId=${projectId}`
-            : `${API_BASE_URL}/reports`;
+    const url = projectId
+      ? `${API_BASE_URL}/reports?projectId=${projectId}`
+      : `${API_BASE_URL}/reports`;
 
-        const response = await fetch(url, {
-            signal: AbortSignal.timeout(2000)
-        });
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(2000)
+    });
 
-        if (response.ok) {
+    if (response.ok) {
 
-            const data = await response.json();
+      const data = await response.json();
 
-            return data?.reports || [];
-
-        }
-
-    } catch (error) {
-
-        console.warn("API unavailable, using localStorage");
+      return data?.reports || [];
 
     }
 
-    const data = loadFromLocalStorage("reports");
+  } catch (error) {
 
-    const allReports = data?.reports || [];
+    console.warn('API unavailable, using localStorage');
 
-    if (projectId) {
+  }
 
-        return allReports.filter(
-            r => r.projectId === parseInt(projectId)
-        );
+  const data = loadFromLocalStorage('reports');
 
-    }
+  const allReports = data?.reports || [];
 
-    return allReports;
+  if (projectId) {
+
+    return allReports.filter(
+      r => r.projectId === parseInt(projectId)
+    );
+
+  }
+
+  return allReports;
 
 };
 
 
-// =======================
+
+// ==============================
 // REPORT PROJECT
-// =======================
+// ==============================
 
 export const reportProject = async (reportData) => {
 
-    try {
+  try {
 
-        const response = await fetch(`${API_BASE_URL}/reports`, {
+    const response = await fetch(`${API_BASE_URL}/reports`, {
 
-            method: "POST",
+      method: 'POST',
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+      headers: {
+        'Content-Type': 'application/json'
+      },
 
-            body: JSON.stringify(reportData),
+      body: JSON.stringify(reportData),
 
-            signal: AbortSignal.timeout(2000)
+      signal: AbortSignal.timeout(2000)
 
-        });
+    });
 
-        if (response.ok) {
+    if (response.ok) {
 
-            return await loadReports();
-
-        }
-
-    } catch (error) {
-
-        console.warn("API unavailable, using localStorage");
+      return await loadReports();
 
     }
 
-    const data = loadFromLocalStorage("reports");
+  } catch (error) {
 
-    const reports = data?.reports || [];
+    console.warn('API unavailable, using localStorage');
 
-    const alreadyReported = reports.find(r =>
+  }
 
-        r.projectId === parseInt(reportData.projectId) &&
-        r.reportedBy === reportData.reportedBy
+  const data = loadFromLocalStorage('reports');
 
-    );
+  const reports = data?.reports || [];
 
-    if (alreadyReported) {
+  const alreadyReported = reports.find(r =>
 
-        throw new Error("You already reported this project");
+    r.projectId === parseInt(reportData.projectId) &&
+    r.reportedBy === reportData.reportedBy
 
-    }
+  );
 
-    const newReport = {
+  if (alreadyReported) {
 
-        id: Date.now(),
+    throw new Error("You already reported this project");
 
-        projectId: parseInt(reportData.projectId),
+  }
 
-        reportedBy: reportData.reportedBy,
+  const newReport = {
 
-        reason: reportData.reason,
+    id: Date.now(),
 
-        note: reportData.note || "",
+    projectId: parseInt(reportData.projectId),
 
-        status: "pending",
+    reportedBy: reportData.reportedBy,
 
-        createdAt: new Date().toISOString()
+    reason: reportData.reason,
 
-    };
+    note: reportData.note || "",
 
-    reports.push(newReport);
+    status: "pending",
 
-    saveToLocalStorage("reports", { reports });
+    createdAt: new Date().toISOString()
 
-    return reports;
+  };
+
+  reports.push(newReport);
+
+  saveToLocalStorage('reports', { reports });
+
+
+  /*
+  =========================
+  AUTO HIDE PROJECT
+  =========================
+  */
+
+  
+  const projectReports = reports.filter(
+      r => r.projectId === parseInt(reportData.projectId)
+  );
+
+  if (projectReports.length >= 12) {
+
+      await hideProject(reportData.projectId);
+
+  }
+  
+
+  return reports;
 
 };
 
 
-// =======================
+
+// ==============================
 // DELETE REPORT
-// =======================
+// ==============================
 
 export const deleteReport = async (reportId) => {
 
-    try {
+  try {
 
-        const response = await fetch(`${API_BASE_URL}/reports/${reportId}`, {
+    const response = await fetch(`${API_BASE_URL}/reports/${reportId}`, {
 
-            method: "DELETE",
+      method: 'DELETE',
 
-            signal: AbortSignal.timeout(2000)
+      signal: AbortSignal.timeout(2000)
 
-        });
+    });
 
-        if (response.ok) {
+    if (response.ok) {
 
-            return await loadReports();
-
-        }
-
-    } catch (error) {
-
-        console.warn("API unavailable, using localStorage");
+      return await loadReports();
 
     }
 
-    const data = loadFromLocalStorage("reports");
+  } catch (error) {
 
-    const reports = data?.reports || [];
+    console.warn('API unavailable, using localStorage');
 
-    const filtered = reports.filter(
+  }
 
-        r => r.id !== reportId
+  const data = loadFromLocalStorage('reports');
 
-    );
+  const reports = data?.reports || [];
 
-    saveToLocalStorage("reports", { reports: filtered });
+  const filtered = reports.filter(
+    r => r.id !== reportId
+  );
 
-    return filtered;
+  saveToLocalStorage('reports', { reports: filtered });
+
+  return filtered;
 
 };
 
 
-// =======================
+
+// ==============================
 // GET REPORTS BY PROJECT
-// =======================
+// ==============================
 
 export const getReportsByProject = async (projectId) => {
 
-    const reports = await loadReports();
+  const reports = await loadReports();
 
-    return reports.filter(
-
-        r => r.projectId === parseInt(projectId)
-
-    );
-
-};
-
-
-// =======================
-// ADMIN FUNCTIONS
-// =======================
-
-export const getAllReportsForAdmin = async () => {
-
-    return await loadReports();
-
-};
-
-export const resolveReport = (reportId) => {
-
-    const data = loadFromLocalStorage("reports");
-
-    const reports = data?.reports || [];
-
-    const report = reports.find(
-
-        r => r.id === reportId
-
-    );
-
-    if (!report) {
-
-        return {
-            success: false,
-            error: "Report not found"
-        };
-
-    }
-
-    report.status = "resolved";
-
-    saveToLocalStorage("reports", { reports });
-
-    return { success: true };
+  return reports.filter(
+    r => r.projectId === parseInt(projectId)
+  );
 
 };

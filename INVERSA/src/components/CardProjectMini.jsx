@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { FiHeart, FiEye, FiUser } from "react-icons/fi";
-import { findUserById } from '../utils/dataManager/index';
+import { findUserById } from '../utils/userManager/index';
 
 const CardProjectMini = ({ project, rank }) => {
   if (!project) return null;

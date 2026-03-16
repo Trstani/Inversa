@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  loadAllProjects,
+  loadProjects,
   saveProject,
   deleteProject,
   loadCollaborationRequests,
@@ -19,7 +19,7 @@ const useInitiatorDashboard = (user) => {
   const loadData = async () => {
     setLoading(true);
 
-    const allProjects = await loadAllProjects();
+    const allProjects = await loadProjects();
     const userProjects = allProjects.filter(
       (p) => p.initiatorId === user?.id
     );

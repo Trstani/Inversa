@@ -1,323 +1,368 @@
+// chapterManager.js
+
 import { API_BASE_URL, saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
 import { loadProjects } from "./projectManager";
 
-// =======================
-// CHAPTERS
-// =======================
+
+// ============= CHAPTERS =============
 
 export const loadChapters = async (projectId = null) => {
 
-    try {
+  try {
 
-        const url = projectId
-            ? `${API_BASE_URL}/chapters?projectId=${projectId}`
-            : `${API_BASE_URL}/chapters`;
+    const url = projectId
+      ? `${API_BASE_URL}/chapters?projectId=${projectId}`
+      : `${API_BASE_URL}/chapters`;
 
-        const response = await fetch(url, { signal: AbortSignal.timeout(2000) });
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(2000)
+    });
 
-        if (response.ok) {
+    if (response.ok) {
 
-            const data = await response.json();
-            return data?.chapters || [];
+      const data = await response.json();
 
-        }
-
-    } catch (error) {
-
-        console.warn("API unavailable, using localStorage");
+      return data?.chapters || [];
 
     }
 
-    const data = loadFromLocalStorage("chapters");
-    const allChapters = data?.chapters || [];
+  } catch (error) {
 
-    if (projectId) {
-        return allChapters.filter(c => c.projectId === parseInt(projectId));
-    }
+    console.warn('API unavailable, using localStorage');
 
-    return allChapters;
+  }
+
+  const data = loadFromLocalStorage('chapters');
+
+  const allChapters = data?.chapters || [];
+
+  if (projectId) {
+
+    return allChapters.filter(
+      c => c.projectId === parseInt(projectId)
+    );
+
+  }
+
+  return allChapters;
 
 };
 
 
-// =======================
+// ============================
 // LOCK CHAPTER
-// =======================
+// ============================
 
 export const lockChapter = (chapterId, userId) => {
 
-    const data = loadFromLocalStorage("chapters");
+  const data = loadFromLocalStorage('chapters');
 
-    if (!data?.chapters) return;
+  if (!data?.chapters) return;
 
-    const chapters = data.chapters;
+  const chapters = data?.chapters || [];
 
-    const LOCK_TIMEOUT = 1000 * 60 * 10; // 10 menit
+  const LOCK_TIMEOUT = 1000 * 60 * 10;
 
-    const updated = chapters.map((chapter) => {
+  const updated = chapters.map((chapter) => {
 
-        if (chapter.id === chapterId) {
+    if (chapter.id === chapterId) {
 
-            if (chapter.lockedBy && chapter.lockedBy !== userId) {
+      if (chapter.lockedBy && chapter.lockedBy !== userId) {
 
-                const expired = Date.now() - chapter.lockedAt > LOCK_TIMEOUT;
+        const expired = Date.now() - chapter.lockedAt > LOCK_TIMEOUT;
 
-                if (!expired) {
-                    throw new Error("Chapter sedang diedit user lain");
-                }
+        if (!expired) {
 
-            }
-
-            return {
-                ...chapter,
-                lockedBy: userId,
-                lockedAt: Date.now(),
-            };
+          throw new Error("Chapter sedang diedit user lain");
 
         }
 
-        return chapter;
+      }
 
-    });
+      return {
+        ...chapter,
+        lockedBy: userId,
+        lockedAt: Date.now(),
+      };
 
-    saveToLocalStorage("chapters", { chapters: updated });
+    }
+
+    return chapter;
+
+  });
+
+  saveToLocalStorage('chapters', { chapters: updated });
 
 };
 
 
-// =======================
+// ============================
 // UNLOCK CHAPTER
-// =======================
+// ============================
 
 export const unlockChapter = (chapterId, userId) => {
 
-    const data = loadFromLocalStorage("chapters");
+  const data = loadFromLocalStorage('chapters');
 
-    if (!data?.chapters) return;
+  if (!data?.chapters) return;
 
-    const chapters = data.chapters;
+  const chapters = data.chapters;
 
-    const updated = chapters.map((chapter) => {
+  const updated = chapters.map((chapter) => {
 
-        if (chapter.id === chapterId && chapter.lockedBy === userId) {
+    if (chapter.id === chapterId && chapter.lockedBy === userId) {
 
-            return {
-                ...chapter,
-                lockedBy: null,
-                lockedAt: null,
-            };
+      return {
+        ...chapter,
+        lockedBy: null,
+        lockedAt: null,
+      };
 
-        }
+    }
 
-        return chapter;
+    return chapter;
 
-    });
+  });
 
-    saveToLocalStorage("chapters", { chapters: updated });
+  saveToLocalStorage('chapters', { chapters: updated });
 
 };
 
 
-// =======================
+// ============================
 // SAVE CHAPTER
-// =======================
+// ============================
 
 export const saveChapter = async (chapter) => {
 
-    try {
+  try {
 
-        const method = chapter.id ? "PUT" : "POST";
+    const method = chapter.id ? 'PUT' : 'POST';
 
-        const url = chapter.id
-            ? `${API_BASE_URL}/chapters/${chapter.id}`
-            : `${API_BASE_URL}/chapters`;
+    const url = chapter.id
+      ? `${API_BASE_URL}/chapters/${chapter.id}`
+      : `${API_BASE_URL}/chapters`;
 
-        const response = await fetch(url, {
+    const response = await fetch(url, {
 
-            method,
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(chapter),
-            signal: AbortSignal.timeout(2000),
+      method,
 
-        });
+      headers: { 'Content-Type': 'application/json' },
 
-        if (response.ok) {
+      body: JSON.stringify(chapter),
 
-            return await loadChapters();
+      signal: AbortSignal.timeout(2000),
 
-        }
+    });
 
-    } catch (error) {
+    if (response.ok) {
 
-        console.warn("API unavailable, using localStorage");
+      return await loadChapters();
 
     }
 
-    const chapters = await loadChapters();
+  } catch (error) {
 
-    const existingIndex = chapters.findIndex(c => c.id === chapter.id);
+    console.warn('API unavailable, using localStorage');
 
-    if (existingIndex >= 0) {
+  }
 
-        chapters[existingIndex] = {
-            ...chapters[existingIndex],
-            ...chapter,
-            lockedBy: chapters[existingIndex].lockedBy || null,
-            lockedAt: chapters[existingIndex].lockedAt || null,
-            updatedAt: new Date().toISOString(),
-        };
+  const chapters = await loadChapters();
 
-    } else {
+  const existingIndex = chapters.findIndex(
+    c => c.id === chapter.id
+  );
 
-        const projectChapters = await loadChapters(chapter.projectId);
+  if (existingIndex >= 0) {
 
-        const newChapter = {
+    chapters[existingIndex] = {
 
-            ...chapter,
-            id: Date.now(),
-            chapterNumber: projectChapters.length + 1,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            comments: [],
+      ...chapters[existingIndex],
 
-        };
+      ...chapter,
 
-        chapters.push(newChapter);
+      lockedBy: chapters[existingIndex].lockedBy || null,
 
-        const projects = await loadProjects();
+      lockedAt: chapters[existingIndex].lockedAt || null,
 
-        const projectIndex = projects.findIndex(p => p.id === chapter.projectId);
+      updatedAt: new Date().toISOString(),
 
-        if (projectIndex >= 0) {
+    };
 
-            projects[projectIndex].totalChapters = projectChapters.length + 1;
-            projects[projectIndex].updatedAt = new Date().toISOString();
+  } else {
 
-            saveToLocalStorage("projects", { projects });
-
-        }
-
-    }
-
-    saveToLocalStorage("chapters", { chapters });
-
-    return chapters;
-
-};
-
-
-// =======================
-// DELETE CHAPTER
-// =======================
-
-export const deleteChapter = async (id) => {
-
-    try {
-
-        const response = await fetch(`${API_BASE_URL}/chapters/${id}`, {
-            method: "DELETE",
-            signal: AbortSignal.timeout(2000),
-        });
-
-        if (response.ok) {
-
-            return await loadChapters();
-
-        }
-
-    } catch (error) {
-
-        console.warn("API unavailable, using localStorage");
-
-    }
-
-    const chapters = await loadChapters();
-
-    const filtered = chapters.filter(c => c.id !== id);
-
-    saveToLocalStorage("chapters", { chapters: filtered });
-
-    return filtered;
-
-};
-
-
-// =======================
-// GET CHAPTER BY ID
-// =======================
-
-export const getChapterById = async (projectId, chapterId) => {
-
-    const chapters = await loadChapters(projectId);
-
-    return chapters.find(c => c.id === parseInt(chapterId));
-
-};
-
-
-// =======================
-// GET CHAPTER BY NUMBER
-// =======================
-
-export const getChapterByNumber = async (projectId, chapterNumber) => {
-
-    const chapters = await loadChapters(projectId);
-
-    return chapters.find(c => c.chapterNumber === parseInt(chapterNumber));
-
-};
-
-// =======================
-// CREATE NEW CHAPTER
-// =======================
-
-export const createNewChapter = async (projectId, chapterData) => {
-
-    const chapters = await loadChapters();
-    const projectChapters = chapters.filter(
-        c => c.projectId === parseInt(projectId)
-    );
+    const projectChapters = await loadChapters(chapter.projectId);
 
     const newChapter = {
-        ...chapterData,
 
-        id: Date.now(),
-        projectId: parseInt(projectId),
+      ...chapter,
 
-        chapterNumber: projectChapters.length + 1,
-        status: "draft",
+      id: Date.now(),
 
-        lockedBy: null,
-        lockedAt: null,
+      chapterNumber: projectChapters.length + 1,
 
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
 
-        comments: [],
+      updatedAt: new Date().toISOString(),
+
+      comments: [],
+
     };
 
     chapters.push(newChapter);
 
-    saveToLocalStorage("chapters", { chapters });
-
-    // update project total chapters
     const projects = await loadProjects();
+
     const projectIndex = projects.findIndex(
-        p => p.id === parseInt(projectId)
+      p => p.id === chapter.projectId
     );
 
     if (projectIndex >= 0) {
 
-        projects[projectIndex].totalChapters =
-            projectChapters.length + 1;
+      projects[projectIndex].totalChapters =
+        projectChapters.length + 1;
 
-        projects[projectIndex].updatedAt =
-            new Date().toISOString();
+      projects[projectIndex].updatedAt =
+        new Date().toISOString();
 
-        saveToLocalStorage("projects", { projects });
+      saveToLocalStorage('projects', { projects });
 
     }
 
-    return newChapter;
+  }
+
+  saveToLocalStorage('chapters', { chapters });
+
+  return chapters;
+
+};
+
+
+// ============================
+// DELETE CHAPTER
+// ============================
+
+export const deleteChapter = async (id) => {
+
+  try {
+
+    const response = await fetch(`${API_BASE_URL}/chapters/${id}`, {
+
+      method: 'DELETE',
+
+      signal: AbortSignal.timeout(2000),
+
+    });
+
+    if (response.ok) {
+
+      return await loadChapters();
+
+    }
+
+  } catch (error) {
+
+    console.warn('API unavailable, using localStorage');
+
+  }
+
+  const chapters = await loadChapters();
+
+  const filtered = chapters.filter(
+    c => c.id !== id
+  );
+
+  saveToLocalStorage('chapters', { chapters: filtered });
+
+  return filtered;
+
+};
+
+
+// ============================
+// GET CHAPTER
+// ============================
+
+export const getChapterById = async (projectId, chapterId) => {
+
+  const chapters = await loadChapters(projectId);
+
+  return chapters.find(
+    c => c.id === parseInt(chapterId)
+  );
+
+};
+
+
+export const getChapterByNumber = async (projectId, chapterNumber) => {
+
+  const chapters = await loadChapters(projectId);
+
+  return chapters.find(
+    c => c.chapterNumber === parseInt(chapterNumber)
+  );
+
+};
+
+
+// ============================
+// CREATE NEW CHAPTER
+// ============================
+
+export const createNewChapter = async (projectId, chapterData) => {
+
+  const chapters = await loadChapters();
+
+  const projectChapters = chapters.filter(
+    c => c.projectId === parseInt(projectId)
+  );
+
+  const newChapter = {
+
+    ...chapterData,
+
+    id: Date.now(),
+
+    projectId: parseInt(projectId),
+
+    chapterNumber: projectChapters.length + 1,
+
+    status: 'draft',
+
+    lockedBy: null,
+
+    lockedAt: null,
+
+    createdAt: new Date().toISOString(),
+
+    updatedAt: new Date().toISOString(),
+
+    comments: [],
+
+  };
+
+  chapters.push(newChapter);
+
+  saveToLocalStorage('chapters', { chapters });
+
+  const projects = await loadProjects();
+
+  const projectIndex = projects.findIndex(
+    p => p.id === parseInt(projectId)
+  );
+
+  if (projectIndex >= 0) {
+
+    projects[projectIndex].totalChapters =
+      projectChapters.length + 1;
+
+    projects[projectIndex].updatedAt =
+      new Date().toISOString();
+
+    saveToLocalStorage('projects', { projects });
+
+  }
+
+  return newChapter;
 
 };

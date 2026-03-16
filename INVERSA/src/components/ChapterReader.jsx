@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getProjectById, loadChapters, updateReadingHistory} from '../utils/dataManager/index';
+import { getProjectById, loadChapters, saveReadingHistory } from '../utils/dataManager/index';
 import { FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Button from './Button';
 
@@ -60,9 +60,13 @@ const ChapterReader = () => {
 
   useEffect(() => {
 
-    if (!user || !project || !currentChapter) return;
+    if (!user || !currentChapter) return;
 
-    updateReadingHistory(userId, projectId, chapterId);
+    saveReadingHistory(
+      user.id,
+      parseInt(projectId),
+      currentChapter.id
+    );
 
   }, [user, projectId, currentChapter]);
 

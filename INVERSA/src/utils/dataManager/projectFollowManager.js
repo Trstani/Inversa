@@ -1,99 +1,156 @@
-import { loadFromLocalStorage, saveToLocalStorage } from "./storageUtils";
+import { API_BASE_URL, saveToLocalStorage, loadFromLocalStorage } from "./storageUtils";
 import { loadProjects } from "./projectManager";
 
-const FOLLOW_KEY = "projectFollows";
 
-/*
-=========================
-LOAD ALL FOLLOWS
-=========================
-*/
+// ==============================
+// LOAD FOLLOWED PROJECTS
+// ==============================
 
-const loadAllFollows = () => {
-  return loadFromLocalStorage(FOLLOW_KEY) || [];
+export const loadFollowedProjects = async (userId) => {
+
+  try {
+
+    const response = await fetch(`${API_BASE_URL}/follows?userId=${userId}`, {
+      signal: AbortSignal.timeout(2000)
+    });
+
+    if (response.ok) {
+
+      const data = await response.json();
+
+      return data?.follows || [];
+
+    }
+
+  } catch (error) {
+
+    console.warn('API unavailable, using localStorage');
+
+  }
+
+  const data = loadFromLocalStorage('follows');
+
+  const follows = data?.follows || [];
+
+  return follows.filter(
+    f => f.userId === userId
+  );
+
 };
 
-const saveFollows = (follows) => {
-  saveToLocalStorage(FOLLOW_KEY, follows);
-};
 
-/*
-=========================
-FOLLOW PROJECT
-=========================
-*/
 
-export const followProject = (userId, projectId) => {
+// ==============================
+// FOLLOW PROJECT
+// ==============================
 
-  const follows = loadAllFollows();
+export const followProject = async (userId, projectId) => {
 
-  const exists = follows.find(
+  try {
+
+    const response = await fetch(`${API_BASE_URL}/follows`, {
+
+      method: 'POST',
+
+      headers: {
+        'Content-Type': 'application/json'
+      },
+
+      body: JSON.stringify({
+        userId,
+        projectId
+      }),
+
+      signal: AbortSignal.timeout(2000)
+
+    });
+
+    if (response.ok) {
+
+      return await loadFollowedProjects(userId);
+
+    }
+
+  } catch (error) {
+
+    console.warn('API unavailable, using localStorage');
+
+  }
+
+  const data = loadFromLocalStorage('follows');
+
+  const follows = data?.follows || [];
+
+  const alreadyFollowed = follows.find(
     f => f.userId === userId && f.projectId === projectId
   );
 
-  if (exists) return;
+  if (alreadyFollowed) {
 
-  follows.push({
+    return follows;
+
+  }
+
+  const newFollow = {
+
     id: Date.now(),
-    userId,
-    projectId,
-    createdAt: new Date().toISOString()
-  });
 
-  saveFollows(follows);
+    userId,
+
+    projectId,
+
+    createdAt: new Date().toISOString()
+
+  };
+
+  follows.push(newFollow);
+
+  saveToLocalStorage('follows', { follows });
+
+  return follows;
 
 };
 
-/*
-=========================
-UNFOLLOW PROJECT
-=========================
-*/
 
-export const unfollowProject = (userId, projectId) => {
 
-  const follows = loadAllFollows();
+// ==============================
+// UNFOLLOW PROJECT
+// ==============================
 
-  const updated = follows.filter(
+export const unfollowProject = async (userId, projectId) => {
+
+  try {
+
+    const response = await fetch(`${API_BASE_URL}/follows/${projectId}?userId=${userId}`, {
+
+      method: 'DELETE',
+
+      signal: AbortSignal.timeout(2000)
+
+    });
+
+    if (response.ok) {
+
+      return await loadFollowedProjects(userId);
+
+    }
+
+  } catch (error) {
+
+    console.warn('API unavailable, using localStorage');
+
+  }
+
+  const data = loadFromLocalStorage('follows');
+
+  const follows = data?.follows || [];
+
+  const filtered = follows.filter(
     f => !(f.userId === userId && f.projectId === projectId)
   );
 
-  saveFollows(updated);
+  saveToLocalStorage('follows', { follows: filtered });
 
-};
-
-/*
-=========================
-CHECK FOLLOW
-=========================
-*/
-
-export const isProjectFollowed = (userId, projectId) => {
-
-  const follows = loadAllFollows();
-
-  return follows.some(
-    f => f.userId === userId && f.projectId === projectId
-  );
-
-};
-
-/*
-=========================
-LOAD FOLLOWED PROJECTS
-=========================
-*/
-
-export const loadFollowedProjects = (userId) => {
-
-  const follows = loadAllFollows();
-
-  const projectIds = follows
-    .filter(f => f.userId === userId)
-    .map(f => f.projectId);
-
-  const projects = loadProjects();
-
-  return projects.filter(p => projectIds.includes(p.id));
+  return filtered;
 
 };
