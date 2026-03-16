@@ -1,4 +1,7 @@
 import { getAllUsers, saveUsers, hashPassword, verifyPassword } from "./userStorage";
+import { initializeDummyUsers } from "./userStorage";
+
+initializeDummyUsers();
 
 export const findUserByEmail = (email) => {
 

@@ -110,3 +110,54 @@ export const saveUsers = (users) => {
   saveUsersToJSON(users);
 
 };
+
+// ==============================
+// DUMMY USERS INITIALIZER
+// ==============================
+
+export const initializeDummyUsers = () => {
+
+  const existingUsers = getAllUsers();
+
+  if (existingUsers.length > 0) {
+    return existingUsers;
+  }
+
+  const dummyUsers = [
+    {
+      id: 1001,
+      name: "Demo User 1",
+      email: "demo1@inversa.com",
+      password: hashPassword("demo123"),
+      role: "user",
+      createdAt: new Date().toISOString(),
+      followers: [],
+      following: []
+    },
+    {
+      id: 1002,
+      name: "Demo User 2",
+      email: "demo2@lego.com",
+      password: hashPassword("demo123"),
+      role: "user",
+      createdAt: new Date().toISOString(),
+      followers: [],
+      following: []
+    },
+    {
+      id: 1003,
+      name: "Admin",
+      email: "admin@inversa.com",
+      password: hashPassword("admin123"),
+      role: "admin",
+      createdAt: new Date().toISOString(),
+      followers: [],
+      following: []
+    }
+  ];
+
+  saveUsers(dummyUsers);
+
+  return dummyUsers;
+
+};

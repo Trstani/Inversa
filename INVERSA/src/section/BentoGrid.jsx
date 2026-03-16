@@ -115,34 +115,6 @@ const BentoGrid = ({
             </div>
           )}
 
-          {/* CONTINUE READING */}
-          {continueReading && (
-            <div
-              onClick={() =>
-                navigate(`/read/${continueReading.project.id}/${continueReading.chapter.id}`)
-              }
-              className="cursor-pointer rounded-2xl p-6 bg-gradient-to-br from-purple-600 to-pink-600 text-white hover:scale-105 transition flex flex-col shadow-lg"
-            >
-
-              <div className="h-24 bg-white/10 rounded-xl mb-4 flex items-center justify-center text-3xl">
-                📖
-              </div>
-
-              <h3 className="text-xl font-bold">
-                Continue Reading
-              </h3>
-
-              <p className="text-sm opacity-90">
-                {continueReading.project.title}
-              </p>
-
-              <p className="text-xs opacity-70 mt-1">
-                {continueReading.chapter.title}
-              </p>
-
-            </div>
-          )}
-
           {/* FOLLOW */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-md">
 
@@ -167,13 +139,15 @@ const BentoGrid = ({
           </div>
 
           {/* HISTORY */}
-          <div className="md:col-span-4 bg-white dark:bg-gray-800 rounded-2xl shadow-md">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-md flex flex-col">
 
-            <h4 className="font-semibold text-lg mb-3 p-4">
+            <h4 className="font-semibold text-lg mb-2 p-4">
               🕘 Recently Read
             </h4>
 
-            <HistoryCarousel history={history} />
+            <div className="px-2 pb-4">
+              <HistoryCarousel history={history} />
+            </div>
 
           </div>
 
