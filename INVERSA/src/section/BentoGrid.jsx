@@ -2,6 +2,9 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import CardProjectMini from "../components/CardProjectMini";
 import HistoryCarousel from "./design/HistoryCarousel";
+import createImg from '../assets/icon/create.png';
+import collabImg from '../assets/icon/collab.png';
+import heroimg from '../assets/icon/heroimg.jpg';
 
 const BentoGrid = ({
   isAuthenticated,
@@ -21,9 +24,17 @@ const BentoGrid = ({
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           {/* HERO */}
-          <div className="md:col-span-2 md:row-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-6 text-white flex flex-col justify-between shadow-lg">
+          <div
+            className="md:col-span-2 md:row-span-2 rounded-2xl p-6 text-white flex flex-col justify-between shadow-lg bg-cover bg-center relative overflow-hidden"
+            style={{ backgroundImage: `url(${heroimg})` }}
+          >
 
-            <div>
+            {/* overlay gelap */}
+            <div className="absolute inset-0 bg-indigo-800/40"></div>
+
+            {/* content */}
+            <div className="relative z-10">
+
               <h2 className="text-3xl font-bold mb-2">
                 Collaborate & Create
               </h2>
@@ -32,9 +43,10 @@ const BentoGrid = ({
                 Join a community of creators. Start your project or contribute
                 to others.
               </p>
+
             </div>
 
-            <div className="flex gap-4 mt-4">
+            <div className="flex gap-4 mt-4 relative z-10">
 
               <div className="bg-white/20 rounded-lg px-4 py-2">
                 <span className="text-2xl font-bold">{totalProjects}+</span>
@@ -50,7 +62,7 @@ const BentoGrid = ({
 
             <button
               onClick={() => navigate("/explore")}
-              className="bg-white text-indigo-700 px-6 py-2 rounded-full font-semibold mt-4 self-start hover:bg-opacity-90 transition shadow-md"
+              className="relative z-10 bg-white text-indigo-700 px-6 py-2 rounded-full font-semibold mt-4 self-start hover:bg-opacity-90 transition shadow-md"
             >
               Explore All
             </button>
@@ -64,8 +76,8 @@ const BentoGrid = ({
               className="cursor-pointer rounded-2xl p-6 bg-gradient-to-br from-amber-500 to-orange-600 text-white hover:scale-105 transition flex flex-col shadow-lg"
             >
 
-              <div className="h-24 bg-white/10 rounded-xl mb-4 flex items-center justify-center text-3xl">
-                🎨
+              <div className="h-24 bg-white/10 rounded-xl mb-4 flex items-center justify-center">
+                <img src={createImg} alt="create project" className="h-40 w-40 object-contain" />
               </div>
 
               <h3 className="text-xl font-bold">Create Project</h3>
@@ -93,8 +105,8 @@ const BentoGrid = ({
               className="cursor-pointer rounded-2xl p-6 bg-gradient-to-br from-indigo-600 to-purple-600 text-white hover:scale-105 transition flex flex-col shadow-lg"
             >
 
-              <div className="h-24 bg-white/10 rounded-xl mb-4 flex items-center justify-center text-3xl">
-                🤝
+              <div className="h-24 bg-white/10 rounded-xl mb-4 flex items-center justify-center">
+                <img src={collabImg} alt="join project" className="h-40 w-40 object-contain" />
               </div>
 
               <h3 className="text-xl font-bold">Join Project</h3>
@@ -145,7 +157,7 @@ const BentoGrid = ({
               🕘 Recently Read
             </h4>
 
-            <div className="px-2 pb-4">
+            <div className="pb-2">
               <HistoryCarousel history={history} />
             </div>
 
