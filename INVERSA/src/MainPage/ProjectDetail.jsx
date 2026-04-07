@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { getProjectById, loadChapters, saveCollaborationRequest, loadCollaborationRequests, reportProject } from '../utils/dataManager/index';
-import { findUserById } from '../utils/userManager/index';
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 import {
-  FiArrowLeft,
-  FiUsers,
-  FiBook,
-  FiHeart,
-  FiCheck,
-  FiClock,
-  FiFlag
-} from 'react-icons/fi';
+  getProjectById,
+  loadChapters,
+  saveCollaborationRequest,
+  loadCollaborationRequests,
+  reportProject
+} from "../utils/dataManager/index";
 
-import Button from '../components/Button';
-import CollaborationRequestModal from '../components/CollaborationRequestModal';
-import ReportsModal from '../components/ReportsModal';
+import { findUserById } from "../utils/userManager/index";
+
+import {
+  FiFlag,
+  FiClock
+} from "react-icons/fi";
+
+import Button from "../components/Button";
+import CollaborationRequestModal from "../components/CollaborationRequestModal";
+import ReportsModal from "../components/ReportsModal";
 
 const ProjectDetail = () => {
 
@@ -27,6 +30,8 @@ const ProjectDetail = () => {
   const [project, setProject] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const [activeTab, setActiveTab] = useState("read");
 
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -39,19 +44,17 @@ const ProjectDetail = () => {
   }, [projectId, user?.id]);
 
   const loadData = async () => {
-
     setLoading(true);
 
     const projectData = await getProjectById(projectId);
     setProject(projectData);
 
     if (projectData) {
-
       const chaptersData = await loadChapters(projectData.id);
       setChapters(chaptersData);
 
       const isCollab = projectData.collaborators?.some(
-        c => c.userId === user?.id && c.status === 'approved'
+        (c) => c.userId === user?.id && c.status === "approved"
       );
 
       setIsCollaborator(isCollab);
@@ -59,7 +62,7 @@ const ProjectDetail = () => {
       const requests = await loadCollaborationRequests();
 
       const userReq = requests.find(
-        r => r.projectId === projectData.id && r.userId === user?.id
+        (r) => r.projectId === projectData.id && r.userId === user?.id
       );
 
       setUserRequest(userReq);
@@ -69,7 +72,6 @@ const ProjectDetail = () => {
   };
 
   const handleRequestSubmit = async (role) => {
-
     const request = {
       projectId: parseInt(projectId),
       userId: user.id,
@@ -78,14 +80,12 @@ const ProjectDetail = () => {
     };
 
     await saveCollaborationRequest(request);
-
     setShowRequestModal(false);
-
     await loadData();
   };
 
+  // ✅ REPORT FLOW TIDAK DIUBAH
   const handleReportSubmit = async (data) => {
-
     const reportData = {
       projectId: project.id,
       projectTitle: project.title,
@@ -97,337 +97,238 @@ const ProjectDetail = () => {
     };
 
     await reportProject(reportData);
-
     alert("Report submitted. Thank you.");
-
     setShowReportModal(false);
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        Loading...
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (!project) {
-    return (
-      <div className="min-h-screen bg-light-background dark:bg-dark-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-light-secondary dark:text-dark-secondary mb-4">
-            Project not found
-          </p>
-
-          <Button onClick={() => navigate('/explore')}>
-            Back to Explore
-          </Button>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center">Project not found</div>;
   }
 
   const initiator = findUserById(project.initiatorId);
 
   const approvedCollaborators =
-    project.collaborators?.filter(c => c.status === 'approved') || [];
+    project.collaborators?.filter((c) => c.status === "approved") || [];
 
   const isInitiator = project.initiatorId === user?.id;
+  const canEdit = isInitiator || isCollaborator;
+  const isCollaborative = approvedCollaborators.length > 0;
 
   return (
+    <div className="min-h-screen bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200">
 
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-8">
+      {/* ================= HEADER ================= */}
+      <div
+        className="w-full h-[260px] relative"
+        style={{
+          backgroundImage: `url(${project.backgroundImage || "/default-cover.jpg"})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center"
+        }}
+      >
+        <div className="absolute inset-0 bg-black/60"></div>
 
-      <div className="max-w-4xl mx-auto px-4">
+        <div className="relative h-full flex justify-between p-8 text-white">
 
-        {/* Back Button */}
+          {/* LEFT */}
+          <div className="max-w-xl">
+            <h1 className="text-3xl font-bold">{project.title}</h1>
 
-        <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-light-accent dark:text-dark-accent hover:opacity-80 mb-6"
-        >
-          <FiArrowLeft /> Back
-        </button>
+            <div className="w-20 h-[2px] bg-white/70 my-2"></div>
 
-        {/* PROJECT HEADER */}
-
-        <div
-          className="relative rounded-xl overflow-hidden mb-8"
-          style={{
-            backgroundImage: `url(${project.backgroundImage || "/default-cover.jpg"})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center"
-          }}
-        >
-
-          {/* Overlay */}
-
-          <div className="absolute inset-0 bg-black/60"></div>
-
-          {/* Content */}
-
-          <div className="relative p-8 text-white">
-
-            <div className="flex items-start justify-between mb-4">
-
-              <div>
-
-                <h1 className="text-4xl font-bold mb-2">
-                  {project.title}
-                </h1>
-
-                <p className="text-white/80">
-                  by <span className="font-semibold">
-                    {initiator?.name || 'Unknown'}
-                  </span>
-                </p>
-
-              </div>
-
-              <div className="flex items-center gap-4">
-
-                <div className="flex items-center gap-2">
-                  <FiHeart className="w-5 h-5" />
-                  <span className="font-semibold">
-                    {project.likes || 0}
-                  </span>
-                </div>
-
-                {!isInitiator && (
-                  <button
-                    title='report project'
-                    onClick={() => setShowReportModal(true)}
-                    className="flex items-center gap-1 text-red-300 hover:text-red-400 text-sm bg-black/40 p-4 rounded-lg "
-                  >
-                    <FiFlag /> Report
-                  </button>
-                )}
-
-              </div>
-
-            </div>
-
-            <p className="text-white/90 mb-6">
+            <p className="text-sm text-gray-200">
               {project.description}
             </p>
+          </div>
 
-            {/* Stats */}
+          {/* RIGHT */}
+          <div className="text-right space-y-2">
+            <p className="text-sm">{project.genre}</p>
+            <p className="text-sm">{project.category}</p>
 
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <p className="text-xs text-gray-300">
+              by {initiator?.name || "Unknown"}
+            </p>
 
-              <div className="bg-black/40 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <FiBook className="w-4 h-4" />
-                  <span className="text-sm">Chapters</span>
-                </div>
-                <p className="text-2xl font-bold">{chapters.length}</p>
-              </div>
+            {!isInitiator && (
+              <button
+                onClick={() => setShowReportModal(true)}
+                className="text-xs text-red-300 hover:text-red-400 flex items-center gap-1 justify-end"
+              >
+                <FiFlag /> Report
+              </button>
+            )}
+          </div>
 
-              <div className="bg-black/40 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <FiUsers className="w-4 h-4" />
-                  <span className="text-sm">Collaborators</span>
-                </div>
-                <p className="text-2xl font-bold">
-                  {approvedCollaborators.length}
-                </p>
-              </div>
+        </div>
+      </div>
 
-              <div className="bg-black/40 p-4 rounded-lg">
-                <span className="text-sm">Status</span>
-                <p className="text-2xl font-bold capitalize">
-                  {project.status}
-                </p>
-              </div>
+      {/* ================= MAIN ================= */}
+      <div className="max-w-6xl mx-auto p-6">
+
+        <div className="grid grid-cols-12 gap-6">
+
+          {/* SIDEBAR */}
+          {isCollaborative && (
+            <div className="col-span-3 bg-gray-100 dark:bg-[#1e293b] p-4 rounded-lg">
+
+              <h2 className="font-semibold mb-4">Members</h2>
+
+              {approvedCollaborators.map((c) => {
+                const u = findUserById(c.userId);
+
+                return (
+                  <div key={c.userId} className="flex gap-2 mb-3">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full"></div>
+                    <div>
+                      <p className="text-sm">{u?.name}</p>
+                      <p className="text-xs text-gray-500">{c.role}</p>
+                    </div>
+                  </div>
+                );
+              })}
 
             </div>
+          )}
 
-            {/* ACTION BUTTONS */}
+          {/* CONTENT */}
+          <div className={isCollaborative ? "col-span-9" : "col-span-12"}>
 
-            <div className="flex gap-4">
+            {/* ACTION */}
+            <div className="mb-4 flex gap-3">
 
-              {isInitiator && (
+              {canEdit && (
                 <Button onClick={() => navigate(`/editor/${project.id}`)}>
                   Go to Editor
                 </Button>
               )}
 
-              {isCollaborator && !isInitiator && (
-                <Button onClick={() => navigate(`/editor/${project.id}`)}>
-                  Go to Editor
-                </Button>
-              )}
-
-              {!isCollaborator && !isInitiator && (
+              {!isInitiator && !isCollaborator && isCollaborative && (
                 <>
-                  {userRequest?.status === 'pending' ? (
-
+                  {userRequest?.status === "pending" ? (
                     <Button disabled className="bg-gray-400">
                       <FiClock className="mr-2" />
-                      Request Pending
+                      Pending
                     </Button>
-
                   ) : (
-
                     <Button onClick={() => setShowRequestModal(true)}>
                       Request to Join
                     </Button>
-
                   )}
                 </>
               )}
 
             </div>
 
-          </div>
+            {/* TABS */}
+            <div className="flex gap-6 border-b mb-4 border-gray-300 dark:border-gray-700">
 
-        </div>
+              <button
+                onClick={() => setActiveTab("read")}
+                className={`pb-2 ${
+                  activeTab === "read"
+                    ? "border-b-2 border-blue-500 font-semibold"
+                    : "text-gray-400"
+                }`}
+              >
+                Read Chapters
+              </button>
 
-        {/* CHAPTERS */}
-
-        <div className="card p-8 mb-8">
-
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <FiBook /> Chapters ({chapters.length})
-          </h2>
-
-          {chapters.length === 0 ? (
-
-            <p className="text-light-secondary dark:text-dark-secondary">
-              No chapters yet. {isInitiator && 'Create your first chapter!'}
-            </p>
-
-          ) : (
-
-            <div className="space-y-2">
-
-              {chapters.map((chapter) => (
-
-                <div
-                  key={chapter.id}
-                  className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 transition"
+              {canEdit && (
+                <button
+                  onClick={() => setActiveTab("create")}
+                  className={`pb-2 ${
+                    activeTab === "create"
+                      ? "border-b-2 border-blue-500 font-semibold"
+                      : "text-gray-400"
+                  }`}
                 >
+                  Create Chapter
+                </button>
+              )}
 
-                  <div className="flex items-center justify-between">
+            </div>
 
-                    <div>
+            {/* READ */}
+            {activeTab === "read" && (
+              <div className="bg-gray-100 dark:bg-[#1e293b] p-6 rounded-lg">
 
-                      <p className="font-semibold">
-                        Chapter {chapter.chapterNumber}: {chapter.title}
-                      </p>
+                {chapters.length === 0 ? (
+                  <p>No chapters yet</p>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4">
+                    {chapters.map(ch => (
+                      <div key={ch.id} className="bg-white dark:bg-[#334155] p-4 rounded">
 
-                      <p className="text-sm text-light-secondary dark:text-dark-secondary">
+                        <p className="font-semibold">
+                          Chapter {ch.chapterNumber}
+                        </p>
 
-                        {chapter.status === 'published' ? (
+                        <p className="text-sm text-gray-500">
+                          {ch.title}
+                        </p>
 
-                          <span className="flex items-center gap-1">
-                            <FiCheck className="w-3 h-3" /> Published
-                          </span>
-
-                        ) : (
-                          <span>Draft</span>
-                        )}
-
-                      </p>
-
-                    </div>
-
-                    <div className="flex gap-2">
-
-                      {chapter.status === 'published' && (
-
-                        <Button
-                          size="sm"
-                          variant="outline"
+                        <button
                           onClick={() =>
-                            navigate(`/read/${project.id}/${chapter.id}`)
+                            navigate(`/read/${project.id}/${ch.id}`)
                           }
+                          className="text-blue-500 text-xs mt-2"
                         >
                           Read
-                        </Button>
+                        </button>
 
-                      )}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                      {(isCollaborator || isInitiator) && (
+              </div>
+            )}
 
-                        <Button
-                          size="sm"
-                          onClick={() =>
-                            navigate(`/editor/${project.id}/${chapter.id}`)
-                          }
-                        >
-                          Edit
-                        </Button>
+            {/* CREATE */}
+            {activeTab === "create" && canEdit && (
+              <div className="bg-gray-100 dark:bg-[#1e293b] p-6 rounded-lg">
 
-                      )}
+                {chapters.map(ch => (
+                  <div key={ch.id} className="flex justify-between mb-2">
 
-                    </div>
+                    <span>
+                      Chapter {ch.chapterNumber} - {ch.title}
+                    </span>
+
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        navigate(`/editor/${project.id}/${ch.id}`)
+                      }
+                    >
+                      Edit
+                    </Button>
 
                   </div>
+                ))}
 
-                </div>
+                <Button
+                  className="mt-4"
+                  onClick={() => navigate(`/editor/${project.id}`)}
+                >
+                  Create New Chapter
+                </Button>
 
-              ))}
+              </div>
+            )}
 
-            </div>
-
-          )}
-
-        </div>
-
-        {/* COLLABORATORS */}
-
-        <div className="card p-8">
-
-          <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-            <FiUsers /> Collaborators ({approvedCollaborators.length})
-          </h2>
-
-          {approvedCollaborators.length === 0 ? (
-
-            <p className="text-light-secondary dark:text-dark-secondary">
-              No collaborators yet.
-            </p>
-
-          ) : (
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-              {approvedCollaborators.map((collab) => {
-
-                const collabUser = findUserById(collab.userId);
-
-                return (
-
-                  <div
-                    key={collab.userId}
-                    className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
-                  >
-
-                    <p className="font-semibold">
-                      {collabUser?.name || 'Unknown'}
-                    </p>
-
-                    <p className="text-sm text-light-secondary dark:text-dark-secondary capitalize">
-                      {collab.role}
-                    </p>
-
-                  </div>
-
-                );
-
-              })}
-
-            </div>
-
-          )}
+          </div>
 
         </div>
 
       </div>
 
       {/* MODALS */}
-
       {showRequestModal && (
         <CollaborationRequestModal
           projectTitle={project.title}

@@ -47,7 +47,7 @@ const HeroFst = () => {
 
           <p className="mt-6 text-lg text-gray-200">
             INVERSA adalah platform collaborative creative writing
-            yang memungkinkan penulis, editor, dan pembaca bekerja
+            yang memungkinkan para penulis kontent kreatif bekerja
             sama dalam satu ekosistem kreatif.
           </p>
 
