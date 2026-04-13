@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
+import { FiX } from 'react-icons/fi';
+import Button from '../../components/Button';
+import categories from '../../Datajson/categories.json';
+import genres from '../../Datajson/genres.json';
+import { saveProject } from '../../utils/dataManager/index';
+import { addProjectToTeam } from '../../utils/dataManager/teamManager';
+
+const CreateTeamProjectModal = ({ isOpen, onClose, onSuccess, teamId }) => {
+  const { user } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  const initialState = {
+    title: '',
+    description: '',
+    category: categories.categories[0]?.id || '',
+    genre: genres.genres[0]?.id || '',
+    backgroundImage: '',
+  };
+
+  const [formData, setFormData] = useState(initialState);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({
+        ...prev,
+        backgroundImage: reader.result,
+      }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.title.trim()) {
+      alert('Project name is required');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Create project
+      const projectData = {
+        ...formData,
+        initiatorId: user.id,
+        collaborators: [],
+        likes: 0,
+        totalChapters: 0,
+        status: 'draft',
+        isTeamProject: true,
+        teamId: teamId, // ✅ ADDED: Set teamId so ProjectDetail can check team membership
+      };
+
+      const allProjects = await saveProject(projectData);
+      
+      // Find the newly created project (it will have the highest id)
+      const newProject = allProjects[allProjects.length - 1];
+
+      // Add project to team
+      if (newProject?.id) {
+        await addProjectToTeam(teamId, newProject.id);
+      }
+
+      alert('Project created successfully!');
+      setFormData(initialState);
+      onSuccess?.();
+    } catch (error) {
+      console.error('Error creating project:', error);
+      alert('Failed to create project');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-light-surface dark:bg-dark-surface rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 flex items-center justify-between p-6 border-b border-light-accent/20 dark:border-dark-accent/20 bg-light-surface dark:bg-dark-surface">
+          <h2 className="text-2xl font-bold text-light-primary dark:text-dark-primary">
+            Create New Project
+          </h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 rounded transition"
+          >
+            <FiX className="w-6 h-6" />
+          </button>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          {/* Project Name */}
+          <div>
+            <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+              Project Name *
+            </label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Enter project name"
+              className="w-full px-4 py-2 bg-light-background dark:bg-dark-background border border-light-accent/20 dark:border-dark-accent/20 rounded-lg text-light-primary dark:text-dark-primary placeholder-light-secondary dark:placeholder-dark-secondary focus:outline-none focus:border-light-accent dark:focus:border-dark-accent"
+            />
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+              Description
+            </label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder="Describe your project..."
+              rows="3"
+              className="w-full px-4 py-2 bg-light-background dark:bg-dark-background border border-light-accent/20 dark:border-dark-accent/20 rounded-lg text-light-primary dark:text-dark-primary placeholder-light-secondary dark:placeholder-dark-secondary focus:outline-none focus:border-light-accent dark:focus:border-dark-accent resize-none"
+            />
+          </div>
+
+          {/* Category & Genre */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+                Category
+              </label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-light-background dark:bg-dark-background border border-light-accent/20 dark:border-dark-accent/20 rounded-lg text-light-primary dark:text-dark-primary focus:outline-none focus:border-light-accent dark:focus:border-dark-accent"
+              >
+                {categories.categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+                Genre
+              </label>
+              <select
+                name="genre"
+                value={formData.genre}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-light-background dark:bg-dark-background border border-light-accent/20 dark:border-dark-accent/20 rounded-lg text-light-primary dark:text-dark-primary focus:outline-none focus:border-light-accent dark:focus:border-dark-accent"
+              >
+                {genres.genres.map(g => (
+                  <option key={g.id} value={g.id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Cover Image Upload */}
+          <div>
+            <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+              Cover Image (Optional)
+            </label>
+            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-light-accent/30 dark:border-dark-accent/30 rounded-lg cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-background dark:bg-dark-background">
+              <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
+                <span className="font-medium">Click to upload</span>
+                <span className="text-xs mt-1">PNG, JPG up to 5MB</span>
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {/* Image Preview */}
+          {formData.backgroundImage && (
+            <div>
+              <p className="text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+                Preview
+              </p>
+              <div
+                className="w-full h-40 rounded-lg bg-cover bg-center"
+                style={{ backgroundImage: `url(${formData.backgroundImage})` }}
+              />
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-light-accent/20 dark:border-dark-accent/20">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1"
+            >
+              {loading ? 'Creating...' : 'Create Project'}
+            </Button>
+            <Button
+              type="button"
+              onClick={onClose}
+              disabled={loading}
+              className="flex-1 bg-light-surface dark:bg-dark-surface text-light-primary dark:text-dark-primary hover:bg-light-accent/10 dark:hover:bg-dark-accent/10"
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+export default CreateTeamProjectModal;

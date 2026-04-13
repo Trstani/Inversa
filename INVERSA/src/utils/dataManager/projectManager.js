@@ -36,6 +36,42 @@ export const loadProjects = async () => {
 
 };
 
+// ============= PUBLISHED PROJECTS (for Explorer/Home) =============
+
+export const loadPublishedProjects = async () => {
+
+  try {
+
+    const response = await fetch(`${API_BASE_URL}/projects`, {
+      signal: AbortSignal.timeout(2000)
+    });
+
+    if (response.ok) {
+
+      const data = await response.json();
+
+      const projects = data?.projects || [];
+
+      // Filter: not hidden AND has published chapters
+      return projects.filter(p => !p.hidden && p.hasPublishedChapters);
+
+    }
+
+  } catch (error) {
+
+    console.warn('API unavailable, using localStorage');
+
+  }
+
+  const data = loadFromLocalStorage('projects');
+
+  const projects = data?.projects || [];
+
+  // Filter: not hidden AND has published chapters
+  return projects.filter(p => !p.hidden && p.hasPublishedChapters);
+
+};
+
 
 export const saveProject = async (project) => {
 
@@ -109,7 +145,9 @@ export const saveProject = async (project) => {
 
       collaborators: project.collaborators || [],
 
-      hidden: false
+      hidden: false,
+
+      isTeamProject: project.isTeamProject || false
 
     };
 

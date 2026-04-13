@@ -59,24 +59,22 @@ const Header = () => {
                                 trigger={
                                     <button className="text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary transition-colors flex items-center space-x-1">
                                         <FiGrid className="w-4 h-4" />
-                                        <span>Others</span>
+                                        <span>Dashboard</span>
                                         <FiChevronDown className="w-4 h-4" />
                                     </button>
                                 }
                             >
                                 <DropdownItem
                                     icon={<FiEdit className="w-4 h-4" />}
-                                    onClick={() => navigate('/dashboard/initiator')}
-
+                                    onClick={() => navigate('/dashboard')}
                                 >
-                                    Projects
+                                    My Projects
                                 </DropdownItem>
                                 <DropdownItem
                                     icon={<FiUsers className="w-4 h-4" />}
-                                    onClick={() => navigate('/dashboard/collaborator')}
-
+                                    onClick={() => navigate('/dashboard?tab=teams')}
                                 >
-                                    Collaborations
+                                    Teams
                                 </DropdownItem>
                             </Dropdown>
                         )}
@@ -178,18 +176,18 @@ const Header = () => {
                             {isAuthenticated ? (
                                 <>
                                     <button
-                                        onClick={() => handleNavigation('/projects')}
+                                        onClick={() => handleNavigation('/dashboard')}
                                         className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-light-surface dark:hover:bg-dark-surface transition-colors text-left"
                                     >
                                         <FiEdit className="w-5 h-5" />
-                                        <span>Projects</span>
+                                        <span>My Projects</span>
                                     </button>
                                     <button
-                                        onClick={() => handleNavigation('/collaborations')}
+                                        onClick={() => handleNavigation('/dashboard?tab=teams')}
                                         className="flex items-center space-x-2 px-4 py-2 rounded-lg hover:bg-light-surface dark:hover:bg-dark-surface transition-colors text-left"
                                     >
                                         <FiUsers className="w-5 h-5" />
-                                        <span>Collaborations</span>
+                                        <span>Teams</span>
                                     </button>
                                     <button
                                         onClick={() => handleNavigation('/profile')}

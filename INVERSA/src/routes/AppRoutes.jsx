@@ -12,9 +12,9 @@ import Login from "../MainPage/Login";
 import Register from "../MainPage/Register";
 import Home from "../MainPage/Home";
 import ProjectDetail from "../MainPage/ProjectDetail";
-import EditorPage from "../InitiatorFolder/EditorPage";
-import InitiatorDashboard from "../InitiatorFolder/InitiatorDashboard";
-import CollaboratorDashboard from "../CollaboratorFolder/CollaboratorDashboard";
+import EditorPageWrapper from "../InitiatorFolder/EditorPageWrapper";
+import UserDashboard from "../InitiatorFolder/UserDashboard";
+import TeamDetailPage from "../InitiatorFolder/TeamDetailPage";
 import ChapterReader from "../components/ChapterReader";
 import AdminDashboard from "../AdminFolder/AdminDashboard";
 
@@ -67,10 +67,37 @@ const AppRoutes = () => {
         />
 
         <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
           path="/dashboard/initiator"
           element={
             <ProtectedRoute>
-              <InitiatorDashboard />
+              <UserDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard/teams"
+          element={
+            <ProtectedRoute>
+              <Navigate to="/dashboard?tab=teams" replace />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/team/:teamId"
+          element={
+            <ProtectedRoute>
+              <TeamDetailPage />
             </ProtectedRoute>
           }
         />
@@ -79,7 +106,7 @@ const AppRoutes = () => {
           path="/dashboard/collaborator"
           element={
             <ProtectedRoute>
-              <CollaboratorDashboard />
+              <Navigate to="/dashboard/teams" replace />
             </ProtectedRoute>
           }
         />
@@ -106,7 +133,7 @@ const AppRoutes = () => {
           path="/editor/:projectId/:chapterId?"
           element={
             <ProtectedRoute>
-              <EditorPage />
+              <EditorPageWrapper />
             </ProtectedRoute>
           }
         />

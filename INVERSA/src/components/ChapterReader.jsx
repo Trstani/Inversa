@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getProjectById, loadChapters, saveReadingHistory } from '../utils/dataManager/index';
+import { getProjectById, loadChapters, saveReadingHistory, incrementViews } from '../utils/dataManager/index';
 import { FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Button from './Button';
 
@@ -15,6 +15,7 @@ const ChapterReader = () => {
   const [currentChapter, setCurrentChapter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [viewsIncremented, setViewsIncremented] = useState(false);
 
 
 
@@ -26,8 +27,21 @@ const ChapterReader = () => {
         setProject(projectData);
 
         const allChapters = await loadChapters(projectId);
-        // Filter only published chapters for non-initiators
-        const visibleChapters = user?.id === projectData?.initiatorId
+        
+        // Determine if user can see all chapters
+        let canSeeAllChapters = user?.id === projectData?.initiatorId;
+        
+        // For team projects, check if user is a team member
+        if (!canSeeAllChapters && projectData?.isTeamProject && projectData?.teamId) {
+          const { getTeamById } = await import("../utils/dataManager/teamManager");
+          const team = await getTeamById(projectData.teamId);
+          canSeeAllChapters = team?.collaborators?.some(
+            c => c.userId === user?.id && c.status === 'approved'
+          );
+        }
+        
+        // Filter chapters based on access level
+        const visibleChapters = canSeeAllChapters
           ? allChapters
           : allChapters.filter(c => c.status === 'published');
 
@@ -68,7 +82,13 @@ const ChapterReader = () => {
       currentChapter.id
     );
 
-  }, [user, projectId, currentChapter]);
+    // Increment views only once per chapter load
+    if (!viewsIncremented && project?.id) {
+      incrementViews(parseInt(projectId));
+      setViewsIncremented(true);
+    }
+
+  }, [user, projectId, currentChapter, viewsIncremented, project?.id]);
 
   const handlePreviousChapter = () => {
     if (currentIndex > 0) {

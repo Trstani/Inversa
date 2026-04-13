@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch, FiTrendingUp } from "react-icons/fi";
 import { genres } from "../data/mockData";
-import { loadProjects } from '../utils/dataManager/index';
+import { loadPublishedProjects } from '../utils/dataManager/projectManager';
 import CardProject from "../components/CardProject";
 import Button from "../components/Button";
 import { useNavigate } from "react-router-dom";
@@ -17,7 +17,7 @@ const ProjectsExplorer = () => {
   // 🔥 Fetch langsung pakai dataManager (seperti Home lama kamu)
   useEffect(() => {
     const fetchProjects = async () => {
-      const data = await loadProjects();
+      const data = await loadPublishedProjects();
       setProjects(data);
       setLoading(false);
     };

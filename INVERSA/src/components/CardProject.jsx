@@ -5,10 +5,32 @@ import BadgeGenre from './BadgeGenre';
 import BadgeCategories from './BadgeCategories';
 import { findUserById} from '../utils/userManager/index';
 import {incrementLikes, decrementLikes } from "../utils/dataManager/index"
+import { getTeamById } from '../utils/dataManager/teamManager';
 
 const CardProject = ({ project, showCollabStatus = false }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(project.likes || 0);
+    const [teamName, setTeamName] = useState(null);
+    const [loading, setLoading] = useState(false);
+
+    // Load team name if it's a team project
+    useEffect(() => {
+        if (project.isTeamProject && project.teamId) {
+            loadTeamName();
+        }
+    }, [project.id, project.teamId]);
+
+    const loadTeamName = async () => {
+        try {
+            setLoading(true);
+            const team = await getTeamById(project.teamId);
+            setTeamName(team?.title);
+        } catch (error) {
+            console.error('Error loading team name:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     // Check localStorage for guest likes
     useEffect(() => {
@@ -41,6 +63,11 @@ const CardProject = ({ project, showCollabStatus = false }) => {
     const author = findUserById(project.initiatorId) || { name: 'Unknown' };
     const collaboratorCount = project.collaborators?.filter(c => c.status === 'approved').length || 0;
     const pendingCount = project.collaborators?.filter(c => c.status === 'pending').length || 0;
+
+    // ✅ ADDED: Get display name based on project type
+    const displayName = project.isTeamProject ? teamName : author.name;
+    const displayIcon = project.isTeamProject ? FiUsers : FiUser;
+    const DisplayIcon = displayIcon;
 
     // Format date
     const formatDate = (dateString) => {
@@ -110,10 +137,10 @@ const CardProject = ({ project, showCollabStatus = false }) => {
                             <div className="flex items-center justify-between text-sm">
                                 <div className="flex items-center space-x-2">
                                     <div className="w-8 h-8 rounded-full bg-light-accent dark:bg-dark-accent flex items-center justify-center">
-                                        <FiUser className="w-4 h-4 text-white" />
+                                        <DisplayIcon className="w-4 h-4 text-white" />
                                     </div>
                                     <span className="text-light-secondary dark:text-dark-secondary font-medium">
-                                        {author.name}
+                                        {displayName || (loading ? 'Loading...' : 'Unknown')}
                                     </span>
                                 </div>
 
@@ -195,10 +222,10 @@ const CardProject = ({ project, showCollabStatus = false }) => {
                         <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center space-x-2">
                                 <div className="w-8 h-8 rounded-full bg-light-accent dark:bg-dark-accent flex items-center justify-center">
-                                    <FiUser className="w-4 h-4 text-white" />
+                                    <DisplayIcon className="w-4 h-4 text-white" />
                                 </div>
                                 <span className="text-light-secondary dark:text-dark-secondary font-medium">
-                                    {author.name}
+                                    {displayName || (loading ? 'Loading...' : 'Unknown')}
                                 </span>
                             </div>
 

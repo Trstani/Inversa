@@ -8,6 +8,7 @@ const ChapterSidebar = ({
   onCreateChapter,
   onDeleteChapter,
   isInitiator,
+  isTeamMember,
 }) => {
   return (
     <div className="card p-4 h-fit sticky top-20">
@@ -15,7 +16,7 @@ const ChapterSidebar = ({
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold">Chapters ({chapters.length})</h3>
 
-        {isInitiator && (
+        {(isInitiator || isTeamMember) && (
           <button
             onClick={onCreateChapter}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
@@ -29,7 +30,7 @@ const ChapterSidebar = ({
       {/* Empty State */}
       {chapters.length === 0 && (
         <p className="text-sm text-gray-500">
-          {isInitiator ? "No chapters yet. Create your first one." : "No chapters available."}
+          {(isInitiator || isTeamMember) ? "No chapters yet. Create your first one." : "No chapters available."}
         </p>
       )}
 
@@ -72,7 +73,7 @@ const ChapterSidebar = ({
               </div>
 
               {/* Delete Button (Only for initiator and draft) */}
-              {isInitiator && chapter.status === "draft" && (
+              {(isInitiator || isTeamMember) && chapter.status === "draft" && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

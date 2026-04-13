@@ -1,4 +1,4 @@
-// pages/EditorPage.jsx
+// pages/TeamEditorPage.jsx
 
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -12,9 +12,9 @@ import {
   unlockChapter
 } from "../utils/dataManager/index";
 
-import EditorLayout from "../components/Editor/EditorLayout";
+import TeamEditorLayout from "../components/Editor/TeamEditorLayout";
 
-const EditorPage = () => {
+const TeamEditorPage = () => {
 
   const { user } = useAuth();
   const { projectId, chapterId } = useParams();
@@ -44,29 +44,33 @@ const EditorPage = () => {
         const projectData = await getProjectById(projectId);
         setProject(projectData);
 
-        // cek apakah user initiator
-        setIsInitiator(projectData?.initiatorId === user.id);
+        // Check if user is initiator
+        const userIsInitiator = projectData?.initiatorId === user.id;
+        setIsInitiator(userIsInitiator);
 
-        // For team projects, check if user is a team member
+        // For team projects, check if user is a member of the team
         let userIsTeamMember = false;
         if (projectData?.isTeamProject && projectData?.teamId) {
           const { getTeamById } = await import("../utils/dataManager/teamManager");
           const team = await getTeamById(projectData.teamId);
+          
           userIsTeamMember = team?.collaborators?.some(
             c => c.userId === user.id && c.status === 'approved'
           );
-        } else {
-          // ✅ FALLBACK: Check if project belongs to any team that user is in
-          const { loadTeams } = await import("../utils/dataManager/teamManager");
-          const userTeams = await loadTeams(user?.id);
-          
-          for (const team of userTeams) {
-            if (team.projects?.includes(parseInt(projectData.id))) {
-              userIsTeamMember = true;
-              break;
-            }
+
+          // If user is neither initiator nor team member, deny access
+          if (!userIsInitiator && !userIsTeamMember) {
+            alert("You don't have access to this project");
+            navigate('/dashboard');
+            return;
           }
+        } else if (!userIsInitiator) {
+          // For solo projects, only initiator can access
+          alert("You don't have access to this project");
+          navigate('/dashboard');
+          return;
         }
+
         setIsTeamMember(userIsTeamMember);
 
         const allChapters = await loadChapters(projectId);
@@ -219,7 +223,7 @@ const EditorPage = () => {
 
   return (
 
-    <EditorLayout
+    <TeamEditorLayout
       project={project}
       chapters={chapters}
       currentChapter={currentChapter}
@@ -230,10 +234,11 @@ const EditorPage = () => {
       onChaptersChange={handleChaptersChange}
       isInitiator={isInitiator}
       isTeamMember={isTeamMember}
+      user={user}
     />
 
   );
 
 };
 
-export default EditorPage;
+export default TeamEditorPage;

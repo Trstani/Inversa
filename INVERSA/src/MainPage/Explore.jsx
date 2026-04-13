@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadProjects } from '../utils/dataManager/index';
+import { loadPublishedProjects } from '../utils/dataManager/projectManager';
 import RecommendationSidebar from "../section/RecommendationSidebar";
 import ProjectsExplorer from "../section/ProjectsExplorer";
 
@@ -8,7 +8,7 @@ const Explore = () => {
 
     useEffect(() => {
         const fetchProjects = async () => {
-            const data = await loadProjects();
+            const data = await loadPublishedProjects();
             setProjects(Array.isArray(data) ? data : []);
         };
 

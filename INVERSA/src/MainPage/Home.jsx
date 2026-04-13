@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 
 import {
-  loadProjects,
-  loadFollowedProjects,
+  loadPublishedProjects
+} from '../utils/dataManager/projectManager';
+import {
+  loadFollowedProjects
+} from '../utils/dataManager/projectFollowManager';
+import {
   loadReadingHistory,
   getContinueReading
-} from '../utils/dataManager/index';
+} from '../utils/dataManager/readingHistoryManager';
 
 import BentoGrid from "../section/BentoGrid";
 import ProjectCarousel from "../section/ProjectCarousel";
@@ -25,7 +29,7 @@ const Home = () => {
 
     const fetchData = async () => {
 
-      const data = await loadProjects();
+      const data = await loadPublishedProjects();
       setProjects(data);
 
       if (isAuthenticated && user) {

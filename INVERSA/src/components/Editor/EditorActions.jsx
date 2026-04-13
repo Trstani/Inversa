@@ -4,9 +4,12 @@ const EditorActions = ({
   onPublish,
   loading,
   isInitiator,
+  isTeamMember,
   chapterStatus,
 }) => {
   const isDraft = chapterStatus === "draft";
+  // Team members can also publish chapters
+  const canPublish = isInitiator || isTeamMember;
 
   return (
     <div className="flex justify-between mt-10">
@@ -29,8 +32,8 @@ const EditorActions = ({
           </button>
         )}
 
-        {/* PUBLISH (INITIATOR ONLY) */}
-        {isInitiator && (
+        {/* PUBLISH (INITIATOR AND TEAM MEMBERS) */}
+        {canPublish && (
           <button
             onClick={onPublish}
             disabled={loading}

@@ -233,6 +233,18 @@ export const saveChapter = async (chapter) => {
 
   saveToLocalStorage('chapters', { chapters });
 
+  // ✅ NEW: Update project's hasPublishedChapters flag
+  const projects = await loadProjects();
+  const projectIndex = projects.findIndex(
+    p => p.id === chapter.projectId
+  );
+
+  if (projectIndex >= 0 && chapter.status === 'published') {
+    projects[projectIndex].hasPublishedChapters = true;
+    projects[projectIndex].updatedAt = new Date().toISOString();
+    saveToLocalStorage('projects', { projects });
+  }
+
   return chapters;
 
 };

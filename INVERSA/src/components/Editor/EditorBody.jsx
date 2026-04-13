@@ -14,6 +14,7 @@ const EditorBody = ({
   loading,
   onBack,
   isInitiator,
+  isTeamMember,
 }) => {
   const { user } = useAuth();
 
@@ -41,10 +42,11 @@ const EditorBody = ({
 
   const isDraft = chapter.status === "draft";
 
-  // 🔥 LOGIC BARU
-  // Initiator selalu bisa edit
-  // Collaborator hanya bisa edit kalau draft
-  const canEdit = isInitiator ? true : isDraft;
+  // 🔥 LOGIC UPDATED
+  // Initiator: always can edit
+  // Team member: always can edit (full collaboration rights)
+  // Others: cannot edit
+  const canEdit = isInitiator || isTeamMember;
 
   const totalSections = sections.length;
   const textCount = sections.filter((s) => s.type === "text").length;
@@ -133,27 +135,10 @@ const EditorBody = ({
     }
 
     // =============================
-    // COLLABORATOR FLOW
+    // DIRECT SAVE FOR ALL AUTHORIZED USERS
     // =============================
-
-    if (!isInitiator) {
-
-      submitContribution({
-        projectId: chapter.projectId,
-        chapterId: chapter.id,
-        authorId: user.id,
-        content: sections,
-        originalContent: chapter.sections
-      });
-
-      alert("Contribution submitted for review.");
-
-      return;
-    }
-
-    // =============================
-    // INITIATOR FLOW (DIRECT SAVE)
-    // =============================
+    // Both initiators and team members can save directly
+    // No contribution workflow needed for team projects
 
     const newVersionNumber = (chapter.currentVersion || 0) + 1;
 
@@ -166,7 +151,8 @@ const EditorBody = ({
 
     let newStatus = chapter.status;
 
-    if (publish && isInitiator) {
+    // Both initiators and team members can publish
+    if (publish && (isInitiator || isTeamMember)) {
       newStatus = "published";
     }
 
@@ -283,6 +269,7 @@ const EditorBody = ({
         onPublish={() => handleSave(true)}
         loading={loading}
         isInitiator={isInitiator}
+        isTeamMember={isTeamMember}
         chapterStatus={chapter?.status}
       />
     </>

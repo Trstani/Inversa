@@ -4,7 +4,7 @@ import ChapterSidebar from "./ChapterSidebar";
 import EditorHeader from "./EditorHeader";
 import EditorBody from "./EditorBody";
 import CreateChapterModal from "./CreateChapterModal";
-import { createNewChapter, deleteChapter } from '../../utils/dataManager/index';
+import { useChapterManagement } from "./useChapterManagement";
 
 const EditorLayout = ({
   project,
@@ -16,52 +16,17 @@ const EditorLayout = ({
   onBack,
   onChaptersChange,
   isInitiator,
+  isTeamMember,
 }) => {
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const {
+    showCreateModal,
+    setShowCreateModal,
+    handleCreateChapter,
+    handleDeleteChapter,
+  } = useChapterManagement(project, chapters, onSelectChapter, onChaptersChange);
 
-  const handleCreateChapter = async (chapterData) => {
-    if (!project) return;
-    
-    try {
-      const newChapter = await createNewChapter(project.id, chapterData);
-      setShowCreateModal(false);
-      
-      // Refresh chapters
-      if (onChaptersChange) {
-        await onChaptersChange();
-      }
-      
-      // Select the new chapter
-      onSelectChapter(newChapter);
-    } catch (error) {
-      console.error("Error creating chapter:", error);
-      alert("Failed to create chapter");
-    }
-  };
-
-  const handleDeleteChapter = async (chapterId) => {
-    if (window.confirm("Are you sure you want to delete this chapter?")) {
-      try {
-        await deleteChapter(chapterId);
-        
-        // Refresh chapters
-        if (onChaptersChange) {
-          await onChaptersChange();
-        }
-        
-        // Select first chapter or null
-        if (chapters.length > 1) {
-          const remaining = chapters.filter(c => c.id !== chapterId);
-          onSelectChapter(remaining[0]);
-        } else {
-          onSelectChapter(null);
-        }
-      } catch (error) {
-        console.error("Error deleting chapter:", error);
-        alert("Failed to delete chapter");
-      }
-    }
-  };
+  // User can edit if they are initiator OR team member
+  const canEdit = isInitiator || isTeamMember;
 
   return (
     <div className="max-w-6xl mx-auto py-8 grid grid-cols-4 gap-6">
@@ -71,7 +36,8 @@ const EditorLayout = ({
         onSelectChapter={onSelectChapter}
         onCreateChapter={() => setShowCreateModal(true)}
         onDeleteChapter={handleDeleteChapter}
-        isInitiator={isInitiator}
+        isInitiator={canEdit}
+        isTeamMember={false}
       />
 
       <div className="col-span-3">
@@ -83,11 +49,11 @@ const EditorLayout = ({
           onSave={onSave}
           loading={loading}
           onBack={onBack}
-          isInitiator={isInitiator}
+          isInitiator={canEdit}
         />
       </div>
 
-      {showCreateModal && isInitiator && (
+      {showCreateModal && canEdit && (
         <CreateChapterModal
           onSubmit={handleCreateChapter}
           onClose={() => setShowCreateModal(false)}
