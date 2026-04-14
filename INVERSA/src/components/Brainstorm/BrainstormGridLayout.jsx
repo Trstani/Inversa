@@ -202,10 +202,10 @@ const BrainstormGridLayout = ({ projectId, brainstorm, onUpdate, user }) => {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 pb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Top Row - Large Section for Ideas or Tasks */}
           <div className="lg:col-span-3">
-            <div className="card p-6 bg-light-surface dark:bg-dark-surface mb-4">
+            <div className="card p-4 sm:p-6 bg-light-surface dark:bg-dark-surface mb-4">
               {activeView === 'brainstorm' ? (
                 <StoryIdeaSection
                   brainstorm={brainstorm}
@@ -255,7 +255,7 @@ const BrainstormGridLayout = ({ projectId, brainstorm, onUpdate, user }) => {
         </div>
 
         {/* Bottom Row - Discussion, Notes, Contribution in one row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <div>
             <DiscussionPanel
               projectId={projectId}

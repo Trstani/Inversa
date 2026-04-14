@@ -109,10 +109,13 @@ const Header = () => {
                         <div className="hidden md:flex items-center space-x-3">
                             {isAuthenticated ? (
                                 <>
-                                    <div className="flex items-center space-x-2 px-3 py-1.5 bg-light-surface dark:bg-dark-surface rounded-lg">
+                                    <button
+                                        onClick={() => navigate('/profile')}
+                                        className="flex items-center space-x-2 px-3 py-1.5 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 transition-colors"
+                                    >
                                         <FiUser className="w-4 h-4" />
                                         <span className="text-sm font-medium">{user.name}</span>
-                                    </div>
+                                    </button>
                                     <Button
                                         variant="outline"
                                         size="sm"

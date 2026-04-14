@@ -12,6 +12,7 @@ import Login from "../MainPage/Login";
 import Register from "../MainPage/Register";
 import Home from "../MainPage/Home";
 import ProjectDetail from "../MainPage/ProjectDetail";
+import UserProfile from "../MainPage/UserProfile";
 import EditorPageWrapper from "../InitiatorFolder/EditorPageWrapper";
 import UserDashboard from "../InitiatorFolder/UserDashboard";
 import TeamDetailPage from "../InitiatorFolder/TeamDetailPage";
@@ -57,6 +58,15 @@ const AppRoutes = () => {
         />
         
         {/* Protected Routes */}
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfile />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/Home"
           element={

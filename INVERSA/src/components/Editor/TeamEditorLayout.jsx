@@ -91,7 +91,7 @@ const TeamEditorLayout = ({
       {/* Content */}
       <div className="py-6">
         {activeSection === 'editor' && (
-          <div className="max-w-6xl mx-auto grid grid-cols-4 gap-6 px-4">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-4 sm:gap-6 px-4">
             <ChapterSidebar
               chapters={chapters}
               currentChapter={currentChapter}
@@ -102,7 +102,7 @@ const TeamEditorLayout = ({
               isTeamMember={isTeamMember}
             />
 
-            <div className="col-span-3">
+            <div className="col-span-1 md:col-span-3">
               <EditorHeader project={project} chapter={currentChapter} />
               <EditorBody
                 chapter={currentChapter}

@@ -11,7 +11,7 @@ const ChapterSidebar = ({
   isTeamMember,
 }) => {
   return (
-    <div className="card p-4 h-fit sticky top-20">
+    <div className="card p-4 sm:p-6 h-fit sticky top-20">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold">Chapters ({chapters.length})</h3>

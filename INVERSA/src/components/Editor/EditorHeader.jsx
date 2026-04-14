@@ -7,7 +7,7 @@ const EditorHeader = ({ project, chapter }) => {
       </p>
 
       <div className="flex justify-between items-center">
-        <h2 className="text-lg font-semibold">
+        <h2 className="text-base sm:text-lg font-semibold">
           {chapter ? "Editing Chapter" : "New Chapter"}
         </h2>
 

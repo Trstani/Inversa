@@ -25,7 +25,7 @@ const StoryIdeaSection = ({
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-light-primary dark:text-dark-primary">
+        <h2 className="text-lg sm:text-xl font-bold text-light-primary dark:text-dark-primary">
           Story Idea
         </h2>
         <select
@@ -43,7 +43,7 @@ const StoryIdeaSection = ({
       </div>
 
       {/* Add Idea Input */}
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-col sm:flex-row gap-2">
         <select
           value={selectedChapter || ''}
           onChange={(e) => onSelectChapter(e.target.value ? parseInt(e.target.value) : null)}
@@ -80,7 +80,7 @@ const StoryIdeaSection = ({
           <p>No ideas yet. Be the first to share!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {brainstorm?.ideas
             ?.filter(idea => !filterChapter || idea.chapterReference === filterChapter)
             ?.map(idea => (

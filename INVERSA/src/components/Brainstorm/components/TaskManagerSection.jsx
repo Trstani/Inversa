@@ -24,7 +24,7 @@ const TaskManagerSection = ({
   return (
     <div className="mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold text-light-primary dark:text-dark-primary">
+        <h2 className="text-lg sm:text-xl font-bold text-light-primary dark:text-dark-primary">
           Task Manager
         </h2>
         <select
@@ -44,7 +44,7 @@ const TaskManagerSection = ({
       {/* Task Manager Layout - Input Form on Top, 3 Status Columns Below */}
       <div className="space-y-6">
         {/* Add Task Input Form - Full Width */}
-        <div className="card p-6 bg-light-surface dark:bg-dark-surface">
+        <div className="card p-4 sm:p-6 bg-light-surface dark:bg-dark-surface">
           <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4">
             Add New Task
           </h3>
@@ -65,7 +65,7 @@ const TaskManagerSection = ({
               rows="3"
             />
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <select
                 value={newTask.chapterReference || ''}
                 onChange={(e) => onTaskChapterChange(e.target.value ? parseInt(e.target.value) : null)}
@@ -128,7 +128,7 @@ const TaskManagerSection = ({
         </div>
 
         {/* 3 Status Columns Below */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {['pending', 'in-progress', 'completed'].map(status => (
             <div key={status}>
               <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-3 capitalize">

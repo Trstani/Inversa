@@ -142,7 +142,7 @@ const TeamDetailPage = () => {
         </button>
 
         {/* Team Header */}
-        <div className="card p-6 mb-6">
+        <div className="card p-4 sm:p-6 mb-6">
           {team.backgroundImage && (
             <div
               className="w-full h-48 rounded-lg mb-4 bg-cover bg-center"
@@ -152,10 +152,10 @@ const TeamDetailPage = () => {
 
           <div className="flex justify-between items-start mb-4">
             <div>
-              <h1 className="text-4xl font-bold text-light-primary dark:text-dark-primary mb-2">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-light-primary dark:text-dark-primary mb-2">
                 {team.title}
               </h1>
-              <p className="text-light-secondary dark:text-dark-secondary mb-4">
+              <p className="text-sm sm:text-base text-light-secondary dark:text-dark-secondary mb-4">
                 {team.description}
               </p>
             </div>
@@ -171,12 +171,12 @@ const TeamDetailPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Team Members */}
           <div className="lg:col-span-1">
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-light-primary dark:text-dark-primary flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-light-primary dark:text-dark-primary flex items-center gap-2">
                   <FiUsers className="w-5 h-5" />
                   Members
                 </h2>
@@ -228,9 +228,9 @@ const TeamDetailPage = () => {
 
           {/* Team Projects */}
           <div className="lg:col-span-2">
-            <div className="card p-6">
+            <div className="card p-4 sm:p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-light-primary dark:text-dark-primary flex items-center gap-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-light-primary dark:text-dark-primary flex items-center gap-2">
                   <FiFolder className="w-5 h-5" />
                   Projects ({projects.length})
                 </h2>
@@ -248,7 +248,7 @@ const TeamDetailPage = () => {
                   No projects yet. Create one to get started!
                 </p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {projects.map(project => (
                     <CardProject key={project.id} project={project} />
                   ))}
@@ -260,12 +260,12 @@ const TeamDetailPage = () => {
 
         {/* Task Manager - Outside main grid */}
         <div className="mt-6">
-          <div className="card p-6 bg-light-surface dark:bg-dark-surface">
+          <div className="card p-4 sm:p-6 bg-light-surface dark:bg-dark-surface">
             <div className="mb-6">
-              <h2 className="text-xl font-bold text-light-primary dark:text-dark-primary mb-4">Task Manager</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-light-primary dark:text-dark-primary mb-4">Task Manager</h2>
 
               {/* Add Task Form */}
-              <div className="mb-6 p-4 bg-light-background dark:bg-dark-background rounded-lg">
+              <div className="mb-6 p-4 sm:p-6 bg-light-background dark:bg-dark-background rounded-lg">
                 <div className="space-y-3">
                   <input
                     type="text"
@@ -302,7 +302,7 @@ const TeamDetailPage = () => {
               </div>
 
               {/* Tasks Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {tasks.length === 0 ? (
                   <div className="col-span-full text-center py-8 text-light-secondary dark:text-dark-secondary">
                     No tasks yet. Create one to get started!

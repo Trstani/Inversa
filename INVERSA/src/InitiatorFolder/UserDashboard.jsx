@@ -53,46 +53,48 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-8">
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen bg-light-background dark:bg-dark-background py-6 sm:py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <DashboardHeader />
 
         {/* Tab Navigation */}
-        <div className="mb-6 flex gap-2 border-b border-light-accent/20 dark:border-dark-accent/20 overflow-x-auto">
+        <div className="mb-6 flex gap-1 sm:gap-2 border-b border-light-accent/20 dark:border-dark-accent/20 overflow-x-auto">
           <button
             onClick={() => setActiveTab('solo')}
-            className={`flex items-center gap-2 px-4 py-3 font-medium transition whitespace-nowrap ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
               activeTab === 'solo'
                 ? 'text-light-accent dark:text-dark-accent border-b-2 border-light-accent dark:border-dark-accent'
                 : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
             }`}
           >
-            <FiBook className="w-4 h-4" />
-            Solo Projects ({myProjects.length})
+            <FiBook className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Solo Projects</span>
+            <span className="sm:hidden">Solo</span> ({myProjects.length})
           </button>
 
           <button
             onClick={() => setActiveTab('team')}
-            className={`flex items-center gap-2 px-4 py-3 font-medium transition whitespace-nowrap ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
               activeTab === 'team'
                 ? 'text-light-accent dark:text-dark-accent border-b-2 border-light-accent dark:border-dark-accent'
                 : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
             }`}
           >
-            <FiUsers className="w-4 h-4" />
-            Team Projects ({teamProjects.length})
+            <FiUsers className="w-3 h-3 sm:w-4 sm:h-4" />
+            <span className="hidden sm:inline">Team Projects</span>
+            <span className="sm:hidden">Team</span> ({teamProjects.length})
           </button>
 
           <button
             onClick={() => setActiveTab('teams')}
-            className={`flex items-center gap-2 px-4 py-3 font-medium transition whitespace-nowrap ${
+            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
               activeTab === 'teams'
                 ? 'text-light-accent dark:text-dark-accent border-b-2 border-light-accent dark:border-dark-accent'
                 : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
             }`}
           >
-            <FiUsers className="w-4 h-4" />
+            <FiUsers className="w-3 h-3 sm:w-4 sm:h-4" />
             Teams
           </button>
         </div>
@@ -104,7 +106,7 @@ const UserDashboard = () => {
             <div className="mb-6">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="px-4 py-2 bg-light-accent dark:bg-dark-accent text-white rounded-lg hover:opacity-90 transition"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-light-accent dark:bg-dark-accent text-white rounded-lg hover:opacity-90 transition text-sm sm:text-base"
               >
                 + Create New Project
               </button>
@@ -112,7 +114,7 @@ const UserDashboard = () => {
 
             {/* My Solo Projects */}
             <div>
-              <h2 className="text-2xl font-bold text-light-primary dark:text-dark-primary mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-light-primary dark:text-dark-primary mb-4">
                 My Solo Projects
               </h2>
               <MyProjectsSection
@@ -127,7 +129,7 @@ const UserDashboard = () => {
         {/* Team Projects Tab */}
         {activeTab === 'team' && (
           <div>
-            <h2 className="text-2xl font-bold text-light-primary dark:text-dark-primary mb-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-light-primary dark:text-dark-primary mb-4">
               Team Projects
             </h2>
             <MyProjectsSection
@@ -142,11 +144,11 @@ const UserDashboard = () => {
         {activeTab === 'teams' && (
           <div>
             {/* Header */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-light-primary dark:text-dark-primary mb-2">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-xl sm:text-2xl font-bold text-light-primary dark:text-dark-primary mb-2">
                 Teams
               </h2>
-              <p className="text-light-secondary dark:text-dark-secondary">
+              <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary">
                 Join teams and collaborate on projects
               </p>
             </div>
@@ -155,17 +157,17 @@ const UserDashboard = () => {
             <div className="mb-6">
               <button
                 onClick={() => setShowCreateTeamModal(true)}
-                className="px-4 py-2 bg-light-accent dark:bg-dark-accent text-white rounded-lg hover:opacity-90 transition"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-light-accent dark:bg-dark-accent text-white rounded-lg hover:opacity-90 transition text-sm sm:text-base"
               >
                 + Create New Team
               </button>
             </div>
 
             {/* Teams Sub-tabs */}
-            <div className="mb-6 flex gap-4 border-b border-light-surface dark:border-dark-surface overflow-x-auto">
+            <div className="mb-6 flex gap-2 sm:gap-4 border-b border-light-surface dark:border-dark-surface overflow-x-auto">
               <button
                 onClick={() => setActiveTeamsSubTab('teams-my')}
-                className={`pb-3 px-2 font-medium transition whitespace-nowrap ${
+                className={`pb-2 sm:pb-3 px-2 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
                   activeTeamsSubTab === 'teams-my'
                     ? 'border-b-2 border-light-accent dark:border-dark-accent text-light-primary dark:text-dark-primary'
                     : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
@@ -176,18 +178,18 @@ const UserDashboard = () => {
 
               <button
                 onClick={() => setActiveTeamsSubTab('teams-available')}
-                className={`pb-3 px-2 font-medium transition whitespace-nowrap ${
+                className={`pb-2 sm:pb-3 px-2 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
                   activeTeamsSubTab === 'teams-available'
                     ? 'border-b-2 border-light-accent dark:border-dark-accent text-light-primary dark:text-dark-primary'
                     : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
                 }`}
               >
-                Available Teams
+                Available
               </button>
 
               <button
                 onClick={() => setActiveTeamsSubTab('teams-requests')}
-                className={`pb-3 px-2 font-medium transition whitespace-nowrap ${
+                className={`pb-2 sm:pb-3 px-2 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
                   activeTeamsSubTab === 'teams-requests'
                     ? 'border-b-2 border-light-accent dark:border-dark-accent text-light-primary dark:text-dark-primary'
                     : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
@@ -195,7 +197,7 @@ const UserDashboard = () => {
               >
                 Requests
                 {teamRequests.filter(r => r.status === 'pending').length > 0 && (
-                  <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs bg-red-500 text-white rounded-full">
+                  <span className="ml-1 sm:ml-2 inline-flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 text-xs bg-red-500 text-white rounded-full">
                     {teamRequests.filter(r => r.status === 'pending').length}
                   </span>
                 )}
@@ -213,15 +215,15 @@ const UserDashboard = () => {
               )}
 
               {activeTeamsSubTab === 'teams-requests' && (
-                <div className="space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Team Join Requests */}
-                  <div className="card p-6">
-                    <h3 className="text-lg font-semibold text-light-primary dark:text-dark-primary mb-4">
+                  <div className="card p-4 sm:p-6">
+                    <h3 className="text-base sm:text-lg font-semibold text-light-primary dark:text-dark-primary mb-4">
                       Team Join Requests ({teamRequests.filter(r => r.status === 'pending').length})
                     </h3>
 
                     {teamRequests.filter(r => r.status === 'pending').length === 0 ? (
-                      <p className="text-light-secondary dark:text-dark-secondary">
+                      <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary">
                         No pending team join requests
                       </p>
                     ) : (
@@ -229,35 +231,35 @@ const UserDashboard = () => {
                         {teamRequests.filter(r => r.status === 'pending').map(request => (
                           <div
                             key={request.id}
-                            className="p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
+                            className="p-3 sm:p-4 bg-light-surface dark:bg-dark-surface rounded-lg"
                           >
-                            <div className="flex items-start justify-between gap-4">
-                              <div className="flex-1">
-                                <p className="font-medium text-light-primary dark:text-dark-primary">
+                            <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+                              <div className="flex-1 w-full">
+                                <p className="font-medium text-xs sm:text-sm text-light-primary dark:text-dark-primary">
                                   {request.userName}
                                 </p>
-                                <p className="text-sm text-light-secondary dark:text-dark-secondary mt-1">
+                                <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary mt-1">
                                   Requested Role: <span className="capitalize font-medium">{request.role}</span>
                                 </p>
-                                <p className="text-sm text-light-secondary dark:text-dark-secondary mt-2">
+                                <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary mt-2">
                                   Reason:
                                 </p>
-                                <p className="text-sm text-light-primary dark:text-dark-primary mt-1 p-2 bg-light-background dark:bg-dark-background rounded">
+                                <p className="text-xs sm:text-sm text-light-primary dark:text-dark-primary mt-1 p-2 bg-light-background dark:bg-dark-background rounded">
                                   {request.reason}
                                 </p>
                               </div>
 
-                              <div className="flex gap-2 flex-shrink-0">
+                              <div className="flex gap-2 flex-shrink-0 w-full sm:w-auto">
                                 <button
                                   onClick={() => approveTeamRequest(request.id, request.teamId, request.userId, request.role)}
-                                  className="px-4 py-2 bg-green-500/20 text-green-600 dark:text-green-400 rounded hover:bg-green-500/30 transition text-sm font-medium whitespace-nowrap"
+                                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-green-500/20 text-green-600 dark:text-green-400 rounded hover:bg-green-500/30 transition text-xs sm:text-sm font-medium whitespace-nowrap"
                                 >
                                   Approve
                                 </button>
 
                                 <button
                                   onClick={() => rejectTeamRequest(request.id)}
-                                  className="px-4 py-2 bg-red-500/20 text-red-600 dark:text-red-400 rounded hover:bg-red-500/30 transition text-sm font-medium whitespace-nowrap"
+                                  className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-500/20 text-red-600 dark:text-red-400 rounded hover:bg-red-500/30 transition text-xs sm:text-sm font-medium whitespace-nowrap"
                                 >
                                   Reject
                                 </button>

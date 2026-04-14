@@ -142,33 +142,33 @@ const ChapterReader = () => {
   console.log(currentChapter.sections);
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-8">
-      <div className="max-w-4xl mx-auto px-4">
+    <div className="min-h-screen bg-light-background dark:bg-dark-background py-6 sm:py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <button
             onClick={() => navigate(`/project/${projectId}`)}
-            className="flex items-center gap-2 text-light-accent dark:text-dark-accent hover:opacity-80 mb-4"
+            className="flex items-center gap-2 text-light-accent dark:text-dark-accent hover:opacity-80 mb-3 sm:mb-4 text-sm sm:text-base"
           >
             <FiArrowLeft /> Back to Project
           </button>
 
-          <div className="card p-6 mb-6">
-            <p className="text-sm text-light-secondary dark:text-dark-secondary mb-2">
+          <div className="card p-4 sm:p-6 mb-6">
+            <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary mb-2">
               {project.title}
             </p>
-            <h1 className="text-3xl font-bold text-light-primary dark:text-dark-primary mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-light-primary dark:text-dark-primary mb-2">
               Chapter {currentChapter.chapterNumber}: {currentChapter.title}
             </h1>
-            <p className="text-sm text-light-secondary dark:text-dark-secondary">
+            <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary">
               {currentIndex + 1} of {chapters.length}
             </p>
           </div>
         </div>
 
         {/* Chapter Content */}
-        <div className="card p-8 mb-8 prose dark:prose-invert max-w-none">
-          <div className="text-light-primary dark:text-dark-primary leading-relaxed">
+        <div className="card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 prose dark:prose-invert max-w-none">
+          <div className="text-light-primary dark:text-dark-primary leading-relaxed text-sm sm:text-base">
 
             {currentChapter.sections?.map((section, index) => {
               if (section.type === "text") {
@@ -182,14 +182,14 @@ const ChapterReader = () => {
 
               if (section.type === "image") {
                 return (
-                  <div key={section.id} className="my-6">
+                  <div key={section.id} className="my-4 sm:my-6">
                     <img
                       src={section.imageUrl}
                       alt="illustration"
-                      className="w-full h-auto rounded-xl"
+                      className="w-full h-auto rounded-lg sm:rounded-xl"
                     />
                     {section.caption && (
-                      <p className="text-sm text-center text-gray-500 mt-2">
+                      <p className="text-xs sm:text-sm text-center text-gray-500 mt-2">
                         {section.caption}
                       </p>
                     )}
@@ -204,17 +204,17 @@ const ChapterReader = () => {
         </div>
 
         {/* Navigation */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
           <button
             onClick={handlePreviousChapter}
             disabled={currentIndex === 0}
-            className="flex items-center gap-2 px-4 py-2 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm sm:text-base"
           >
             <FiChevronLeft /> Previous
           </button>
 
           <div className="text-center">
-            <p className="text-sm text-light-secondary dark:text-dark-secondary">
+            <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary">
               Chapter {currentIndex + 1} of {chapters.length}
             </p>
           </div>
@@ -222,16 +222,16 @@ const ChapterReader = () => {
           <button
             onClick={handleNextChapter}
             disabled={currentIndex === chapters.length - 1}
-            className="flex items-center gap-2 px-4 py-2 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm sm:text-base"
           >
             Next <FiChevronRight />
           </button>
         </div>
 
         {/* Chapter List */}
-        <div className="card p-6">
-          <h3 className="text-lg font-semibold mb-4">Chapters</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+        <div className="card p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Chapters</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
             {chapters.map((chapter, index) => (
               <button
                 key={chapter.id}
@@ -240,13 +240,13 @@ const ChapterReader = () => {
                   setCurrentIndex(index);
                   navigate(`/read/${projectId}/${chapter.id}`);
                 }}
-                className={`p-3 rounded-lg text-left transition ${currentChapter.id === chapter.id
+                className={`p-2 sm:p-3 rounded-lg text-left transition text-sm sm:text-base ${currentChapter.id === chapter.id
                   ? 'bg-light-accent text-white dark:bg-dark-accent'
                   : 'bg-light-surface dark:bg-dark-surface hover:bg-light-accent/10 dark:hover:bg-dark-accent/10'
                   }`}
               >
                 <p className="font-medium">Chapter {chapter.chapterNumber}</p>
-                <p className="text-sm opacity-75 truncate">{chapter.title}</p>
+                <p className="text-xs sm:text-sm opacity-75 truncate">{chapter.title}</p>
               </button>
             ))}
           </div>
