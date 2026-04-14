@@ -50,14 +50,28 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
 export default function Carousel({
   items = [],
   baseWidth = 300,
+  mobileBaseWidth = null,
   autoplay = false,
   autoplayDelay = 3000,
   pauseOnHover = false,
   loop = false,
   round = false
 }) {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const effectiveBaseWidth = isMobile && mobileBaseWidth ? mobileBaseWidth : baseWidth;
   const containerPadding = 16;
-  const itemWidth = baseWidth - containerPadding * 2;
+  const itemWidth = effectiveBaseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
 
   const itemsForRender = useMemo(() => {
@@ -198,8 +212,8 @@ export default function Carousel({
           : "rounded-3xl border border-white/10 bg-white/5 backdrop-blur-sm"
       }`}
       style={{
-        width: `${baseWidth}px`,
-        ...(round && { height: `${baseWidth}px` })
+        width: `${effectiveBaseWidth}px`,
+        ...(round && { height: `${effectiveBaseWidth}px` })
       }}
     >
       <motion.div
