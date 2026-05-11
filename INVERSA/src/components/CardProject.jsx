@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FiHeart, FiUser, FiUsers, FiClock } from 'react-icons/fi';
+import { FiHeart, FiUser, FiUsers, FiEye } from 'react-icons/fi';
 import BadgeGenre from './BadgeGenre';
 import BadgeCategories from './BadgeCategories';
-import { findUserById} from '../utils/userManager/index';
-import {incrementLikes, decrementLikes } from "../utils/dataManager/index"
+import { findUserById } from '../utils/userManager/index';
+import { incrementLikes, decrementLikes } from '../utils/dataManager/index';
 import { getTeamById } from '../utils/dataManager/teamManager';
 
 const CardProject = ({ project, showCollabStatus = false }) => {
@@ -13,7 +13,6 @@ const CardProject = ({ project, showCollabStatus = false }) => {
     const [teamName, setTeamName] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Load team name if it's a team project
     useEffect(() => {
         if (project.isTeamProject && project.teamId) {
             loadTeamName();
@@ -32,26 +31,22 @@ const CardProject = ({ project, showCollabStatus = false }) => {
         }
     };
 
-    // Check localStorage for guest likes
     useEffect(() => {
         const guestLikes = JSON.parse(localStorage.getItem('guestLikes') || '[]');
         setIsLiked(guestLikes.includes(project.id));
     }, [project.id]);
 
     const handleLike = async (e) => {
-        e.preventDefault(); // Prevent navigation when clicking like button
-
+        e.preventDefault();
         const guestLikes = JSON.parse(localStorage.getItem('guestLikes') || '[]');
 
         if (isLiked) {
-            // Unlike
             const newLikes = guestLikes.filter(id => id !== project.id);
             localStorage.setItem('guestLikes', JSON.stringify(newLikes));
             setIsLiked(false);
             setLikeCount(prev => prev - 1);
             await decrementLikes(project.id);
         } else {
-            // Like
             guestLikes.push(project.id);
             localStorage.setItem('guestLikes', JSON.stringify(guestLikes));
             setIsLiked(true);
@@ -61,211 +56,108 @@ const CardProject = ({ project, showCollabStatus = false }) => {
     };
 
     const author = findUserById(project.initiatorId) || { name: 'Unknown' };
-    const collaboratorCount = project.collaborators?.filter(c => c.status === 'approved').length || 0;
-    const pendingCount = project.collaborators?.filter(c => c.status === 'pending').length || 0;
-
-    // ✅ ADDED: Get display name based on project type
     const displayName = project.isTeamProject ? teamName : author.name;
     const displayIcon = project.isTeamProject ? FiUsers : FiUser;
     const DisplayIcon = displayIcon;
 
-    // Format date
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    };
-
-    // Check if project has background image
-    const hasBackground = project.backgroundImage && project.backgroundImage.trim() !== '';
+    const hasImage = project.backgroundImage && project.backgroundImage.trim() !== '';
 
     return (
-        <Link to={`/project/${project.id}`}>
-            <div
-                className={`card overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer group ${hasBackground ? 'p-0' : 'p-6'
-                    }`}
-            >
-                {hasBackground ? (
-                    <>
-                        {/* Background Image with Overlay */}
-                        <div
-                            className="relative h-48 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${project.backgroundImage})` }}
-                        >
-                            {/* Dark Overlay */}
-                            <div className="absolute inset-0 bg-black bg-opacity-60"></div>
-
-                            {/* Content Over Background */}
-                            <div className="relative h-full p-6 flex flex-col justify-between">
-                                {/* Header */}
-                                <div className="flex items-start justify-between">
-                                    <div className="flex gap-2 flex-wrap">
-                                        {project.category && (
-                                            <BadgeCategories categoryId={project.category} size="sm" />
-                                        )}
-                                        {project.genre && (
-                                            <BadgeGenre genreId={project.genre} size="sm" />
-                                        )}
-                                    </div>
-                                    <button
-                                        onClick={handleLike}
-                                        className="p-2 rounded-full bg-black bg-opacity-30 hover:bg-opacity-50 transition-colors flex-shrink-0"
-                                        aria-label={isLiked ? 'Unlike' : 'Like'}
-                                    >
-                                        <FiHeart
-                                            className={`w-5 h-5 transition-colors ${isLiked
-                                                    ? 'fill-red-500 text-red-500'
-                                                    : 'text-white'
-                                                }`}
-                                        />
-                                    </button>
-                                </div>
-
-                                {/* Title */}
-                                <div>
-                                    <h3 className="text-xl font-semibold text-white mb-2 group-hover:text-indigo-300 transition-colors">
-                                        {project.title}
-                                    </h3>
-                                    <p className="text-gray-200 text-sm line-clamp-2">
-                                        {project.description}
-                                    </p>
-                                </div>
-                            </div>
+        <Link to={`/project/${project.id}`} className="block group">
+            <div className="flex flex-col sm:flex-row bg-white dark:bg-gray-900 rounded-2xl overflow-hidden border border-gray-100 dark:border-gray-800 hover:shadow-2xl hover:shadow-gray-200/50 dark:hover:shadow-gray-900/50 transition-all duration-300 hover:-translate-y-1">
+                
+                {/* === GAMBAR (kiri, full height di desktop) === */}
+                <div className="relative sm:w-2/5 sm:min-h-[200px] h-48 sm:h-auto flex-shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800">
+                    {hasImage ? (
+                        <img
+                            src={project.backgroundImage}
+                            alt={project.title}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            loading="lazy"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                            <span className="text-5xl font-black text-white/30">
+                                {project.title?.charAt(0).toUpperCase()}
+                            </span>
                         </div>
+                    )}
+                    {/* Tombol like di atas gambar, pojok kanan */}
+                    <button
+                        onClick={handleLike}
+                        className="absolute top-3 right-3 p-2.5 rounded-full bg-white/20 backdrop-blur-md hover:bg-white/40 transition-colors z-10 border border-white/30"
+                        aria-label={isLiked ? 'Unlike' : 'Like'}
+                    >
+                        <FiHeart
+                            className={`w-5 h-5 drop-shadow ${
+                                isLiked
+                                    ? 'fill-red-500 text-red-500'
+                                    : 'text-white'
+                            }`}
+                        />
+                    </button>
+                </div>
 
-                        {/* Bottom Info */}
-                        <div className="p-4 bg-white dark:bg-dark-surface">
-                            <div className="flex items-center justify-between text-sm">
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-8 h-8 rounded-full bg-light-accent dark:bg-dark-accent flex items-center justify-center">
-                                        <DisplayIcon className="w-4 h-4 text-white" />
-                                    </div>
-                                    <span className="text-light-secondary dark:text-dark-secondary font-medium">
-                                        {displayName || (loading ? 'Loading...' : 'Unknown')}
-                                    </span>
-                                </div>
+                {/* === KONTEN TEKS (kanan) === */}
+                <div className="flex-1 p-5 flex flex-col justify-between">
+                    {/* Badge category & genre di atas judul */}
+                    <div className="flex items-center gap-2 mb-3">
+                        {project.category && (
+                            <BadgeCategories categoryId={project.category} size="sm" />
+                        )}
+                        {project.genre && (
+                            <BadgeGenre genreId={project.genre} size="sm" />
+                        )}
+                    </div>
 
-                                <div className="flex items-center space-x-3 text-light-secondary dark:text-dark-secondary">
-                                    <div className="flex items-center space-x-1">
-                                        <FiHeart className="w-4 h-4" />
-                                        <span>{likeCount}</span>
-                                    </div>
-                                    {collaboratorCount > 0 && (
-                                        <div className="flex items-center space-x-1">
-                                            <FiUsers className="w-4 h-4" />
-                                            <span>{collaboratorCount}</span>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Collaboration Status (for Dashboard view) */}
-                            {showCollabStatus && (
-                                <div className="mt-4 pt-4 border-t border-light-border dark:border-dark-border">
-                                    <div className="flex items-center justify-between text-xs">
-                                        <div className="flex items-center space-x-1 text-light-secondary dark:text-dark-secondary">
-                                            <FiClock className="w-3 h-3" />
-                                            <span>Updated {formatDate(project.updatedAt)}</span>
-                                        </div>
-                                        {pendingCount > 0 && (
-                                            <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
-                                                {pendingCount} pending request{pendingCount > 1 ? 's' : ''}
-                                            </span>
-                                        )}
-                                        {project.status === 'open' && (
-                                            <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
-                                                Open
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        {/* Original Card Design (No Background) */}
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-3">
-                            <div className="flex gap-2 flex-wrap">
-                                {project.category && (
-                                    <BadgeCategories categoryId={project.category} size="sm" />
-                                )}
-                                {project.genre && (
-                                    <BadgeGenre genreId={project.genre} size="sm" />
-                                )}
-                            </div>
-                            <button
-                                onClick={handleLike}
-                                className="p-2 rounded-full hover:bg-light-surface dark:hover:bg-dark-surface transition-colors flex-shrink-0"
-                                aria-label={isLiked ? 'Unlike' : 'Like'}
-                            >
-                                <FiHeart
-                                    className={`w-5 h-5 transition-colors ${isLiked
-                                            ? 'fill-red-500 text-red-500'
-                                            : 'text-light-secondary dark:text-dark-secondary'
-                                        }`}
-                                />
-                            </button>
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-xl font-semibold text-light-primary dark:text-dark-primary mb-2 group-hover:text-light-accent dark:group-hover:text-dark-accent transition-colors">
+                    {/* Title & Description */}
+                    <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white leading-tight line-clamp-2 mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             {project.title}
                         </h3>
-
-                        {/* Description */}
-                        <p className="text-light-secondary dark:text-dark-secondary text-sm mb-4 line-clamp-2">
+                        <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-3 mb-4">
                             {project.description}
                         </p>
+                    </div>
 
-                        {/* Author & Stats */}
-                        <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center space-x-2">
-                                <div className="w-8 h-8 rounded-full bg-light-accent dark:bg-dark-accent flex items-center justify-center">
-                                    <DisplayIcon className="w-4 h-4 text-white" />
-                                </div>
-                                <span className="text-light-secondary dark:text-dark-secondary font-medium">
-                                    {displayName || (loading ? 'Loading...' : 'Unknown')}
-                                </span>
+                    {/* Footer: author/team + stats */}
+                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center">
+                                <DisplayIcon className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
                             </div>
-
-                            <div className="flex items-center space-x-3 text-light-secondary dark:text-dark-secondary">
-                                <div className="flex items-center space-x-1">
-                                    <FiHeart className="w-4 h-4" />
-                                    <span>{likeCount}</span>
-                                </div>
-                                {collaboratorCount > 0 && (
-                                    <div className="flex items-center space-x-1">
-                                        <FiUsers className="w-4 h-4" />
-                                        <span>{collaboratorCount}</span>
-                                    </div>
-                                )}
-                            </div>
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate max-w-[120px]">
+                                {displayName || (loading ? '...' : 'Unknown')}
+                            </span>
                         </div>
 
-                        {/* Collaboration Status (for Dashboard view) */}
-                        {showCollabStatus && (
-                            <div className="mt-4 pt-4 border-t border-light-border dark:border-dark-border">
-                                <div className="flex items-center justify-between text-xs">
-                                    <div className="flex items-center space-x-1 text-light-secondary dark:text-dark-secondary">
-                                        <FiClock className="w-3 h-3" />
-                                        <span>Updated {formatDate(project.updatedAt)}</span>
-                                    </div>
-                                    {pendingCount > 0 && (
-                                        <span className="px-2 py-1 bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 rounded-full">
-                                            {pendingCount} pending request{pendingCount > 1 ? 's' : ''}
-                                        </span>
-                                    )}
-                                    {project.status === 'open' && (
-                                        <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
-                                            Open
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
+                        <div className="flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+                            <span className="flex items-center gap-1.5">
+                                <FiEye className="w-4 h-4" />
+                                <span>{project.views || 0}</span>
+                            </span>
+                            <span className="flex items-center gap-1.5">
+                                <FiHeart className="w-4 h-4" />
+                                <span>{likeCount}</span>
+                            </span>
+                            {project.collaborators?.filter(c => c.status === 'approved').length > 0 && (
+                                <span className="flex items-center gap-1.5">
+                                    <FiUsers className="w-4 h-4" />
+                                    <span>{project.collaborators.filter(c => c.status === 'approved').length}</span>
+                                </span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Status kolaborasi (opsional, dari props) */}
+                    {showCollabStatus && project.collaborators?.some(c => c.status === 'pending') && (
+                        <div className="mt-3 pt-3 border-t border-gray-100 dark:border-gray-800">
+                            <span className="px-3 py-1 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-full text-xs font-medium">
+                                {project.collaborators.filter(c => c.status === 'pending').length} pending request
+                            </span>
+                        </div>
+                    )}
+                </div>
             </div>
         </Link>
     );

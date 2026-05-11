@@ -74,19 +74,6 @@ const UserDashboard = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('team')}
-            className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
-              activeTab === 'team'
-                ? 'text-light-accent dark:text-dark-accent border-b-2 border-light-accent dark:border-dark-accent'
-                : 'text-light-secondary dark:text-dark-secondary hover:text-light-primary dark:hover:text-dark-primary'
-            }`}
-          >
-            <FiUsers className="w-3 h-3 sm:w-4 sm:h-4" />
-            <span className="hidden sm:inline">Team Projects</span>
-            <span className="sm:hidden">Team</span> ({teamProjects.length})
-          </button>
-
-          <button
             onClick={() => setActiveTab('teams')}
             className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 sm:py-3 font-medium transition whitespace-nowrap text-xs sm:text-sm ${
               activeTab === 'teams'

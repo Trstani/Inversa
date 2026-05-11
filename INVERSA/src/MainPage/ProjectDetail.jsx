@@ -20,10 +20,13 @@ import {
   FiClock,
   FiTrash2,
   FiHeart,
-  FiEye
+  FiEye,
+  FiBook,
+  FiPlay
 } from "react-icons/fi";
 
 import Button from "../components/Button";
+import Breadcrumbs from "../components/Breadcrumbs";
 import CollaborationRequestModal from "../components/CollaborationRequestModal";
 import ReportsModal from "../components/ReportsModal";
 
@@ -309,6 +312,18 @@ const ProjectDetail = () => {
       {/* ================= MAIN ================= */}
       <div className="max-w-6xl mx-auto p-4 sm:p-6">
 
+        {/* ================= BREADCRUMBS (Only for Creator) ================= */}
+        {isInitiator && (
+          <div className="mb-6">
+            <Breadcrumbs 
+              items={[
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: project?.title || 'Project' }
+              ]}
+            />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
 
           {/* SIDEBAR */}
@@ -424,37 +439,59 @@ const ProjectDetail = () => {
 
             {/* READ */}
             {activeTab === "read" && (
-              <div className="bg-gray-100 dark:bg-[#1e293b] p-4 sm:p-6 rounded-lg">
-
+              <div>
                 {chapters.length === 0 ? (
-                  <p className="text-sm sm:text-base">No chapters yet</p>
+                  <div className="text-center py-12">
+                    <FiBook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                    <p className="text-gray-500">No chapters published yet</p>
+                  </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    {chapters.map(ch => (
-                      <div key={ch.id} className="bg-white dark:bg-[#334155] p-3 sm:p-4 rounded">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {chapters.map((ch, index) => (
+                      <button
+                        key={ch.id}
+                        onClick={() => navigate(`/read/${project.id}/${ch.id}`)}
+                        className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-light-surface to-light-background dark:from-dark-surface dark:to-dark-background border border-light-border dark:border-dark-border hover:border-light-accent dark:hover:border-dark-accent transition-all hover:shadow-lg hover:-translate-y-1"
+                      >
+                        {/* Background gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all"></div>
 
-                        <p className="font-semibold text-sm sm:text-base">
-                          Chapter {ch.chapterNumber}
-                        </p>
+                        {/* Content */}
+                        <div className="relative p-5 sm:p-6">
+                          {/* Chapter Number Badge */}
+                          <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 bg-light-accent/10 dark:bg-dark-accent/10 rounded-full">
+                            <FiBook className="w-3 h-3 text-light-accent dark:text-dark-accent" />
+                            <span className="text-xs font-semibold text-light-accent dark:text-dark-accent">
+                              Chapter {ch.chapterNumber}
+                            </span>
+                          </div>
 
-                        <p className="text-xs sm:text-sm text-gray-500 truncate">
-                          {ch.title}
-                        </p>
+                          {/* Title */}
+                          <h3 className="text-lg sm:text-xl font-bold text-light-primary dark:text-dark-primary mb-2 group-hover:text-light-accent dark:group-hover:text-dark-accent transition-colors line-clamp-2">
+                            {ch.title}
+                          </h3>
 
-                        <button
-                          onClick={() =>
-                            navigate(`/read/${project.id}/${ch.id}`)
-                          }
-                          className="text-blue-500 text-xs mt-2 hover:underline"
-                        >
-                          Read
-                        </button>
+                          {/* Status */}
+                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-light-border dark:border-dark-border">
+                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
+                              ch.status === 'published'
+                                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
+                                : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'
+                            }`}>
+                              {ch.status === 'published' ? 'Published' : 'Draft'}
+                            </span>
 
-                      </div>
+                            {/* Read Button */}
+                            <div className="flex items-center gap-1 text-light-accent dark:text-dark-accent font-medium text-sm group-hover:gap-2 transition-all">
+                              <span>Read</span>
+                              <FiPlay className="w-3 h-3" />
+                            </div>
+                          </div>
+                        </div>
+                      </button>
                     ))}
                   </div>
                 )}
-
               </div>
             )}
 
