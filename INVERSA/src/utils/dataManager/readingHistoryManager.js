@@ -7,15 +7,38 @@ import { loadChapters } from "./chapterManager";
 // LOAD READING HISTORY
 // ==============================
 
-export const loadReadingHistory = (userId) => {
+export const loadReadingHistory = async (userId) => {
 
   const data = loadFromLocalStorage("readingHistory");
 
   const history = data?.history || [];
 
-  return history.filter(
-    h => h.userId === userId
-  );
+  const projects = await loadProjects();
+
+  const userHistory = history
+    .filter(h => h.userId === userId)
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt) - new Date(a.updatedAt)
+    );
+
+  return userHistory.map(entry => {
+
+    const project = projects.find(
+      p => p.id === entry.projectId
+    );
+
+    if (!project) return null;
+
+    return {
+
+      ...entry,
+
+      project
+
+    };
+
+  }).filter(Boolean);
 
 };
 

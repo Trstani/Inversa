@@ -3,46 +3,109 @@ import { featureData } from "../data/featuredata";
 
 export default function FeaturesSection() {
   return (
-    <section className="relative max-w-full mx-auto py-12 sm:py-16 md:py-20 lg:py-24 px-4 sm:px-6 md:px-8 lg:px-12 grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 md:gap-12 lg:gap-20 items-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
-      {/* Elemen dekoratif blur */}
-      <div className="absolute top-0 left-0 w-48 sm:w-72 h-48 sm:h-72 bg-purple-500/10 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-56 sm:w-96 h-56 sm:h-96 bg-blue-500/10 rounded-full blur-3xl"></div>
+    <section className="bg-light-background dark:bg-dark-background py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        
+        {/* CAROUSEL */}
+        <div className="flex justify-center order-2 lg:order-1">
+          <Blockcarousel
+            items={featureData}
+            baseWidth={460}
+            mobileBaseWidth={340}
+            autoplay
+            autoplayDelay={3500}
+            pauseOnHover
+            loop
+          />
+        </div>
 
-      {/* Carousel */}
-      <div className="relative z-10 flex justify-center order-2 md:order-1">
-        <Blockcarousel
-          items={featureData}
-          baseWidth={480}
-          mobileBaseWidth={380}
-          autoplay
-          autoplayDelay={3500}
-          pauseOnHover
-          loop
-        />
-      </div>
+        {/* TEXT */}
+        <div className="order-1 lg:order-2">
+          
+          <span
+            className="
+            inline-flex items-center
+            rounded-full
+            border border-light-border dark:border-dark-border
+            bg-light-surface dark:bg-dark-surface
+            px-4 py-2
+            text-xs font-medium
+            text-light-secondary dark:text-dark-secondary
+            "
+          >
+            Collaboration Features
+          </span>
 
-      {/* Deskripsi */}
-      <div className="relative z-10 order-1 md:order-2">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-extrabold mb-4 sm:mb-6 bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
-          Powerful Collaboration Features
-        </h2>
+          <h2
+            className="
+            mt-6
+            text-4xl md:text-5xl
+            font-bold tracking-tight
+            text-light-primary dark:text-dark-primary
+            "
+          >
+            Powerful tools for
+            collaborative writing.
+          </h2>
 
-        <p className="text-sm sm:text-base md:text-lg text-gray-300 leading-relaxed">
-          Inversa memberikan sistem kolaborasi penulisan yang terstruktur.
-          Draft dapat diedit secara bertahap, collaborator dapat memberikan
-          kontribusi tanpa konflik, dan setiap perubahan tercatat dengan jelas.
-        </p>
+          <p
+            className="
+            mt-5 max-w-xl
+            text-base leading-relaxed
+            text-light-secondary dark:text-dark-secondary
+            "
+          >
+            Dari pembagian chapter,
+            sistem collaborator,
+            hingga workflow publish —
+            INVERSA dibuat untuk menjaga
+            proses menulis tetap terstruktur.
+          </p>
 
-        <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row gap-6 sm:gap-8">
-          <div className="flex-1">
-            <span className="block text-2xl sm:text-3xl font-bold text-white">500+</span>
-            <span className="text-xs sm:text-sm text-gray-400">Active Users</span>
+          <div className="mt-10 grid grid-cols-2 gap-6">
+            
+            <div>
+              <p
+                className="
+                text-3xl font-bold
+                text-light-primary dark:text-dark-primary
+                "
+              >
+                500+
+              </p>
+
+              <p
+                className="
+                mt-1 text-sm
+                text-light-secondary dark:text-dark-secondary
+                "
+              >
+                Active Users
+              </p>
+            </div>
+
+            <div>
+              <p
+                className="
+                text-3xl font-bold
+                text-light-primary dark:text-dark-primary
+                "
+              >
+                50+
+              </p>
+
+              <p
+                className="
+                mt-1 text-sm
+                text-light-secondary dark:text-dark-secondary
+                "
+              >
+                Creative Teams
+              </p>
+            </div>
+
           </div>
-          <div className="flex-1">
-            <span className="block text-2xl sm:text-3xl font-bold text-white">50+</span>
-            <span className="text-xs sm:text-sm text-gray-400">Teams</span>
-          </div>
-        </div> 
+        </div>
       </div>
     </section>
   );

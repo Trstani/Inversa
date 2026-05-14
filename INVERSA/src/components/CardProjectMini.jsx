@@ -1,71 +1,304 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { FiEye, FiHeart, FiUser } from "react-icons/fi";
+
+import {
+  FiEye,
+  FiHeart,
+  FiUser,
+  FiArrowUpRight,
+} from "react-icons/fi";
+
 import { findUserById } from "../utils/userManager/index";
 
 const CardProjectMini = ({ project, rank }) => {
+
   if (!project) return null;
 
-  const author = findUserById(project.initiatorId) || { name: "Unknown" };
+  const author =
+    findUserById(project.initiatorId) || {
+      name: "Unknown",
+    };
+
   const hasBackground =
-    project.backgroundImage && project.backgroundImage.trim() !== "";
+    project.backgroundImage &&
+    project.backgroundImage.trim() !== "";
 
   return (
-    <Link to={`/project/${project.id}`} className="block group">
-      <div className="relative overflow-hidden rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
-        {/* Tekstur latar gambar yang sangat redup – hanya sebagai aksen, bukan fokus */}
+
+    <Link
+      to={`/project/${project.id}`}
+      className="block group"
+    >
+
+      <div
+        className="
+        relative overflow-hidden
+
+        rounded-[1.75rem]
+
+        border border-light-border dark:border-dark-border
+
+        bg-light-surface dark:bg-dark-surface
+
+        transition-all duration-500
+
+        hover:-translate-y-1
+        hover:shadow-2xl
+
+        hover:border-light-accent/30
+        dark:hover:border-dark-accent/30
+        "
+      >
+
+        {/* BACKGROUND */}
         {hasBackground && (
-          <div
-            className="absolute inset-0 z-0 opacity-40 dark:opacity-5 bg-cover bg-center transition-opacity group-hover:opacity-20 dark:group-hover:opacity-10"
-            style={{ backgroundImage: `url(${project.backgroundImage})` }}
-          />
+
+          <div className="absolute inset-0">
+
+            <div
+              className="
+              absolute inset-0
+              bg-cover bg-center
+
+              opacity-[0.08]
+              dark:opacity-[0.06]
+
+              transition-all duration-700
+
+              scale-105
+              group-hover:scale-110
+              "
+              style={{
+                backgroundImage: `url(${project.backgroundImage})`,
+              }}
+            />
+
+            {/* FADE */}
+            <div
+              className="
+              absolute inset-0
+
+              bg-gradient-to-b
+
+              from-white/40
+              to-white/95
+
+              dark:from-slate-950/10
+              dark:to-slate-950/95
+              "
+            />
+
+          </div>
+
         )}
 
-        {/* Konten utama tetap di atas tekstur */}
-        <div className="relative z-10 flex flex-col justify-between h-full">
-          {/* Ranking + Judul */}
-          <div className="flex items-start gap-2 mb-2">
-            {rank && (
-              <span className="flex-shrink-0 w-6 h-6 rounded-full bg-amber-500 text-white text-xs font-bold flex items-center justify-center">
-                {rank}
-              </span>
-            )}
-            <h4 className="text-sm font-bold text-gray-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors truncate">
-              {project.title}
-            </h4>
+        {/* ACCENT GLOW */}
+        <div
+          className="
+          absolute inset-0 opacity-0
+
+          transition-opacity duration-500
+
+          group-hover:opacity-100
+
+          bg-gradient-to-br
+          from-indigo-500/[0.03]
+          via-purple-500/[0.02]
+          to-pink-500/[0.03]
+          "
+        />
+
+        {/* CONTENT */}
+        <div
+          className="
+          relative z-10
+
+          p-5
+          "
+        >
+
+          {/* TOP */}
+          <div className="flex items-start justify-between gap-4">
+
+            <div className="min-w-0 flex-1">
+
+              {/* RANK */}
+              {rank && (
+
+                <div
+                  className="
+                  mb-4
+
+                  inline-flex items-center gap-2
+
+                  rounded-full
+
+                  border border-light-border dark:border-dark-border
+
+                  bg-light-background dark:bg-dark-background
+
+                  px-3 py-1
+
+                  text-[11px] font-semibold
+
+                  text-light-secondary dark:text-dark-secondary
+                  "
+                >
+                  Top #{rank}
+                </div>
+
+              )}
+
+              {/* TITLE */}
+              <h3
+                className="
+                line-clamp-1
+
+                text-lg font-semibold tracking-tight
+
+                text-light-primary dark:text-dark-primary
+
+                transition-colors duration-300
+
+                group-hover:text-light-accent
+                dark:group-hover:text-dark-accent
+                "
+              >
+                {project.title}
+              </h3>
+
+              {/* DESCRIPTION */}
+              <p
+                className="
+                mt-2
+
+                line-clamp-2
+
+                text-sm leading-relaxed
+
+                text-light-secondary dark:text-dark-secondary
+                "
+              >
+                {project.description ||
+                  "Collaborative storytelling project on INVERSA."}
+              </p>
+
+            </div>
+
+            {/* OPEN ICON */}
+            <div
+              className="
+              flex h-10 w-10 shrink-0 items-center justify-center
+
+              rounded-2xl
+
+              border border-light-border dark:border-dark-border
+
+              bg-light-background dark:bg-dark-background
+
+              text-light-secondary dark:text-dark-secondary
+
+              transition-all duration-300
+
+              group-hover:border-light-accent/30
+              dark:group-hover:border-dark-accent/30
+
+              group-hover:text-light-accent
+              dark:group-hover:text-dark-accent
+              "
+            >
+              <FiArrowUpRight className="w-4 h-4" />
+            </div>
+
           </div>
 
-          {/* Deskripsi singkat – 1 baris */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-3">
-            {project.description}
-          </p>
+          {/* FOOTER */}
+          <div
+            className="
+            mt-5
 
-          {/* Footer: author + stats */}
-          <div className="flex items-center justify-between text-xs mt-auto">
-            <div className="flex items-center gap-1.5 truncate">
-              <div className="w-5 h-5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center flex-shrink-0">
-                <FiUser className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
+            flex items-center justify-between gap-4
+
+            border-t border-light-border dark:border-dark-border
+
+            pt-4
+            "
+          >
+
+            {/* AUTHOR */}
+            <div className="flex items-center gap-3 min-w-0">
+
+              <div
+                className="
+                flex h-10 w-10 shrink-0 items-center justify-center
+
+                rounded-full
+
+                bg-light-accent/10 dark:bg-dark-accent/10
+
+                text-light-accent dark:text-dark-accent
+                "
+              >
+                <FiUser className="w-4 h-4" />
               </div>
-              <span className="truncate text-gray-600 dark:text-gray-300 font-medium">
-                {author.name}
-              </span>
+
+              <div className="min-w-0">
+
+                <p
+                  className="
+                  truncate
+
+                  text-sm font-medium
+
+                  text-light-primary dark:text-dark-primary
+                  "
+                >
+                  {author.name}
+                </p>
+
+              </div>
+
             </div>
 
-            <div className="flex items-center gap-3 text-gray-400 dark:text-gray-500 flex-shrink-0">
-              <span className="flex items-center gap-1">
-                <FiEye className="w-3.5 h-3.5" />
+            {/* STATS */}
+            <div
+              className="
+              flex items-center gap-4
+
+              text-sm
+
+              text-light-secondary dark:text-dark-secondary
+              "
+            >
+
+              <div className="flex items-center gap-1.5">
+
+                <FiEye className="w-4 h-4" />
+
                 <span>{project.views || 0}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <FiHeart className="w-3.5 h-3.5" />
+
+              </div>
+
+              <div className="flex items-center gap-1.5">
+
+                <FiHeart className="w-4 h-4" />
+
                 <span>{project.likes || 0}</span>
-              </span>
+
+              </div>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
+
     </Link>
+
   );
+
 };
 
 export default CardProjectMini;

@@ -126,7 +126,7 @@ const ProjectDetail = () => {
         // ✅ FALLBACK: Check if project belongs to any team that user is in
         const { loadTeams } = await import("../utils/dataManager/teamManager");
         const userTeams = await loadTeams(user?.id);
-        
+
         for (const team of userTeams) {
           if (team.projects?.includes(parseInt(projectData.id))) {
             userIsTeamMember = true;
@@ -234,7 +234,7 @@ const ProjectDetail = () => {
 
         {/* Content */}
         <div className="relative h-full flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-12 text-white min-h-300px sm:min-h-400px md:min-h-500px">
-          
+
           {/* Top section - Genre and Category */}
           <div className="flex items-start justify-between gap-2">
             <div className="flex gap-2 flex-wrap">
@@ -249,7 +249,7 @@ const ProjectDetail = () => {
                 </span>
               )}
             </div>
-            
+
             {!isInitiator && (
               <button
                 onClick={() => setShowReportModal(true)}
@@ -269,7 +269,7 @@ const ProjectDetail = () => {
               </h1>
               <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
             </div>
-            
+
             <p className="text-sm sm:text-base md:text-lg text-gray-100 max-w-2xl leading-relaxed line-clamp-3">
               {project.description}
             </p>
@@ -315,7 +315,7 @@ const ProjectDetail = () => {
         {/* ================= BREADCRUMBS (Only for Creator) ================= */}
         {isInitiator && (
           <div className="mb-6">
-            <Breadcrumbs 
+            <Breadcrumbs
               items={[
                 { label: 'Dashboard', href: '/dashboard' },
                 { label: project?.title || 'Project' }
@@ -373,12 +373,6 @@ const ProjectDetail = () => {
             {/* ACTION */}
             <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
 
-              {canEdit && (
-                <Button onClick={() => navigate(`/editor/${project.id}`)} className="w-full sm:w-auto">
-                  Go to Editor
-                </Button>
-              )}
-
               {/* Only show collaboration request for solo projects, not team projects */}
               {!isInitiator && !isCollaborator && !project.isTeamProject && isCollaborative && (
                 <>
@@ -395,17 +389,6 @@ const ProjectDetail = () => {
                 </>
               )}
 
-              {/* ✅ NEW: Delete button for project creator */}
-              {isInitiator && (
-                <Button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="bg-red-500 hover:bg-red-600 text-white w-full sm:w-auto"
-                >
-                  <FiTrash2 className="mr-2" />
-                  Delete Project
-                </Button>
-              )}
-
             </div>
 
             {/* TABS */}
@@ -413,11 +396,10 @@ const ProjectDetail = () => {
 
               <button
                 onClick={() => setActiveTab("read")}
-                className={`pb-2 whitespace-nowrap text-sm sm:text-base ${
-                  activeTab === "read"
-                    ? "border-b-2 border-blue-500 font-semibold"
-                    : "text-gray-400"
-                }`}
+                className={`pb-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "read"
+                  ? "border-b-2 border-blue-500 font-semibold"
+                  : "text-gray-400"
+                  }`}
               >
                 Read Chapters
               </button>
@@ -425,11 +407,10 @@ const ProjectDetail = () => {
               {canEdit && (
                 <button
                   onClick={() => setActiveTab("create")}
-                  className={`pb-2 whitespace-nowrap text-sm sm:text-base ${
-                    activeTab === "create"
-                      ? "border-b-2 border-blue-500 font-semibold"
-                      : "text-gray-400"
-                  }`}
+                  className={`pb-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "create"
+                    ? "border-b-2 border-blue-500 font-semibold"
+                    : "text-gray-400"
+                    }`}
                 >
                   Create Chapter
                 </button>
@@ -441,94 +422,417 @@ const ProjectDetail = () => {
             {activeTab === "read" && (
               <div>
                 {chapters.length === 0 ? (
-                  <div className="text-center py-12">
-                    <FiBook className="w-12 h-12 mx-auto text-gray-400 mb-4" />
-                    <p className="text-gray-500">No chapters published yet</p>
+
+                  <div
+                    className="
+        rounded-3xl
+        border border-light-border dark:border-dark-border
+        bg-light-surface dark:bg-dark-surface
+        py-20 px-6
+        text-center
+        "
+                  >
+                    <FiBook className="w-14 h-14 mx-auto text-light-secondary dark:text-dark-secondary mb-5" />
+
+                    <h3 className="text-xl font-semibold text-light-primary dark:text-dark-primary">
+                      No Chapters Yet
+                    </h3>
+
+                    <p className="mt-2 text-sm text-light-secondary dark:text-dark-secondary">
+                      This project has not published any chapters.
+                    </p>
                   </div>
+
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+                  <div className="space-y-5">
                     {chapters.map((ch, index) => (
+
                       <button
                         key={ch.id}
-                        onClick={() => navigate(`/read/${project.id}/${ch.id}`)}
-                        className="group relative overflow-hidden rounded-lg bg-gradient-to-br from-light-surface to-light-background dark:from-dark-surface dark:to-dark-background border border-light-border dark:border-dark-border hover:border-light-accent dark:hover:border-dark-accent transition-all hover:shadow-lg hover:-translate-y-1"
+                        onClick={() =>
+                          navigate(`/read/${project.id}/${ch.id}`)
+                        }
+                        className="
+            group relative w-full overflow-hidden
+            rounded-[2rem]
+            border border-light-border dark:border-dark-border
+            bg-light-surface dark:bg-dark-surface
+            p-6
+            text-left
+            transition-all duration-300
+            hover:-translate-y-1
+            hover:border-light-accent/40
+            dark:hover:border-dark-accent/40
+            hover:shadow-xl
+            "
                       >
-                        {/* Background gradient */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/10 group-hover:via-purple-500/10 group-hover:to-pink-500/10 transition-all"></div>
 
-                        {/* Content */}
-                        <div className="relative p-5 sm:p-6">
-                          {/* Chapter Number Badge */}
-                          <div className="inline-flex items-center gap-2 mb-3 px-3 py-1 bg-light-accent/10 dark:bg-dark-accent/10 rounded-full">
-                            <FiBook className="w-3 h-3 text-light-accent dark:text-dark-accent" />
-                            <span className="text-xs font-semibold text-light-accent dark:text-dark-accent">
-                              Chapter {ch.chapterNumber}
-                            </span>
-                          </div>
+                        {/* Glow */}
+                        <div
+                          className="
+              absolute inset-0 opacity-0
+              group-hover:opacity-100
+              transition-opacity duration-500
+              bg-gradient-to-r
+              from-indigo-500/5
+              via-purple-500/5
+              to-pink-500/5
+              "
+                        />
 
-                          {/* Title */}
-                          <h3 className="text-lg sm:text-xl font-bold text-light-primary dark:text-dark-primary mb-2 group-hover:text-light-accent dark:group-hover:text-dark-accent transition-colors line-clamp-2">
-                            {ch.title}
-                          </h3>
+                        <div className="relative z-10">
 
-                          {/* Status */}
-                          <div className="flex items-center justify-between mt-4 pt-4 border-t border-light-border dark:border-dark-border">
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                              ch.status === 'published'
-                                ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300'
-                                : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-700 dark:text-yellow-300'
-                            }`}>
-                              {ch.status === 'published' ? 'Published' : 'Draft'}
-                            </span>
+                          {/* TOP */}
+                          <div className="flex items-start justify-between gap-4">
 
-                            {/* Read Button */}
-                            <div className="flex items-center gap-1 text-light-accent dark:text-dark-accent font-medium text-sm group-hover:gap-2 transition-all">
-                              <span>Read</span>
-                              <FiPlay className="w-3 h-3" />
+                            <div>
+
+                              <div
+                                className="
+                    inline-flex items-center gap-2
+                    rounded-full
+                    bg-light-accent/10 dark:bg-dark-accent/10
+                    px-3 py-1
+                    text-xs font-medium
+                    text-light-accent dark:text-dark-accent
+                    "
+                              >
+                                <FiBook className="w-3 h-3" />
+
+                                Chapter {ch.chapterNumber}
+                              </div>
+
+                              <h3
+                                className="
+                    mt-4
+                    text-2xl font-semibold
+                    tracking-tight
+                    text-light-primary dark:text-dark-primary
+                    group-hover:text-light-accent
+                    dark:group-hover:text-dark-accent
+                    transition-colors
+                    "
+                              >
+                                {ch.title}
+                              </h3>
+
                             </div>
+
+                            <div
+                              className={`
+                  shrink-0 rounded-full px-3 py-1 text-xs font-medium
+                  ${ch.status === "published"
+                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                }
+                  `}
+                            >
+                              {ch.status}
+                            </div>
+
                           </div>
+
+                          {/* DESCRIPTION */}
+                          <p
+                            className="
+                mt-4
+                max-w-3xl
+                text-sm leading-relaxed
+                text-light-secondary dark:text-dark-secondary
+                "
+                          >
+                            {ch.description ||
+                              "Continue reading this chapter and explore the story progression."}
+                          </p>
+
+                          {/* FOOTER */}
+                          <div
+                            className="
+                mt-6
+                flex items-center justify-between
+                border-t border-light-border dark:border-dark-border
+                pt-5
+                "
+                          >
+
+                            <div className="flex items-center gap-2 text-sm text-light-secondary dark:text-dark-secondary">
+                              <FiClock className="w-4 h-4" />
+
+                              Recently updated
+                            </div>
+
+                            <div
+                              className="
+                  flex items-center gap-2
+                  text-sm font-medium
+                  text-light-accent dark:text-dark-accent
+                  transition-all
+                  group-hover:gap-3
+                  "
+                            >
+                              Read Chapter
+
+                              <FiPlay className="w-4 h-4" />
+                            </div>
+
+                          </div>
+
                         </div>
+
                       </button>
+
                     ))}
                   </div>
+
                 )}
               </div>
             )}
 
             {/* CREATE */}
             {activeTab === "create" && canEdit && (
-              <div className="bg-gray-100 dark:bg-[#1e293b] p-4 sm:p-6 rounded-lg">
 
-                <div className="space-y-2">
-                  {chapters.map(ch => (
-                    <div key={ch.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-2">
+              <div
+                className="
+    overflow-hidden
+    rounded-[2rem]
+    border border-light-border dark:border-dark-border
+    bg-light-surface dark:bg-dark-surface
+    "
+              >
 
-                      <span className="text-sm sm:text-base truncate">
-                        Chapter {ch.chapterNumber} - {ch.title}
-                      </span>
+                {/* TOP HEADER */}
+                <div
+                  className="
+      border-b border-light-border dark:border-dark-border
+      px-6 sm:px-8 py-7
+      "
+                >
 
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          navigate(`/editor/${project.id}/${ch.id}`)
-                        }
-                        className="w-full sm:w-auto"
+                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+                    <div>
+
+                      <div
+                        className="
+            inline-flex items-center gap-2
+            rounded-full
+            bg-light-accent/10 dark:bg-dark-accent/10
+            px-3 py-1
+            text-xs font-medium
+            text-light-accent dark:text-dark-accent
+            "
                       >
-                        Edit
-                      </Button>
+                        Workspace
+                      </div>
+
+                      <h2
+                        className="
+            mt-4
+            text-3xl font-semibold tracking-tight
+            text-light-primary dark:text-dark-primary
+            "
+                      >
+                        Chapter Management
+                      </h2>
+
+                      <p
+                        className="
+            mt-2 max-w-2xl
+            text-sm leading-relaxed
+            text-light-secondary dark:text-dark-secondary
+            "
+                      >
+                        Organize chapters, continue unfinished drafts,
+                        and manage the structure of your collaborative project.
+                      </p>
 
                     </div>
-                  ))}
+
+                    <Button
+                      onClick={() =>
+                        navigate(`/editor/${project.id}`)
+                      }
+                      className="
+          h-fit
+          whitespace-nowrap
+          "
+                    >
+                      Create New Chapter
+                    </Button>
+                    {isInitiator && (
+                      <Button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="
+      h-fit whitespace-nowrap
+      bg-red-500 hover:bg-red-600
+      text-white
+      "
+                      >
+                        <FiTrash2 className="mr-2" />
+                        Delete Project
+                      </Button>
+                    )}
+
+                  </div>
+
                 </div>
 
-                <Button
-                  className="mt-4 w-full sm:w-auto"
-                  onClick={() => navigate(`/editor/${project.id}`)}
-                >
-                  Create New Chapter
-                </Button>
+                {/* CHAPTER LIST */}
+                <div className="p-6 sm:p-8">
+
+                  {chapters.length === 0 ? (
+
+                    <div
+                      className="
+          rounded-3xl
+          border border-dashed
+          border-light-border dark:border-dark-border
+          bg-light-background dark:bg-dark-background
+          py-20 px-6
+          text-center
+          "
+                    >
+
+                      <FiBook className="w-14 h-14 mx-auto text-light-secondary dark:text-dark-secondary mb-5" />
+
+                      <h3 className="text-xl font-semibold text-light-primary dark:text-dark-primary">
+                        No Chapters Created
+                      </h3>
+
+                      <p className="mt-2 text-sm text-light-secondary dark:text-dark-secondary">
+                        Start building your story by creating the first chapter.
+                      </p>
+
+                    </div>
+
+                  ) : (
+
+                    <div className="space-y-5">
+
+                      {chapters.map((ch) => (
+
+                        <div
+                          key={ch.id}
+                          className="
+              group
+              rounded-[1.5rem]
+              border border-light-border dark:border-dark-border
+              bg-light-background dark:bg-dark-background
+              p-5 sm:p-6
+              transition-all duration-300
+              hover:-translate-y-1
+              hover:border-light-accent/30
+              dark:hover:border-dark-accent/30
+              hover:shadow-xl
+              "
+                        >
+
+                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+                            {/* LEFT */}
+                            <div className="min-w-0 flex-1">
+
+                              {/* BADGES */}
+                              <div className="flex flex-wrap items-center gap-2">
+
+                                <div
+                                  className="
+                      inline-flex items-center gap-2
+                      rounded-full
+                      bg-light-accent/10 dark:bg-dark-accent/10
+                      px-3 py-1
+                      text-xs font-medium
+                      text-light-accent dark:text-dark-accent
+                      "
+                                >
+                                  <FiBook className="w-3 h-3" />
+
+                                  Chapter {ch.chapterNumber}
+                                </div>
+
+                                <div
+                                  className={`
+                      rounded-full px-3 py-1 text-xs font-medium
+                      ${ch.status === "published"
+                                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                                    }
+                      `}
+                                >
+                                  {ch.status}
+                                </div>
+
+                              </div>
+
+                              {/* TITLE */}
+                              <h3
+                                className="
+                    mt-4
+                    text-2xl font-semibold tracking-tight
+                    text-light-primary dark:text-dark-primary
+                    "
+                              >
+                                {ch.title}
+                              </h3>
+
+                              {/* DESCRIPTION */}
+                              <p
+                                className="
+                    mt-3
+                    max-w-3xl
+                    text-sm leading-relaxed
+                    text-light-secondary dark:text-dark-secondary
+                    "
+                              >
+                                {ch.description ||
+                                  "Continue editing and refining this chapter."}
+                              </p>
+
+                            </div>
+
+                            {/* ACTIONS */}
+                            <div className="flex flex-col sm:flex-row gap-3">
+
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  navigate(`/read/${project.id}/${ch.id}`)
+                                }
+                                className="
+                    bg-transparent
+                    border border-light-border dark:border-dark-border
+                    hover:bg-light-surface dark:hover:bg-dark-surface
+                    "
+                              >
+                                Preview
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                onClick={() =>
+                                  navigate(`/editor/${project.id}/${ch.id}`)
+                                }
+                              >
+                                Edit Chapter
+                              </Button>
+
+                            </div>
+
+                          </div>
+
+                        </div>
+
+                      ))}
+
+                    </div>
+
+                  )}
+
+                </div>
 
               </div>
+
             )}
 
           </div>

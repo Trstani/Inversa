@@ -22,7 +22,7 @@ const Home = () => {
 
   const [projects, setProjects] = useState([]);
   const [follows, setFollows] = useState([]);
-  const [history, setHistory] = useState([]);
+  const [readingHistory, setReadingHistory] = useState([]);
   const [continueReading, setContinueReading] = useState(null);
 
   useEffect(() => {
@@ -40,7 +40,7 @@ const Home = () => {
 
         // HISTORY
         const hist = await loadReadingHistory(user.id);
-        setHistory(hist.slice(0, 3));
+        setReadingHistory(hist.slice(0, 3));
 
         // CONTINUE READING
         const cont = await getContinueReading(user.id);
@@ -75,7 +75,7 @@ const Home = () => {
         totalCreators="1.2k"
 
         follows={follows}
-        history={history}
+        history={readingHistory}
         continueReading={continueReading}
       />
 

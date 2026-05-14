@@ -1,105 +1,125 @@
 import React, { useState, useEffect } from "react";
+
 import CardProject from "../components/CardProject";
-import { FiTrendingUp, FiHeart, FiChevronDown } from "react-icons/fi";
+
+import {
+  FiTrendingUp,
+  FiHeart,
+  FiChevronDown,
+} from "react-icons/fi";
 
 const Recommendation = ({ type, projects }) => {
-  const [visibleCount, setVisibleCount] = useState(6);
-  const totalProjects = projects?.length || 0;
+  const [visibleCount, setVisibleCount] = useState(5);
 
-  // Reset visible count when projects change (e.g., new filter)
   useEffect(() => {
-    setVisibleCount(6);
+    setVisibleCount(5);
   }, [projects]);
 
-  if (!projects || totalProjects === 0) return null;
+  if (!projects || projects.length === 0)
+    return null;
 
   const config = {
     trending: {
-      icon: <FiTrendingUp className="w-7 h-7 text-white" />,
+      icon: FiTrendingUp,
       title: "Trending Projects",
-      description: "Proyek dengan views terbanyak minggu ini",
-      gradient: "from-orange-500 to-pink-500",
+      description:
+        "Projects gaining attention this week",
     },
+
     likes: {
-      icon: <FiHeart className="w-7 h-7 text-white" />,
-      title: "Most Liked Projects",
-      description: "Proyek favorit para pengguna",
-      gradient: "from-pink-500 to-rose-500",
+      icon: FiHeart,
+      title: "Most Liked",
+      description:
+        "Community favorite collaborative works",
     },
   };
 
-  const currentConfig = config[type] || {
-    icon: null,
-    title: "Rekomendasi",
-    description: "",
-    gradient: "from-indigo-600 to-purple-600",
-  };
+  const current = config[type];
 
-  const displayedProjects = projects.slice(0, visibleCount);
-  const hasMore = visibleCount < totalProjects;
+  const Icon = current.icon;
 
-  const loadMore = () => {
-    setVisibleCount((prev) => Math.min(prev + 6, totalProjects));
-  };
+  const displayedProjects = projects.slice(
+    0,
+    visibleCount
+  );
 
-  const showAll = () => {
-    setVisibleCount(totalProjects);
-  };
+  const hasMore = visibleCount < projects.length;
 
   return (
-    <section className="py-20 bg-light-surface dark:bg-dark-surface">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header dengan dekorasi */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <div className="flex items-center gap-4">
+    <section className="py-16">
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        
+        {/* HEADER */}
+        <div className="mb-10">
+          <div className="flex items-center gap-3">
             <div
-              className={`p-4 bg-gradient-to-br ${currentConfig.gradient} rounded-2xl shadow-lg`}
+              className="
+              flex h-11 w-11 items-center justify-center
+              rounded-2xl
+              bg-slate-100 dark:bg-slate-900
+              "
             >
-              <div className="text-white">{currentConfig.icon}</div>
+              <Icon
+                className="
+                h-5 w-5
+                text-slate-700 dark:text-slate-300
+                "
+              />
             </div>
+
             <div>
-              <h2 className="text-3xl font-bold">{currentConfig.title}</h2>
-              {currentConfig.description && (
-                <p className="text-gray-500 dark:text-gray-400 mt-1">
-                  {currentConfig.description}
-                </p>
-              )}
+              <h2
+                className="
+                text-2xl font-semibold
+                text-slate-900 dark:text-white
+                "
+              >
+                {current.title}
+              </h2>
+
+              <p
+                className="
+                mt-1 text-sm
+                text-slate-500 dark:text-slate-400
+                "
+              >
+                {current.description}
+              </p>
             </div>
           </div>
-
-          {/* Tombol "Lihat semua" hanya muncul jika ada lebih banyak project */}
-          {hasMore && (
-            <button
-              onClick={showAll}
-              className="mt-4 md:mt-0 text-indigo-600 dark:text-indigo-400 font-medium hover:underline inline-flex items-center gap-1"
-            >
-              Lihat semua
-              <FiChevronDown className="w-4 h-4" />
-            </button>
-          )}
         </div>
 
-        {/* Grid Card */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* LIST */}
+        <div className="space-y-5">
           {displayedProjects.map((project) => (
-            <div
+            <CardProject
               key={project.id}
-              className="group transform transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl"
-            >
-              <CardProject project={project} />
-            </div>
+              project={project}
+            />
           ))}
         </div>
 
-        {/* Tombol "Muat lebih banyak" di bagian bawah (opsional) */}
+        {/* LOAD MORE */}
         {hasMore && (
-          <div className="flex justify-center mt-12">
+          <div className="mt-10 flex justify-center">
             <button
-              onClick={loadMore}
-              className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-200 inline-flex items-center gap-2"
+              onClick={() =>
+                setVisibleCount((prev) => prev + 5)
+              }
+              className="
+              inline-flex items-center gap-2
+              rounded-2xl
+              border border-slate-200 dark:border-slate-800
+              bg-white dark:bg-slate-950
+              px-5 py-3
+              text-sm font-medium
+              text-slate-700 dark:text-slate-200
+              transition-all
+              hover:border-indigo-400/30
+              "
             >
-              View More
-              <FiChevronDown className="w-5 h-5" />
+              Load More
+              <FiChevronDown className="h-4 w-4" />
             </button>
           </div>
         )}
@@ -107,5 +127,4 @@ const Recommendation = ({ type, projects }) => {
     </section>
   );
 };
-
 export default Recommendation;
