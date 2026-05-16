@@ -1,11 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  loadProjects,
-  saveProject,
-  deleteProject,
-  loadCollaborationRequests,
-  updateCollaborationRequest,
-} from "../../utils/dataManager/index";
+import { apiClient } from "../../api/client";
 
 const useInitiatorDashboard = (user) => {
   const [projects, setProjects] = useState([]);
@@ -19,47 +13,82 @@ const useInitiatorDashboard = (user) => {
   const loadData = async () => {
     setLoading(true);
 
-    const allProjects = await loadProjects();
-    const userProjects = allProjects.filter(
-      (p) => p.initiatorId === user?.id
-    );
-    setProjects(userProjects);
+    try {
+      // Get all projects
+      const projectsResponse = await apiClient.projects.getAll();
+      const allProjects = projectsResponse.data || [];
+      
+      // Filter projects where user is the initiator
+      const userProjects = allProjects.filter(
+        (p) => p.initiator_id === user?.id
+      );
+      setProjects(userProjects);
 
-    const allRequests = await loadCollaborationRequests();
-    const userRequests = allRequests.filter((r) => {
-      const project = allProjects.find(p => p.id === r.projectId);
-      return project?.initiatorId === user?.id;
-    });
+      // Get collaboration requests for user's projects
+      const requestsResponse = await apiClient.collaboration.getRequests();
+      const allRequests = requestsResponse.data || [];
+      
+      const userRequests = allRequests.filter((r) => {
+        const project = allProjects.find(p => p.id === r.project_id);
+        return project?.initiator_id === user?.id;
+      });
 
-    setRequests(userRequests);
-    setLoading(false);
+      setRequests(userRequests);
+    } catch (error) {
+      console.error("Error loading dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const createProject = async (data) => {
-    await saveProject({
-      ...data,
-      initiatorId: user.id,
-      collaborators: [],
-      likes: 0,
-      totalChapters: 0,
-      status: "draft"
-    });
-    await loadData();
+    try {
+      await apiClient.projects.create({
+        ...data,
+        initiator_id: user.id,
+        is_team_project: false,
+        status: "draft"
+      });
+      await loadData();
+    } catch (error) {
+      console.error("Error creating project:", error);
+      throw error;
+    }
   };
 
   const removeProject = async (id) => {
-    await deleteProject(id);
-    await loadData();
+    try {
+      await apiClient.projects.delete(id);
+      await loadData();
+    } catch (error) {
+      console.error("Error deleting project:", error);
+      throw error;
+    }
   };
 
   const approve = async (id, role) => {
-    await updateCollaborationRequest(id, "approved", role);
-    await loadData();
+    try {
+      await apiClient.collaboration.updateRequest(id, {
+        status: "approved",
+        role: role
+      });
+      await loadData();
+    } catch (error) {
+      console.error("Error approving request:", error);
+      throw error;
+    }
   };
 
   const reject = async (id) => {
-    await updateCollaborationRequest(id, "rejected");
-    await loadData();
+    try {
+      await apiClient.collaboration.updateRequest(id, {
+        status: "rejected"
+      });
+      await loadData();
+    } catch (error) {
+      console.error("Error rejecting request:", error);
+      throw error;
+    }
   };
 
   return {

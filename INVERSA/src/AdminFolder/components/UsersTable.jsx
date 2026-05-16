@@ -1,44 +1,45 @@
 import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 const UsersTable = () => {
 
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadUsers = () => {
-
-    const stored =
-      JSON.parse(localStorage.getItem("inversa_users")) || [];
-
-    setUsers(stored);
-
+  const loadUsers = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.users.getAll();
+      setUsers(response.data || []);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      setUsers([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-
     loadUsers();
-
   }, []);
 
-  const suspendUser = (id) => {
-
-    const updated = users.map(user => {
-
-      if (user.id === id) {
-        return { ...user, suspended: true };
+  const suspendUser = async (id) => {
+    if (window.confirm('Are you sure you want to suspend this user?')) {
+      try {
+        // This would need a backend endpoint for suspending users
+        // For now, we'll just show an alert
+        alert("User suspension feature coming soon");
+        await loadUsers();
+      } catch (error) {
+        console.error('Error suspending user:', error);
+        alert('Failed to suspend user');
       }
-
-      return user;
-
-    });
-
-    localStorage.setItem(
-      "inversa_users",
-      JSON.stringify(updated)
-    );
-
-    loadUsers();
-
+    }
   };
+
+  if (loading) {
+    return <div className="p-4">Loading users...</div>;
+  }
 
   return (
 
@@ -71,11 +72,11 @@ const UsersTable = () => {
             </td>
 
             <td className="p-3 border">
-              {user.role}
+              {user.role || "user"}
             </td>
 
             <td className="p-3 border">
-              {user.suspended ? "Suspended" : "Active"}
+              {user.is_suspended ? "Suspended" : "Active"}
             </td>
 
             <td className="p-3 border">

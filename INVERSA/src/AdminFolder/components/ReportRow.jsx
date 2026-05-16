@@ -1,77 +1,43 @@
+import { apiClient } from "../../api/client";
+
 const ReportRow = ({ report, onAction }) => {
 
-  const projects =
-    JSON.parse(localStorage.getItem("inversa_projects"))?.projects || [];
-
-  const users =
-    JSON.parse(localStorage.getItem("inversa_users")) || [];
-
-  const project = projects.find(p => p.id === report.projectId);
-
-  const reporter = users.find(u => u.id === report.reportedBy);
-
-  const handleDeleteProject = () => {
-
-    const updated = projects.filter(
-      p => p.id !== report.projectId
-    );
-
-    localStorage.setItem(
-      "inversa_projects",
-      JSON.stringify({ projects: updated })
-    );
-
-    alert("Project deleted");
-
-    onAction();
+  const handleDeleteProject = async () => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      try {
+        await apiClient.projects.delete(report.project_id);
+        alert("Project deleted");
+        onAction();
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        alert('Failed to delete project');
+      }
+    }
   };
 
-  const handleRestoreProject = () => {
-
-    const updated = projects.map(p => {
-
-      if (p.id === report.projectId) {
-        return {
-          ...p,
-          hidden: false
-        };
-      }
-
-      return p;
-    });
-
-    localStorage.setItem(
-      "inversa_projects",
-      JSON.stringify({ projects: updated })
-    );
-
-    alert("Project restored");
-
-    onAction();
+  const handleRestoreProject = async () => {
+    try {
+      await apiClient.projects.unhide(report.project_id);
+      alert("Project restored");
+      onAction();
+    } catch (error) {
+      console.error('Error restoring project:', error);
+      alert('Failed to restore project');
+    }
   };
 
-  const handleSuspendUser = () => {
-
-    const updated = users.map(u => {
-
-      if (u.id === project?.initiatorId) {
-        return {
-          ...u,
-          suspended: true
-        };
+  const handleSuspendUser = async () => {
+    if (window.confirm('Are you sure you want to suspend this user?')) {
+      try {
+        // This would need a backend endpoint for suspending users
+        // For now, we'll just show an alert
+        alert("User suspension feature coming soon");
+        onAction();
+      } catch (error) {
+        console.error('Error suspending user:', error);
+        alert('Failed to suspend user');
       }
-
-      return u;
-    });
-
-    localStorage.setItem(
-      "inversa_users",
-      JSON.stringify(updated)
-    );
-
-    alert("User suspended");
-
-    onAction();
+    }
   };
 
   return (
@@ -79,11 +45,11 @@ const ReportRow = ({ report, onAction }) => {
     <tr className="text-center">
 
       <td className="p-3 border">
-        {project?.title || "Unknown Project"}
+        {report.project_title || "Unknown Project"}
       </td>
 
       <td className="p-3 border">
-        {reporter?.name || "Unknown User"}
+        {report.reporter_name || "Unknown User"}
       </td>
 
       <td className="p-3 border">
@@ -95,7 +61,7 @@ const ReportRow = ({ report, onAction }) => {
       </td>
 
       <td className="p-3 border">
-        {new Date(report.createdAt).toLocaleDateString()}
+        {new Date(report.created_at).toLocaleDateString()}
       </td>
 
       <td className="p-3 border">

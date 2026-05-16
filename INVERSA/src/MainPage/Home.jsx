@@ -1,16 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
-
-import {
-  loadPublishedProjects
-} from '../utils/dataManager/projectManager';
-import {
-  loadFollowedProjects
-} from '../utils/dataManager/projectFollowManager';
-import {
-  loadReadingHistory,
-  getContinueReading
-} from '../utils/dataManager/readingHistoryManager';
+import { apiClient } from '../api/client';
 
 import BentoGrid from "../section/BentoGrid";
 import ProjectCarousel from "../section/ProjectCarousel";
@@ -29,23 +19,48 @@ const Home = () => {
 
     const fetchData = async () => {
 
-      const data = await loadPublishedProjects();
-      setProjects(data);
+      try {
+        const response = await apiClient.projects.getPublished();
+        const data = response.data || [];
+        setProjects(data);
 
-      if (isAuthenticated && user) {
+        if (isAuthenticated && user) {
 
-        // FOLLOW
-        const followed = await loadFollowedProjects(user.id);
-        setFollows(followed.slice(0, 3));
+          // FOLLOW - Get user's following projects
+          try {
+            const followingResponse = await apiClient.users.getFollowing(user.id);
+            const followingUsers = followingResponse.data || [];
+            
+            // Get projects from followed users
+            const followedProjects = data.filter(p => 
+              followingUsers.some(fu => fu.id === p.initiator_id)
+            );
+            setFollows(followedProjects.slice(0, 3));
+          } catch (err) {
+            console.error('Error loading followed projects:', err);
+          }
 
-        // HISTORY
-        const hist = await loadReadingHistory(user.id);
-        setReadingHistory(hist.slice(0, 3));
+          // HISTORY - Get reading history
+          try {
+            const historyResponse = await apiClient.readingHistory.getHistory();
+            const hist = historyResponse.data || [];
+            setReadingHistory(hist.slice(0, 3));
+          } catch (err) {
+            console.error('Error loading reading history:', err);
+          }
 
-        // CONTINUE READING
-        const cont = await getContinueReading(user.id);
-        setContinueReading(cont);
+          // CONTINUE READING
+          try {
+            const continueResponse = await apiClient.readingHistory.getContinueReading();
+            setContinueReading(continueResponse.data);
+          } catch (err) {
+            console.error('Error loading continue reading:', err);
+          }
 
+        }
+
+      } catch (error) {
+        console.error('Error fetching data:', error);
       }
 
     };

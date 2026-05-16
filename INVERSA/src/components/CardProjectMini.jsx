@@ -8,7 +8,7 @@ import {
   FiArrowUpRight,
 } from "react-icons/fi";
 
-import { findUserById } from "../utils/userManager/index";
+import { apiClient } from "../api/client";
 
 const CardProjectMini = ({ project, rank }) => {
 

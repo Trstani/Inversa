@@ -1,96 +1,300 @@
-import { createContext, useContext, useState, useEffect } from 'react';
-import { loginUser, registerUser } from '../utils/userManager/index';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+} from 'react';
 
-const AuthContext = createContext();
+import {
+  apiClient,
+  setAuthToken,
+  clearAuthToken,
+} from '../api/client';
+
+const AuthContext =
+  createContext();
 
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) {
-        throw new Error('useAuth must be used within AuthProvider');
-    }
-    return context;
+
+  const context =
+    useContext(AuthContext);
+
+  if (!context) {
+
+    throw new Error(
+      'useAuth must be used within AuthProvider'
+    );
+  }
+
+  return context;
 };
 
-export const AuthProvider = ({ children }) => {
-    const [user, setUser] = useState(() => {
-        // Check localStorage for saved user
-        const saved = localStorage.getItem('inversa_currentUser');
-        return saved ? JSON.parse(saved) : null;
-    });
+export const AuthProvider = ({
+  children,
+}) => {
 
-    const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] =
+    useState(null);
 
-    useEffect(() => {
-        // Save user to localStorage whenever it changes
-        if (user) {
-            localStorage.setItem('inversa_currentUser', JSON.stringify(user));
-        } else {
-            localStorage.removeItem('inversa_currentUser');
+  const [isLoading, setIsLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState(null);
+
+  /*
+  =========================
+  RESTORE LOGIN
+  =========================
+  */
+
+  useEffect(() => {
+
+    const initializeAuth =
+      async () => {
+
+        try {
+
+          const token =
+            localStorage.getItem(
+              'authToken'
+            );
+
+          if (!token) {
+            setIsLoading(false);
+            return;
+          }
+
+          /*
+          =========================
+          DECODE JWT
+          =========================
+          */
+
+          const payload =
+            JSON.parse(
+              atob(
+                token
+                  .split('.')[1]
+              )
+            );
+
+            setUser({
+                id: payload.id,
+                name: payload.name,
+                email: payload.email,
+                role: payload.role,
+            });
+
+        } catch (error) {
+
+          console.error(
+            'Failed restoring auth:',
+            error
+          );
+
+          clearAuthToken();
+
+          setUser(null);
+
+        } finally {
+
+          setIsLoading(false);
         }
-    }, [user]);
+      };
 
-    const login = async (email, password) => {
-        setIsLoading(true);
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const result = loginUser(email, password);
-                if (result.success) {
-                    setUser(result.user);
-                    setIsLoading(false);
-                    resolve({ success: true, user: result.user });
-                } else {
-                    setIsLoading(false);
-                    resolve({ success: false, error: result.error });
-                }
-            }, 500);
+    initializeAuth();
+
+  }, []);
+
+  /*
+  =========================
+  LOGIN
+  =========================
+  */
+
+  const login = async (
+    email,
+    password
+  ) => {
+
+    try {
+
+      setIsLoading(true);
+
+      const response =
+        await apiClient.auth.login({
+          email,
+          password,
         });
-    };
 
-    const register = async (userData) => {
-        setIsLoading(true);
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                const result = registerUser(userData.name, userData.email, userData.password);
-                if (result.success) {
-                    setUser(result.user);
-                    setIsLoading(false);
-                    resolve({ success: true, user: result.user });
-                } else {
-                    setIsLoading(false);
-                    resolve({ success: false, error: result.error });
-                }
-            }, 500);
+      if (response.success) {
+
+        const {
+          user,
+          token,
+        } = response.data;
+
+        setUser(user);
+
+        setAuthToken(token);
+
+        return {
+          success: true,
+        };
+      }
+
+      return {
+        success: false,
+        error: response.message,
+      };
+
+    } catch (error) {
+
+      return {
+        success: false,
+        error: error.message,
+      };
+
+    } finally {
+
+      setIsLoading(false);
+    }
+  };
+
+  /*
+  =========================
+  REGISTER
+  =========================
+  */
+
+  const register = async (
+    userData
+  ) => {
+
+    try {
+
+      setIsLoading(true);
+
+      setError(null);
+
+      const response =
+        await apiClient.auth.register({
+          name: userData.name,
+          email: userData.email,
+          password:
+            userData.password,
         });
-    };
 
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('inversa_currentUser');
-    };
+      if (response.success) {
 
-    const updateUser = (updatedUserData) => {
-        setUser(updatedUserData);
-    };
+        const {
+          user,
+          token,
+        } = response.data;
 
-    const isAuthenticated = !!user;
-    const isAdmin = user?.role === 'admin';
-    const isGuest = !user;
+        setAuthToken(token);
 
-    return (
-        <AuthContext.Provider
-            value={{
-                user,
-                isAuthenticated,
-                isAdmin,
-                isGuest,
-                isLoading,
-                login,
-                register,
-                logout,
-                updateUser,
-            }}
-        >
-            {children}
-        </AuthContext.Provider>
-    );
+        setUser(user);
+
+        return {
+          success: true,
+          user,
+        };
+      }
+
+      return {
+        success: false,
+        error: response.message,
+      };
+
+    } catch (error) {
+
+      const errorMsg =
+        error.message ||
+        'Registration failed';
+
+      setError(errorMsg);
+
+      return {
+        success: false,
+        error: errorMsg,
+      };
+
+    } finally {
+
+      setIsLoading(false);
+    }
+  };
+
+  /*
+  =========================
+  LOGOUT
+  =========================
+  */
+
+  const logout = () => {
+
+    setUser(null);
+
+    clearAuthToken();
+
+    setError(null);
+  };
+
+  /*
+  =========================
+  UPDATE USER
+  =========================
+  */
+
+  const updateUser = (
+    updatedUserData
+  ) => {
+
+    setUser(updatedUserData);
+  };
+
+  /*
+  =========================
+  STATES
+  =========================
+  */
+
+  const isAuthenticated =
+    !!user;
+
+  const isAdmin =
+    user?.role === 'admin';
+
+  const isGuest =
+    !user;
+
+  /*
+  =========================
+  PROVIDER
+  =========================
+  */
+
+  return (
+
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated,
+        isAdmin,
+        isGuest,
+        isLoading,
+        error,
+        login,
+        register,
+        logout,
+        updateUser,
+      }}
+    >
+
+      {children}
+
+    </AuthContext.Provider>
+  );
 };

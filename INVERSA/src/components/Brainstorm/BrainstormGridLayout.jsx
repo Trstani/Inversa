@@ -6,11 +6,7 @@ import NotesPanel from './components/NotesPanel';
 import ContributionPanel from './components/ContributionPanel';
 import StoryIdeaSection from './components/StoryIdeaSection';
 import TaskManagerSection from './components/TaskManagerSection';
-import { loadChapters } from '../../utils/dataManager/chapterManager';
-import { getSectionsByChapter } from '../../utils/dataManager/sectionManager';
-import { findUserById } from '../../utils/userManager/index';
-import { getProjectById } from '../../utils/dataManager/projectManager';
-import { getTeamById } from '../../utils/dataManager/teamManager';
+import { apiClient } from '../../api/client';
 import useBrainstorm from '../../InitiatorFolder/hooks/useBrainstorm';
 
 const BrainstormGridLayout = ({ projectId, brainstorm, onUpdate, user }) => {
@@ -36,39 +32,48 @@ const BrainstormGridLayout = ({ projectId, brainstorm, onUpdate, user }) => {
   useEffect(() => {
     loadChaptersData();
     loadTeamMembers();
-    loadCommentsFromStorage();
+    loadCommentsFromAPI();
   }, [projectId]);
 
-  const loadCommentsFromStorage = () => {
+  const loadCommentsFromAPI = async () => {
     try {
-      const stored = localStorage.getItem(`brainstorm_comments_${projectId}`);
-      if (stored) {
-        setIdeaComments(JSON.parse(stored));
+      const response = await apiClient.brainstorm.getComments(projectId, null);
+      if (response.success && response.data) {
+        setIdeaComments(response.data);
       }
     } catch (error) {
       console.error('Error loading comments:', error);
     }
   };
 
-  const saveCommentsToStorage = (comments) => {
+  const saveCommentsToAPI = async (comments) => {
     try {
-      localStorage.setItem(`brainstorm_comments_${projectId}`, JSON.stringify(comments));
+      // Comments are saved via API when they're created
+      // This function is kept for compatibility
     } catch (error) {
       console.error('Error saving comments:', error);
     }
   };
 
   const loadChaptersData = async () => {
-    const chaptersList = await loadChapters(projectId);
-    setChapters(chaptersList);
+    try {
+      const response = await apiClient.chapters.getByProject(projectId);
+      const chaptersList = response.data || [];
+      setChapters(chaptersList);
+    } catch (error) {
+      console.error('Error loading chapters:', error);
+    }
   };
 
   const loadTeamMembers = async () => {
     try {
-      const project = await getProjectById(projectId);
-      if (project?.isTeamProject && project?.teamId) {
-        const team = await getTeamById(project.teamId);
-        setTeamMembers(team?.collaborators || []);
+      const projectResponse = await apiClient.projects.getById(projectId);
+      const project = projectResponse.data;
+      
+      if (project?.is_team_project && project?.team_id) {
+        const teamResponse = await apiClient.teams.getById(project.team_id);
+        const team = teamResponse.data;
+        setTeamMembers(team?.members || []);
       }
     } catch (error) {
       console.error('Error loading team members:', error);

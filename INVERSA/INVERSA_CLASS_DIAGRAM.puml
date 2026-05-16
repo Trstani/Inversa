@@ -1,0 +1,316 @@
+@startuml INVERSA_Class_Diagram
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam classBackgroundColor #F0F0F0
+skinparam classBorderColor #333333
+skinparam arrowColor #333333
+
+' ============ CORE ENTITIES ============
+
+class User {
+  - id: int
+  - name: string
+  - email: string
+  - password_hash: string
+  - role: string
+  - profile_image: string
+  - bio: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + register()
+  + login()
+  + updateProfile()
+  + logout()
+}
+
+class Project {
+  - id: int
+  - title: string
+  - description: string
+  - initiator_id: int
+  - category_id: int
+  - genre_id: int
+  - background_image: string
+  - is_team_project: boolean
+  - team_id: int
+  - status: string
+  - views: int
+  - likes: int
+  - has_published_chapters: boolean
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+  + publish()
+  + incrementViews()
+  + toggleLike()
+}
+
+class Chapter {
+  - id: int
+  - project_id: int
+  - chapter_number: int
+  - title: string
+  - description: string
+  - content: string
+  - status: string
+  - created_by: int
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + publish()
+  + delete()
+  + getSections()
+}
+
+class Section {
+  - id: int
+  - chapter_id: int
+  - section_number: int
+  - title: string
+  - content: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+}
+
+class Team {
+  - id: int
+  - title: string
+  - description: string
+  - initiator_id: int
+  - background_image: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+  + addMember()
+  + removeMember()
+  + getMembers()
+}
+
+class TeamCollaborator {
+  - id: int
+  - team_id: int
+  - user_id: int
+  - role: string
+  - status: string
+  - joined_at: timestamp
+  --
+  + approve()
+  + reject()
+  + updateRole()
+}
+
+class ProjectCollaborator {
+  - id: int
+  - project_id: int
+  - user_id: int
+  - role: string
+  - status: string
+  - requested_at: timestamp
+  - approved_at: timestamp
+  --
+  + approve()
+  + reject()
+  + updateRole()
+}
+
+class Category {
+  - id: int
+  - name: string
+  - description: string
+  - color: string
+  - created_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+}
+
+class Genre {
+  - id: int
+  - name: string
+  - description: string
+  - color: string
+  - created_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+}
+
+' ============ BRAINSTORM ENTITIES ============
+
+class Brainstorm {
+  - id: int
+  - project_id: int
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + getIdeas()
+  + getTasks()
+  + getDiscussions()
+  + getNotes()
+}
+
+class Idea {
+  - id: int
+  - brainstorm_id: int
+  - user_id: int
+  - user_name: string
+  - content: string
+  - chapter_reference: int
+  - votes: int
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+  + vote()
+  + getComments()
+}
+
+class Comment {
+  - id: int
+  - idea_id: int
+  - user_id: int
+  - user_name: string
+  - content: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+}
+
+class Task {
+  - id: int
+  - brainstorm_id: int
+  - title: string
+  - description: string
+  - status: string
+  - chapter_reference: int
+  - section_reference: int
+  - assigned_to: int
+  - created_by: int
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + updateStatus()
+  + delete()
+  + assign()
+}
+
+class Discussion {
+  - id: int
+  - brainstorm_id: int
+  - user_id: int
+  - user_name: string
+  - content: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+}
+
+class Note {
+  - id: int
+  - brainstorm_id: int
+  - user_id: int
+  - user_name: string
+  - content: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + delete()
+}
+
+class Contribution {
+  - id: int
+  - brainstorm_id: int
+  - user_id: int
+  - contribution_type: string
+  - count: int
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + increment()
+  + getStats()
+}
+
+' ============ MODERATION ============
+
+class Report {
+  - id: int
+  - project_id: int
+  - reported_by: int
+  - reason: string
+  - note: string
+  - status: string
+  - created_at: timestamp
+  - updated_at: timestamp
+  --
+  + create()
+  + update()
+  + resolve()
+}
+
+' ============ RELATIONSHIPS ============
+
+User "1" --> "*" Project : creates
+User "1" --> "*" Team : creates
+User "1" --> "*" Chapter : writes
+User "1" --> "*" Idea : contributes
+User "1" --> "*" Comment : writes
+User "1" --> "*" Task : creates/assigned
+User "1" --> "*" Discussion : participates
+User "1" --> "*" Note : writes
+User "1" --> "*" Report : reports
+
+Project "1" --> "*" Chapter : contains
+Project "1" --> "1" Brainstorm : has
+Project "1" --> "*" ProjectCollaborator : has
+Project "*" --> "1" Category : categorized_by
+Project "*" --> "1" Genre : has_genre
+Project "*" --> "1" Team : belongs_to
+
+Chapter "1" --> "*" Section : contains
+Chapter "1" --> "*" Idea : referenced_by
+
+Team "1" --> "*" TeamCollaborator : has
+Team "1" --> "*" Project : creates
+
+Brainstorm "1" --> "*" Idea : contains
+Brainstorm "1" --> "*" Task : contains
+Brainstorm "1" --> "*" Discussion : contains
+Brainstorm "1" --> "*" Note : contains
+Brainstorm "1" --> "*" Contribution : tracks
+
+Idea "1" --> "*" Comment : has
+
+Task "*" --> "1" Chapter : references
+Task "*" --> "1" Section : references
+
+Report "*" --> "1" Project : reports
+
+@enduml

@@ -6,7 +6,7 @@ import EditorHeader from "./EditorHeader";
 import EditorBody from "./EditorBody";
 import CreateChapterModal from "./CreateChapterModal";
 import BrainstormGridLayout from "../Brainstorm/BrainstormGridLayout";
-import { getBrainstormSession } from '../../utils/dataManager/brainstormManager';
+import { apiClient } from '../../api/client';
 import { useChapterManagement } from "./useChapterManagement";
 
 const TeamEditorLayout = ({

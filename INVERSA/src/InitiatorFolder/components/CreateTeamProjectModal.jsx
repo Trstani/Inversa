@@ -4,8 +4,7 @@ import { FiX } from 'react-icons/fi';
 import Button from '../../components/Button';
 import categories from '../../Datajson/categories.json';
 import genres from '../../Datajson/genres.json';
-import { saveProject } from '../../utils/dataManager/index';
-import { addProjectToTeam } from '../../utils/dataManager/teamManager';
+import { apiClient } from "../../api/client";
 
 const CreateTeamProjectModal = ({ isOpen, onClose, onSuccess, teamId }) => {
   const { user } = useAuth();
@@ -52,24 +51,23 @@ const CreateTeamProjectModal = ({ isOpen, onClose, onSuccess, teamId }) => {
     try {
       // Create project
       const projectData = {
-        ...formData,
-        initiatorId: user.id,
-        collaborators: [],
-        likes: 0,
-        totalChapters: 0,
-        status: 'draft',
-        isTeamProject: true,
-        teamId: teamId, // ✅ ADDED: Set teamId so ProjectDetail can check team membership
+        title: formData.title,
+        description: formData.description,
+        category_id: formData.category,
+        genre_id: formData.genre,
+        background_image: formData.backgroundImage,
+        initiator_id: user.id,
+        is_team_project: true,
+        team_id: teamId,
+        status: 'draft'
       };
 
-      const allProjects = await saveProject(projectData);
-      
-      // Find the newly created project (it will have the highest id)
-      const newProject = allProjects[allProjects.length - 1];
+      const response = await apiClient.projects.create(projectData);
+      const newProject = response.data;
 
-      // Add project to team
+      // Add project to team (if needed - backend should handle this)
       if (newProject?.id) {
-        await addProjectToTeam(teamId, newProject.id);
+        // Team association is already set in the project creation
       }
 
       alert('Project created successfully!');

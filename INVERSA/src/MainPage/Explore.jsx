@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { loadPublishedProjects } from '../utils/dataManager/projectManager';
+import { apiClient } from '../api/client';
 import RecommendationSidebar from "../section/RecommendationSidebar";
 import ProjectsExplorer from "../section/ProjectsExplorer";
 
@@ -8,8 +8,14 @@ const Explore = () => {
 
     useEffect(() => {
         const fetchProjects = async () => {
-            const data = await loadPublishedProjects();
-            setProjects(Array.isArray(data) ? data : []);
+            try {
+                const response = await apiClient.projects.getPublished();
+                const data = response.data || [];
+                setProjects(Array.isArray(data) ? data : []);
+            } catch (error) {
+                console.error('Error fetching projects:', error);
+                setProjects([]);
+            }
         };
 
         fetchProjects();

@@ -1,57 +1,58 @@
 import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 const ProjectsTable = () => {
 
   const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadProjects = () => {
-
-    const stored =
-      JSON.parse(localStorage.getItem("inversa_projects")) || { projects: [] };
-
-    setProjects(stored.projects || []);
-
+  const loadProjects = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.projects.getAll();
+      setProjects(response.data || []);
+    } catch (error) {
+      console.error('Error loading projects:', error);
+      setProjects([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-
     loadProjects();
-
   }, []);
 
-  const deleteProject = (id) => {
-
-    const updated = projects.filter(p => p.id !== id);
-
-    localStorage.setItem(
-      "inversa_projects",
-      JSON.stringify({ projects: updated })
-    );
-
-    loadProjects();
-
-  };
-
-  const toggleHidden = (id) => {
-
-    const updated = projects.map(p => {
-
-      if (p.id === id) {
-        return { ...p, hidden: !p.hidden };
+  const deleteProject = async (id) => {
+    if (window.confirm('Are you sure you want to delete this project?')) {
+      try {
+        await apiClient.projects.delete(id);
+        await loadProjects();
+      } catch (error) {
+        console.error('Error deleting project:', error);
+        alert('Failed to delete project');
       }
-
-      return p;
-
-    });
-
-    localStorage.setItem(
-      "inversa_projects",
-      JSON.stringify({ projects: updated })
-    );
-
-    loadProjects();
-
+    }
   };
+
+  const toggleHidden = async (id) => {
+    try {
+      const project = projects.find(p => p.id === id);
+      if (project?.is_hidden) {
+        await apiClient.projects.unhide(id);
+      } else {
+        await apiClient.projects.hide(id);
+      }
+      await loadProjects();
+    } catch (error) {
+      console.error('Error toggling project visibility:', error);
+      alert('Failed to update project');
+    }
+  };
+
+  if (loading) {
+    return <div className="p-4">Loading projects...</div>;
+  }
 
   return (
 
@@ -83,7 +84,7 @@ const ProjectsTable = () => {
             </td>
 
             <td className="p-3 border">
-              {project.hidden ? "Hidden" : "Active"}
+              {project.is_hidden ? "Hidden" : "Active"}
             </td>
 
             <td className="p-3 border">
@@ -94,7 +95,7 @@ const ProjectsTable = () => {
                   onClick={() => toggleHidden(project.id)}
                   className="bg-yellow-500 text-white px-2 py-1 rounded"
                 >
-                  Hide
+                  {project.is_hidden ? "Show" : "Hide"}
                 </button>
 
                 <button

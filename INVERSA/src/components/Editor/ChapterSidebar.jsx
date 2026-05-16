@@ -52,7 +52,7 @@ const ChapterSidebar = ({
               <div className="flex justify-between items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium">
-                    Chapter {chapter.chapterNumber || index + 1}
+                    Chapter {chapter.chapter_number || index + 1}
                   </div>
 
                   <div className="text-xs opacity-70 truncate">

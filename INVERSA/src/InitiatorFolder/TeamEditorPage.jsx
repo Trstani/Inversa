@@ -4,13 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-import {
-  saveChapter,
-  loadChapters,
-  getProjectById,
-  lockChapter,
-  unlockChapter
-} from "../utils/dataManager/index";
+import { apiClient } from "../api/client";
 
 import TeamEditorLayout from "../components/Editor/TeamEditorLayout";
 
@@ -51,8 +45,7 @@ const TeamEditorPage = () => {
         // For team projects, check if user is a member of the team
         let userIsTeamMember = false;
         if (projectData?.isTeamProject && projectData?.teamId) {
-          const { getTeamById } = await import("../utils/dataManager/teamManager");
-          const team = await getTeamById(projectData.teamId);
+          const team = await apiClient.teams.getById(projectData.teamId);
           
           userIsTeamMember = team?.collaborators?.some(
             c => c.userId === user.id && c.status === 'approved'

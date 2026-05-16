@@ -1,7 +1,7 @@
 // components/Brainstorm/components/NotesPanel.jsx
 import React, { useState, useEffect } from 'react';
 import { FiSend, FiTrash2, FiFileText } from 'react-icons/fi';
-import { addNote, deleteNote, getNotesByProject } from '../../../utils/dataManager/discussionManager';
+import { apiClient } from '../../../api/client';
 
 const NotesPanel = ({ projectId, onUpdate, user }) => {
   const [newNote, setNewNote] = useState('');

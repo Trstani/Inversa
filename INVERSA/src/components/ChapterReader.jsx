@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getProjectById, loadChapters, saveReadingHistory, incrementViews } from '../utils/dataManager/index';
+import { apiClient } from '../api/client';
 import { FiArrowLeft, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import Button from './Button';
 
@@ -23,27 +23,31 @@ const ChapterReader = () => {
     const loadData = async () => {
       setLoading(true);
       try {
-        const projectData = await getProjectById(projectId);
+        const projectResponse = await apiClient.projects.getById(projectId);
+        const projectData = projectResponse.data;
         setProject(projectData);
 
-        const allChapters = await loadChapters(projectId);
+        const chaptersResponse = await apiClient.chapters.getByProject(projectId);
+        const allChapters = chaptersResponse.data || [];
         
         // Determine if user can see all chapters
-        let canSeeAllChapters = user?.id === projectData?.initiatorId;
+        let canSeeAllChapters = user?.id === projectData?.initiator_id;
         
         // For team projects, check if user is a team member
-        if (!canSeeAllChapters && projectData?.isTeamProject && projectData?.teamId) {
-          const { getTeamById } = await import("../utils/dataManager/teamManager");
-          const team = await getTeamById(projectData.teamId);
-          canSeeAllChapters = team?.collaborators?.some(
-            c => c.userId === user?.id && c.status === 'approved'
-          );
+        if (!canSeeAllChapters && projectData?.is_team_project && projectData?.team_id) {
+          const teamResponse = await apiClient.teams.getById(projectData.team_id);
+          if (teamResponse.success && teamResponse.data) {
+            const team = teamResponse.data;
+            canSeeAllChapters = team?.members?.some(
+              m => m.user_id === user?.id && m.status === 'approved'
+            );
+          }
         }
         
         // Filter chapters based on access level
         const visibleChapters = canSeeAllChapters
           ? allChapters
-          : allChapters.filter(c => c.status === 'published');
+          : allChapters.filter(c => c.is_published === true);
 
         setChapters(visibleChapters);
 
@@ -76,15 +80,16 @@ const ChapterReader = () => {
 
     if (!user || !currentChapter) return;
 
-    saveReadingHistory(
-      user.id,
-      parseInt(projectId),
-      currentChapter.id
-    );
+    // Save reading history
+    apiClient.readingHistory.save({
+      project_id: parseInt(projectId),
+      chapter_id: currentChapter.id,
+      progress: 0
+    });
 
     // Increment views only once per chapter load
     if (!viewsIncremented && project?.id) {
-      incrementViews(parseInt(projectId));
+      apiClient.projects.incrementViews(parseInt(projectId));
       setViewsIncremented(true);
     }
 
@@ -158,7 +163,7 @@ const ChapterReader = () => {
               {project.title}
             </p>
             <h1 className="text-2xl sm:text-3xl font-bold text-light-primary dark:text-dark-primary mb-2">
-              Chapter {currentChapter.chapterNumber}: {currentChapter.title}
+              Chapter {currentChapter.chapter_number}: {currentChapter.title}
             </h1>
             <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary">
               {currentIndex + 1} of {chapters.length}

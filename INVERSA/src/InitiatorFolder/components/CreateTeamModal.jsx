@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { FiX, FiImage } from 'react-icons/fi';
 import Button from '../../components/Button';
-import { createTeam } from '../../utils/dataManager/teamManager';
+import { apiClient } from '../../api/client';
 
 const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();

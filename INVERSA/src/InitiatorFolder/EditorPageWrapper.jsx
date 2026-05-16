@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { getProjectById } from "../utils/dataManager/index";
+import { apiClient } from "../api/client";
 import EditorPage from "./EditorPage";
 import TeamEditorPage from "./TeamEditorPage";
 
@@ -15,8 +15,8 @@ const EditorPageWrapper = () => {
   useEffect(() => {
     const loadProject = async () => {
       try {
-        const projectData = await getProjectById(projectId);
-        setProject(projectData);
+        const response = await apiClient.projects.getById(projectId);
+        setProject(response.data);
       } catch (error) {
         console.error("Error loading project:", error);
       } finally {
@@ -38,7 +38,7 @@ const EditorPageWrapper = () => {
   }
 
   // Route to TeamEditorPage if it's a team project, otherwise EditorPage
-  if (project?.isTeamProject) {
+  if (project?.is_team_project) {
     return <TeamEditorPage />;
   }
 

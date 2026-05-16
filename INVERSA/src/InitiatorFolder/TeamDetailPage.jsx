@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiArrowLeft, FiUsers, FiFolder, FiUserPlus, FiTrash2, FiPlus } from 'react-icons/fi';
-import { getTeamById, getTeamProjects, removeTeamCollaborator, deleteTeam } from '../utils/dataManager/teamManager';
-import { findUserById } from '../utils/userManager/index';
+import { apiClient } from '../api/client';
 import CreateTeamProjectModal from './components/CreateTeamProjectModal';
 import CardProject from '../components/CardProject';
 

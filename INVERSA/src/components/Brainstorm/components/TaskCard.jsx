@@ -1,5 +1,5 @@
 import { FiTrash2, FiCheckCircle, FiBook } from 'react-icons/fi';
-import { findUserById } from '../../../utils/userManager/index';
+import { apiClient } from '../../../api/client';
 
 const TaskCard = ({
   task,

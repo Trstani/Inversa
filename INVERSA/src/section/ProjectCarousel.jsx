@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { loadPublishedProjects } from "../utils/dataManager/projectManager";
+import { apiClient } from "../api/client";
 import CardProject from "../components/CardProject";
 
 const ProjectCarousel = () => {
@@ -9,9 +9,14 @@ const ProjectCarousel = () => {
   // 🔥 Fetch data langsung
   useEffect(() => {
     const fetchProjects = async () => {
-      const data = await loadPublishedProjects();
-      setProjects(data);
-      setLoading(false);
+      try {
+        const response = await apiClient.projects.getPublished();
+        setProjects(response.data || []);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchProjects();

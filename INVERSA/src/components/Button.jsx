@@ -6,6 +6,7 @@ const Button = ({
   variant = "primary",
   size = "md",
   icon,
+  iconPosition = "left",
   isLoading = false,
   className = "",
   type = "button",
@@ -37,19 +38,25 @@ const Button = ({
     lg: "px-6 py-3 text-lg rounded-lg",
   };
 
+  // Filter out iconPosition from props to avoid passing it to DOM
+  const { iconPosition: _, ...filteredProps } = props;
+
+  const iconElement = isLoading ? (
+    <FiLoader className="animate-spin" />
+  ) : (
+    icon
+  );
+
   return (
     <button
       type={type}
       className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
       disabled={isLoading}
-      {...props}
+      {...filteredProps}
     >
-      {isLoading ? (
-        <FiLoader className="animate-spin" />
-      ) : (
-        icon
-      )}
+      {iconPosition === "left" && iconElement}
       {children}
+      {iconPosition === "right" && iconElement}
     </button>
   );
 };

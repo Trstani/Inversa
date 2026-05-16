@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { FiTrash2, FiArrowUp, FiArrowDown, FiEdit2 } from 'react-icons/fi';
-import { deleteChapter } from '../utils/dataManager';
+import { apiClient } from '../api/client';
 
 const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId }) => {
     const [deletingId, setDeletingId] = useState(null);
@@ -14,8 +14,8 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
 
         setDeletingId(chapterId);
         try {
-            await deleteChapter(chapterId);
-            onChaptersChange();
+            await apiClient.chapters.delete(chapterId);
+             onChaptersChange();
         } catch (error) {
             console.error('Failed to delete chapter:', error);
             alert('Failed to delete chapter');

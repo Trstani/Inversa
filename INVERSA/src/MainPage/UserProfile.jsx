@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft, FiCamera, FiMail, FiCalendar, FiEdit2 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
-import { getAllUsers, saveUsers } from '../utils/userManager/userStorage';
+import { apiClient } from '../api/client';
 
 const UserProfile = () => {
   const navigate = useNavigate();
@@ -21,18 +21,15 @@ const UserProfile = () => {
     loadProfileData();
   }, [user, navigate]);
 
-  const loadProfileData = () => {
+  const loadProfileData = async () => {
     try {
-      const users = getAllUsers();
-      const userData = users.find(u => u.id === user.id);
+      const response = await apiClient.users.getById(user.id);
+      const userData = response.data;
       if (userData) {
         setProfileData(userData);
         setEditData(userData);
-        // Load profile image from localStorage
-        const savedImage = localStorage.getItem(`profile_image_${user.id}`);
-        if (savedImage) {
-          setProfileImage(savedImage);
-        }
+        // Profile image would be stored in the user object or a separate endpoint
+        // For now, we'll just use the user's initial
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -41,30 +38,30 @@ const UserProfile = () => {
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageData = reader.result;
         setProfileImage(imageData);
-        localStorage.setItem(`profile_image_${user.id}`, imageData);
+        // In a real app, you'd upload this to a server
+        // For now, we'll just store it locally
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSaveProfile = () => {
+  const handleSaveProfile = async () => {
     try {
-      const users = getAllUsers();
-      const updatedUsers = users.map(u =>
-        u.id === user.id ? { ...u, ...editData } : u
-      );
-      saveUsers(updatedUsers);
-      setProfileData(editData);
-      setIsEditing(false);
+      const response = await apiClient.users.update(user.id, editData);
+      if (response.success) {
+        setProfileData(response.data);
+        setIsEditing(false);
+      }
     } catch (error) {
       console.error('Error saving profile:', error);
+      alert('Failed to save profile');
     }
   };
 

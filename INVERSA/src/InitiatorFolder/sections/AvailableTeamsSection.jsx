@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { loadTeams, getMyCreatedTeams, getMyJoinedTeams } from '../../utils/dataManager/teamManager';
-import { saveTeamRequest, getUserTeamRequests } from '../../utils/dataManager/teamRequestManager';
+import { apiClient } from '../../api/client';
 import { FiPlus, FiUsers, FiClock, FiCheck } from 'react-icons/fi';
 import TeamJoinRequestModal from '../components/TeamJoinRequestModal';
 

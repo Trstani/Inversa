@@ -1,7 +1,7 @@
 // components/Brainstorm/components/DiscussionPanel.jsx
 import React, { useState, useEffect } from 'react';
 import { FiSend, FiTrash2, FiMessageCircle } from 'react-icons/fi';
-import { addDiscussion, deleteDiscussion, getDiscussionsByProject } from '../../../utils/dataManager/discussionManager';
+import { apiClient } from '../../../api/client';
 
 const DiscussionPanel = ({ projectId, onUpdate, user }) => {
   const [newDiscussion, setNewDiscussion] = useState('');

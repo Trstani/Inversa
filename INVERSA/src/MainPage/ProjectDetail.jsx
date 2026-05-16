@@ -2,18 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-import {
-  getProjectById,
-  loadChapters,
-  saveCollaborationRequest,
-  loadCollaborationRequests,
-  reportProject,
-  deleteProject,
-  incrementLikes,
-  decrementLikes
-} from "../utils/dataManager/index";
-
-import { findUserById } from "../utils/userManager/index";
+import { apiClient } from "../api/client";
 
 import {
   FiFlag,
@@ -22,13 +11,15 @@ import {
   FiHeart,
   FiEye,
   FiBook,
-  FiPlay
+  FiPlay,
+  FiEdit2
 } from "react-icons/fi";
 
 import Button from "../components/Button";
 import Breadcrumbs from "../components/Breadcrumbs";
 import CollaborationRequestModal from "../components/CollaborationRequestModal";
 import ReportsModal from "../components/ReportsModal";
+import ChapterList from "../components/ChapterList";
 
 const ProjectDetail = () => {
 
@@ -45,847 +36,676 @@ const ProjectDetail = () => {
   const [showRequestModal, setShowRequestModal] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
   const [isLiked, setIsLiked] = useState(false);
 
   const [userRequest, setUserRequest] = useState(null);
   const [isCollaborator, setIsCollaborator] = useState(false);
   const [isTeamMember, setIsTeamMember] = useState(false);
+
   const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
     loadData();
   }, [projectId, user?.id]);
 
-  // Check if user has liked this project
   useEffect(() => {
     if (user?.id && projectId) {
-      const likedProjects = JSON.parse(localStorage.getItem(`liked_projects_${user.id}`) || '[]');
-      setIsLiked(likedProjects.includes(parseInt(projectId)));
+      checkLikeStatus();
     }
   }, [user?.id, projectId]);
 
+  const checkLikeStatus = async () => {
+    try {
+      const response =
+        await apiClient.projects.getById(projectId);
+
+      const projectData = response.data;
+
+      setIsLiked(projectData.user_liked || false);
+
+    } catch (error) {
+      console.error(
+        "Error checking like status:",
+        error
+      );
+    }
+  };
+
   const handleLike = async () => {
+
     if (!user?.id) {
-      alert("Please log in to like projects");
+      alert("Please login first");
       return;
     }
 
-    const projectIdNum = parseInt(projectId);
-    const likedProjects = JSON.parse(localStorage.getItem(`liked_projects_${user.id}`) || '[]');
+    try {
 
-    if (isLiked) {
-      // Unlike
-      const filtered = likedProjects.filter(id => id !== projectIdNum);
-      localStorage.setItem(`liked_projects_${user.id}`, JSON.stringify(filtered));
-      await decrementLikes(projectIdNum);
-      setIsLiked(false);
-    } else {
-      // Like
-      if (!likedProjects.includes(projectIdNum)) {
-        likedProjects.push(projectIdNum);
+      if (isLiked) {
+
+        await apiClient.projects.decrementLikes(
+          project.id
+        );
+
+        setIsLiked(false);
+
+      } else {
+
+        await apiClient.projects.incrementLikes(
+          project.id
+        );
+
+        setIsLiked(true);
       }
-      localStorage.setItem(`liked_projects_${user.id}`, JSON.stringify(likedProjects));
-      await incrementLikes(projectIdNum);
-      setIsLiked(true);
-    }
 
-    // Reload project to get updated like count
-    const updatedProject = await getProjectById(projectIdNum);
-    setProject(updatedProject);
+      const response =
+        await apiClient.projects.getById(
+          project.id
+        );
+
+      if (response.success) {
+        setProject(response.data);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Error updating likes:",
+        error
+      );
+    }
   };
 
   const loadData = async () => {
+
     setLoading(true);
 
-    const projectData = await getProjectById(projectId);
-    setProject(projectData);
+    try {
 
-    if (projectData) {
-      const chaptersData = await loadChapters(projectData.id);
-      setChapters(chaptersData);
+      // ================= PROJECT =================
 
-      // Check if user is a direct collaborator on the project
-      const isDirectCollab = projectData.collaborators?.some(
-        (c) => c.userId === user?.id && c.status === "approved"
+      const projectResponse =
+        await apiClient.projects.getById(
+          projectId
+        );
+
+      if (
+        !projectResponse.success ||
+        !projectResponse.data
+      ) {
+        setLoading(false);
+        return;
+      }
+
+      const projectData =
+        projectResponse.data;
+
+      setProject(projectData);
+      console.log(projectData);
+
+      // ================= CHAPTERS =================
+
+      const chaptersResponse =
+        await apiClient.chapters.getByProject(
+          projectId
+        );
+
+      setChapters(
+        chaptersResponse.data || []
       );
 
-      // Check if user is the initiator
-      const isUserInitiator = projectData.initiatorId === user?.id;
+      // ================= COLLABORATORS =================
 
-      // For team projects, check if user is a team member
-      let userIsTeamMember = false;
-      if (projectData.isTeamProject && projectData.teamId) {
-        const { getTeamById } = await import("../utils/dataManager/teamManager");
-        const team = await getTeamById(projectData.teamId);
-        userIsTeamMember = team?.collaborators?.some(
-          c => c.userId === user?.id && c.status === 'approved'
+      const isDirectCollaborator =
+        projectData.collaborators?.some(
+          (c) =>
+            c.user_id === user?.id &&
+            c.status === "approved"
         );
-        // Set team members for display
-        setTeamMembers(team?.collaborators?.filter(c => c.status === 'approved') || []);
-      } else {
-        // ✅ FALLBACK: Check if project belongs to any team that user is in
-        const { loadTeams } = await import("../utils/dataManager/teamManager");
-        const userTeams = await loadTeams(user?.id);
 
-        for (const team of userTeams) {
-          if (team.projects?.includes(parseInt(projectData.id))) {
-            userIsTeamMember = true;
-            setTeamMembers(team?.collaborators?.filter(c => c.status === 'approved') || []);
-            break;
-          }
+      const isInitiator =
+        projectData.initiator_id === user?.id;
+
+      // ================= TEAM MEMBERS =================
+
+      let userIsTeamMember = false;
+
+      if (
+        projectData.is_team_project &&
+        projectData.team_id
+      ) {
+
+        const teamResponse =
+          await apiClient.teams.getById(
+            projectData.team_id
+          );
+
+        if (
+          teamResponse.success &&
+          teamResponse.data
+        ) {
+
+          const team =
+            teamResponse.data;
+
+          userIsTeamMember =
+            team.members?.some(
+              (member) =>
+                member.user_id === user?.id &&
+                member.status === "approved"
+            );
+
+          setTeamMembers(
+            team.members?.filter(
+              (member) =>
+                member.status === "approved"
+            ) || []
+          );
         }
       }
 
-      setIsTeamMember(userIsTeamMember);
-
-      // User can collaborate if: direct collab OR team member OR initiator
-      const isCollab = isDirectCollab || userIsTeamMember || isUserInitiator;
-      setIsCollaborator(isCollab);
-
-      const requests = await loadCollaborationRequests();
-
-      const userReq = requests.find(
-        (r) => r.projectId === projectData.id && r.userId === user?.id
+      setIsTeamMember(
+        userIsTeamMember
       );
 
-      setUserRequest(userReq);
+      const canCollaborate =
+        isDirectCollaborator ||
+        userIsTeamMember ||
+        isInitiator;
+
+      setIsCollaborator(
+        canCollaborate
+      );
+
+      // ================= REQUESTS =================
+
+      const requestsResponse =
+        await apiClient.collaboration.getRequests();
+
+      const requests =
+        requestsResponse.data || [];
+
+      const currentRequest =
+        requests.find(
+          (r) =>
+            r.project_id ===
+            projectData.id &&
+            r.user_id === user?.id
+        );
+
+      setUserRequest(
+        currentRequest
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Error loading project:",
+        error
+      );
+
+    } finally {
+
+      setLoading(false);
     }
 
-    setLoading(false);
+    console.log("PROJECT ID:", projectId);
+
   };
 
-  const handleRequestSubmit = async (role) => {
-    const request = {
-      projectId: parseInt(projectId),
-      userId: user.id,
-      userName: user.name,
-      requestedRole: role
-    };
-
-    await saveCollaborationRequest(request);
-    setShowRequestModal(false);
-    await loadData();
-  };
-
-  // ✅ REPORT FLOW TIDAK DIUBAH
-  const handleReportSubmit = async (data) => {
-    const reportData = {
-      projectId: project.id,
-      projectTitle: project.title,
-      reportedBy: user?.id || "guest",
-      reason: data.reason,
-      note: data.note,
-      createdAt: new Date().toISOString(),
-      status: "pending"
-    };
-
-    await reportProject(reportData);
-    alert("Report submitted. Thank you.");
-    setShowReportModal(false);
-  };
-
-  // ✅ NEW: Delete project handler
-  const handleDeleteProject = async () => {
-    if (!project) return;
+  const handleRequestSubmit = async (
+    role
+  ) => {
 
     try {
-      await deleteProject(project.id);
-      alert("Project deleted successfully!");
-      navigate("/dashboard");
+
+      const response =
+        await apiClient.collaboration.createRequest({
+          project_id:
+            parseInt(projectId),
+
+          user_id: user.id,
+
+          requested_role: role,
+        });
+
+      if (response.success) {
+
+        setShowRequestModal(false);
+
+        await loadData();
+      }
+
     } catch (error) {
-      console.error("Error deleting project:", error);
-      alert("Failed to delete project");
+
+      console.error(
+        "Error submitting request:",
+        error
+      );
+
+      alert(
+        "Failed to submit request"
+      );
     }
   };
 
+  const handleReportSubmit = async (
+    data
+  ) => {
+
+    try {
+
+      const response =
+        await apiClient.reports.create(
+          project.id,
+          {
+            reason: data.reason,
+            note: data.note,
+          }
+        );
+
+      if (response.success) {
+
+        alert(
+          "Report submitted successfully"
+        );
+
+        setShowReportModal(false);
+      }
+
+    } catch (error) {
+
+      console.error(
+        "Error submitting report:",
+        error
+      );
+
+      alert(
+        "Failed to submit report"
+      );
+    }
+  };
+
+  const handleDeleteProject =
+    async () => {
+
+      try {
+
+        const response =
+          await apiClient.projects.delete(
+            project.id
+          );
+
+        if (response.success) {
+
+          alert(
+            "Project deleted successfully"
+          );
+
+          navigate("/dashboard");
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Error deleting project:",
+          error
+        );
+
+        alert(
+          "Failed to delete project"
+        );
+      }
+    };
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   if (!project) {
-    return <div className="min-h-screen flex items-center justify-center">Project not found</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Project not found
+      </div>
+    );
   }
 
-  const initiator = findUserById(project.initiatorId);
-
   const approvedCollaborators =
-    project.collaborators?.filter((c) => c.status === "approved") || [];
+    project.collaborators?.filter(
+      (c) =>
+        c.status === "approved"
+    ) || [];
 
-  const isInitiator = project.initiatorId === user?.id;
-  // For team projects, team members have full edit access like initiators
-  const canEdit = isInitiator || isCollaborator || isTeamMember;
-  const isCollaborative = approvedCollaborators.length > 0 || (project.isTeamProject && isTeamMember);
+  const isInitiator =
+    project.initiator_id === user?.id;
+
+  const canEdit =
+    isInitiator ||
+    isCollaborator ||
+    isTeamMember;
+
+  const isCollaborative =
+    approvedCollaborators.length > 0 ||
+    (
+      project.is_team_project &&
+      teamMembers.length > 0
+    );
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200">
 
-      {/* ================= HEADER ================= */}
+      {/* HEADER */}
       <div
         className="w-full relative overflow-hidden"
         style={{
-          backgroundImage: `url(${project.backgroundImage || "/default-cover.jpg"})`,
+          backgroundImage: `url(${project.background_image || "/default-cover.jpg"})`,
           backgroundSize: "cover",
           backgroundPosition: "center",
-          minHeight: "300px sm:min-h-400px md:min-h-500px"
+          minHeight: "400px",
         }}
       >
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/60 to-black/80"></div>
 
-        {/* Content */}
-        <div className="relative h-full flex flex-col justify-between p-4 sm:p-6 md:p-8 lg:p-12 text-white min-h-300px sm:min-h-400px md:min-h-500px">
+        <div className="absolute inset-0 bg-black/60" />
 
-          {/* Top section - Genre and Category */}
-          <div className="flex items-start justify-between gap-2">
+        <div className="relative z-10 p-8 flex flex-col justify-between min-h-[400px]">
+
+          {/* TOP */}
+          <div className="flex items-start justify-between">
+
             <div className="flex gap-2 flex-wrap">
-              {project.category && (
-                <span className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium hover:bg-white/30 transition">
-                  {project.category}
+
+              {project.category_id && (
+                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-sm">
+                  {project.category_id}
                 </span>
               )}
-              {project.genre && (
-                <span className="px-2 sm:px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium hover:bg-white/30 transition">
-                  {project.genre}
+
+              {project.genre_id && (
+                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-sm">
+                  {project.genre_id}
                 </span>
               )}
+
             </div>
 
             {!isInitiator && (
               <button
-                onClick={() => setShowReportModal(true)}
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition backdrop-blur-sm flex-shrink-0"
-                title="Report project"
+                onClick={() =>
+                  setShowReportModal(true)
+                }
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20"
               >
-                <FiFlag className="w-4 h-4 sm:w-5 sm:h-5" />
+                <FiFlag />
               </button>
             )}
+
           </div>
 
-          {/* Middle section - Title and Description */}
-          <div className="space-y-2 sm:space-y-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2 sm:mb-3 leading-tight">
-                {project.title}
-              </h1>
-              <div className="w-12 sm:w-16 h-1 bg-gradient-to-r from-blue-400 to-purple-500 rounded-full"></div>
-            </div>
+          {/* CENTER */}
+          <div>
 
-            <p className="text-sm sm:text-base md:text-lg text-gray-100 max-w-2xl leading-relaxed line-clamp-3">
+            <h1 className="text-5xl font-bold text-white">
+              {project.title}
+            </h1>
+
+            <p className="mt-4 max-w-2xl text-gray-200">
               {project.description}
             </p>
+
           </div>
 
-          {/* Bottom section - Author and Stats */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
-            <div className="space-y-1 sm:space-y-2">
-              <p className="text-xs sm:text-sm text-gray-300">Created by</p>
-              <p className="text-lg sm:text-xl font-semibold">{initiator?.name || "Unknown"}</p>
+          {/* BOTTOM */}
+          <div className="flex justify-between items-end text-white">
+
+            <div>
+              <p className="text-sm text-gray-300">
+                Created by
+              </p>
+
+              <p className="text-xl font-semibold">
+                {project.initiator_name ||
+                  "Unknown"}
+              </p>
             </div>
 
-            {/* Stats - Responsive */}
-            <div className="flex gap-4 sm:gap-6">
-              {/* Views */}
-              <div className="flex items-center gap-1 sm:gap-2">
-                <FiEye className="w-4 h-4 sm:w-5 sm:h-5" />
-                <div>
-                  <p className="text-xs text-gray-300">Views</p>
-                  <p className="text-sm sm:text-lg font-bold">{project.views || 0}</p>
-                </div>
+            <div className="flex gap-6">
+
+              <div className="flex items-center gap-2">
+                <FiEye />
+                {project.views || 0}
               </div>
 
-              {/* Likes */}
               <button
                 onClick={handleLike}
-                className="flex items-center gap-1 sm:gap-2 hover:opacity-80 transition"
+                className="flex items-center gap-2"
               >
-                <FiHeart className={`w-4 h-4 sm:w-5 sm:h-5 ${isLiked ? 'fill-current text-red-500' : ''}`} />
-                <div>
-                  <p className="text-xs text-gray-300">Likes</p>
-                  <p className="text-sm sm:text-lg font-bold">{project.likes || 0}</p>
-                </div>
+                <FiHeart
+                  className={
+                    isLiked
+                      ? "fill-red-500 text-red-500"
+                      : ""
+                  }
+                />
+
+                {project.likes || 0}
               </button>
+
             </div>
+
           </div>
+
         </div>
+
       </div>
 
-      {/* ================= MAIN ================= */}
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      {/* MAIN */}
+      <div className="max-w-6xl mx-auto p-6">
 
-        {/* ================= BREADCRUMBS (Only for Creator) ================= */}
         {isInitiator && (
           <div className="mb-6">
             <Breadcrumbs
               items={[
-                { label: 'Dashboard', href: '/dashboard' },
-                { label: project?.title || 'Project' }
+                {
+                  label: "Dashboard",
+                  href: "/dashboard",
+                },
+                {
+                  label:
+                    project.title,
+                },
               ]}
             />
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* SIDEBAR */}
           {isCollaborative && (
-            <div className="lg:col-span-3 bg-gray-100 dark:bg-[#1e293b] p-4 rounded-lg order-2 lg:order-1">
+            <div className="lg:col-span-3 bg-gray-100 dark:bg-[#1e293b] p-4 rounded-lg">
 
-              <h2 className="font-semibold mb-4 text-sm sm:text-base">Members</h2>
+              <h2 className="font-semibold mb-4">
+                Members
+              </h2>
 
-              {/* For team projects, show only team members (no project collaborators) */}
-              {project.isTeamProject ? (
-                teamMembers.map((c) => {
-                  const u = findUserById(c.userId);
+              {project.is_team_project ? (
 
-                  return (
-                    <div key={c.userId} className="flex gap-2 mb-3">
-                      <div className="w-8 h-8 bg-gray-400 rounded-full flex-shrink-0"></div>
-                      <div className="min-w-0">
-                        <p className="text-sm truncate">{u?.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{c.role}</p>
+                teamMembers.map(
+                  (member) => (
+                    <div
+                      key={member.user_id}
+                      className="flex gap-2 mb-3"
+                    >
+
+                      <div className="w-8 h-8 bg-gray-400 rounded-full" />
+
+                      <div>
+
+                        <p className="text-sm">
+                          {member.name}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {member.role}
+                        </p>
+
                       </div>
+
                     </div>
-                  );
-                })
+                  )
+                )
+
               ) : (
-                /* For solo projects, show project collaborators */
-                approvedCollaborators.map((c) => {
-                  const u = findUserById(c.userId);
 
-                  return (
-                    <div key={c.userId} className="flex gap-2 mb-3">
-                      <div className="w-8 h-8 bg-gray-400 rounded-full flex-shrink-0"></div>
-                      <div className="min-w-0">
-                        <p className="text-sm truncate">{u?.name}</p>
-                        <p className="text-xs text-gray-500 truncate">{c.role}</p>
+                approvedCollaborators.map(
+                  (collab) => (
+                    <div
+                      key={collab.user_id}
+                      className="flex gap-2 mb-3"
+                    >
+
+                      <div className="w-8 h-8 bg-gray-400 rounded-full" />
+
+                      <div>
+
+                        <p className="text-sm">
+                          {collab.name}
+                        </p>
+
+                        <p className="text-xs text-gray-500">
+                          {collab.role}
+                        </p>
+
                       </div>
+
                     </div>
-                  );
-                })
+                  )
+                )
+
               )}
 
             </div>
           )}
 
-          {/* CONTENT */}
-          <div className={isCollaborative ? "lg:col-span-9 order-1 lg:order-2" : "lg:col-span-12 order-1"}>
+          {/* MAIN CONTENT */}
+          <div className={`
+    ${isCollaborative
+              ? "lg:col-span-9"
+              : "lg:col-span-12"
+            }
+  `}>
 
-            {/* ACTION */}
-            <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-3">
+            {/* CHAPTER LIST */}
+            <div className="bg-gray-100 dark:bg-[#1e293b] rounded-lg p-5">
 
-              {/* Only show collaboration request for solo projects, not team projects */}
-              {!isInitiator && !isCollaborator && !project.isTeamProject && isCollaborative && (
-                <>
-                  {userRequest?.status === "pending" ? (
-                    <Button disabled className="bg-gray-400 w-full sm:w-auto">
-                      <FiClock className="mr-2" />
-                      Pending
-                    </Button>
-                  ) : (
-                    <Button onClick={() => setShowRequestModal(true)} className="w-full sm:w-auto">
-                      Request to Join
-                    </Button>
-                  )}
-                </>
-              )}
+              <div className="flex items-center justify-between mb-5">
 
-            </div>
+                <div>
+                  <h2 className="text-2xl font-bold">
+                    Chapters
+                  </h2>
 
-            {/* TABS */}
-            <div className="flex gap-4 sm:gap-6 border-b mb-4 border-gray-300 dark:border-gray-700 overflow-x-auto">
+                  <p className="text-sm text-gray-500 mt-1">
+                    {chapters.length} chapter
+                    {chapters.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
 
-              <button
-                onClick={() => setActiveTab("read")}
-                className={`pb-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "read"
-                  ? "border-b-2 border-blue-500 font-semibold"
-                  : "text-gray-400"
-                  }`}
-              >
-                Read Chapters
-              </button>
-
-              {canEdit && (
-                <button
-                  onClick={() => setActiveTab("create")}
-                  className={`pb-2 whitespace-nowrap text-sm sm:text-base ${activeTab === "create"
-                    ? "border-b-2 border-blue-500 font-semibold"
-                    : "text-gray-400"
-                    }`}
-                >
-                  Create Chapter
-                </button>
-              )}
-
-            </div>
-
-            {/* READ */}
-            {activeTab === "read" && (
-              <div>
-                {chapters.length === 0 ? (
-
-                  <div
-                    className="
-        rounded-3xl
-        border border-light-border dark:border-dark-border
-        bg-light-surface dark:bg-dark-surface
-        py-20 px-6
-        text-center
-        "
+                {canEdit && (
+                  <Button
+                    onClick={() =>
+                      navigate(`/editor/${projectId}`)
+                    }
+                    className="flex items-center gap-2"
                   >
-                    <FiBook className="w-14 h-14 mx-auto text-light-secondary dark:text-dark-secondary mb-5" />
-
-                    <h3 className="text-xl font-semibold text-light-primary dark:text-dark-primary">
-                      No Chapters Yet
-                    </h3>
-
-                    <p className="mt-2 text-sm text-light-secondary dark:text-dark-secondary">
-                      This project has not published any chapters.
-                    </p>
-                  </div>
-
-                ) : (
-
-                  <div className="space-y-5">
-                    {chapters.map((ch, index) => (
-
-                      <button
-                        key={ch.id}
-                        onClick={() =>
-                          navigate(`/read/${project.id}/${ch.id}`)
-                        }
-                        className="
-            group relative w-full overflow-hidden
-            rounded-[2rem]
-            border border-light-border dark:border-dark-border
-            bg-light-surface dark:bg-dark-surface
-            p-6
-            text-left
-            transition-all duration-300
-            hover:-translate-y-1
-            hover:border-light-accent/40
-            dark:hover:border-dark-accent/40
-            hover:shadow-xl
-            "
-                      >
-
-                        {/* Glow */}
-                        <div
-                          className="
-              absolute inset-0 opacity-0
-              group-hover:opacity-100
-              transition-opacity duration-500
-              bg-gradient-to-r
-              from-indigo-500/5
-              via-purple-500/5
-              to-pink-500/5
-              "
-                        />
-
-                        <div className="relative z-10">
-
-                          {/* TOP */}
-                          <div className="flex items-start justify-between gap-4">
-
-                            <div>
-
-                              <div
-                                className="
-                    inline-flex items-center gap-2
-                    rounded-full
-                    bg-light-accent/10 dark:bg-dark-accent/10
-                    px-3 py-1
-                    text-xs font-medium
-                    text-light-accent dark:text-dark-accent
-                    "
-                              >
-                                <FiBook className="w-3 h-3" />
-
-                                Chapter {ch.chapterNumber}
-                              </div>
-
-                              <h3
-                                className="
-                    mt-4
-                    text-2xl font-semibold
-                    tracking-tight
-                    text-light-primary dark:text-dark-primary
-                    group-hover:text-light-accent
-                    dark:group-hover:text-dark-accent
-                    transition-colors
-                    "
-                              >
-                                {ch.title}
-                              </h3>
-
-                            </div>
-
-                            <div
-                              className={`
-                  shrink-0 rounded-full px-3 py-1 text-xs font-medium
-                  ${ch.status === "published"
-                                  ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                  : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                }
-                  `}
-                            >
-                              {ch.status}
-                            </div>
-
-                          </div>
-
-                          {/* DESCRIPTION */}
-                          <p
-                            className="
-                mt-4
-                max-w-3xl
-                text-sm leading-relaxed
-                text-light-secondary dark:text-dark-secondary
-                "
-                          >
-                            {ch.description ||
-                              "Continue reading this chapter and explore the story progression."}
-                          </p>
-
-                          {/* FOOTER */}
-                          <div
-                            className="
-                mt-6
-                flex items-center justify-between
-                border-t border-light-border dark:border-dark-border
-                pt-5
-                "
-                          >
-
-                            <div className="flex items-center gap-2 text-sm text-light-secondary dark:text-dark-secondary">
-                              <FiClock className="w-4 h-4" />
-
-                              Recently updated
-                            </div>
-
-                            <div
-                              className="
-                  flex items-center gap-2
-                  text-sm font-medium
-                  text-light-accent dark:text-dark-accent
-                  transition-all
-                  group-hover:gap-3
-                  "
-                            >
-                              Read Chapter
-
-                              <FiPlay className="w-4 h-4" />
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      </button>
-
-                    ))}
-                  </div>
-
+                    <FiEdit2 />
+                    Manage Chapters
+                  </Button>
                 )}
-              </div>
-            )}
-
-            {/* CREATE */}
-            {activeTab === "create" && canEdit && (
-
-              <div
-                className="
-    overflow-hidden
-    rounded-[2rem]
-    border border-light-border dark:border-dark-border
-    bg-light-surface dark:bg-dark-surface
-    "
-              >
-
-                {/* TOP HEADER */}
-                <div
-                  className="
-      border-b border-light-border dark:border-dark-border
-      px-6 sm:px-8 py-7
-      "
-                >
-
-                  <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-                    <div>
-
-                      <div
-                        className="
-            inline-flex items-center gap-2
-            rounded-full
-            bg-light-accent/10 dark:bg-dark-accent/10
-            px-3 py-1
-            text-xs font-medium
-            text-light-accent dark:text-dark-accent
-            "
-                      >
-                        Workspace
-                      </div>
-
-                      <h2
-                        className="
-            mt-4
-            text-3xl font-semibold tracking-tight
-            text-light-primary dark:text-dark-primary
-            "
-                      >
-                        Chapter Management
-                      </h2>
-
-                      <p
-                        className="
-            mt-2 max-w-2xl
-            text-sm leading-relaxed
-            text-light-secondary dark:text-dark-secondary
-            "
-                      >
-                        Organize chapters, continue unfinished drafts,
-                        and manage the structure of your collaborative project.
-                      </p>
-
-                    </div>
-
-                    <Button
-                      onClick={() =>
-                        navigate(`/editor/${project.id}`)
-                      }
-                      className="
-          h-fit
-          whitespace-nowrap
-          "
-                    >
-                      Create New Chapter
-                    </Button>
-                    {isInitiator && (
-                      <Button
-                        onClick={() => setShowDeleteConfirm(true)}
-                        className="
-      h-fit whitespace-nowrap
-      bg-red-500 hover:bg-red-600
-      text-white
-      "
-                      >
-                        <FiTrash2 className="mr-2" />
-                        Delete Project
-                      </Button>
-                    )}
-
-                  </div>
-
-                </div>
-
-                {/* CHAPTER LIST */}
-                <div className="p-6 sm:p-8">
-
-                  {chapters.length === 0 ? (
-
-                    <div
-                      className="
-          rounded-3xl
-          border border-dashed
-          border-light-border dark:border-dark-border
-          bg-light-background dark:bg-dark-background
-          py-20 px-6
-          text-center
-          "
-                    >
-
-                      <FiBook className="w-14 h-14 mx-auto text-light-secondary dark:text-dark-secondary mb-5" />
-
-                      <h3 className="text-xl font-semibold text-light-primary dark:text-dark-primary">
-                        No Chapters Created
-                      </h3>
-
-                      <p className="mt-2 text-sm text-light-secondary dark:text-dark-secondary">
-                        Start building your story by creating the first chapter.
-                      </p>
-
-                    </div>
-
-                  ) : (
-
-                    <div className="space-y-5">
-
-                      {chapters.map((ch) => (
-
-                        <div
-                          key={ch.id}
-                          className="
-              group
-              rounded-[1.5rem]
-              border border-light-border dark:border-dark-border
-              bg-light-background dark:bg-dark-background
-              p-5 sm:p-6
-              transition-all duration-300
-              hover:-translate-y-1
-              hover:border-light-accent/30
-              dark:hover:border-dark-accent/30
-              hover:shadow-xl
-              "
-                        >
-
-                          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-                            {/* LEFT */}
-                            <div className="min-w-0 flex-1">
-
-                              {/* BADGES */}
-                              <div className="flex flex-wrap items-center gap-2">
-
-                                <div
-                                  className="
-                      inline-flex items-center gap-2
-                      rounded-full
-                      bg-light-accent/10 dark:bg-dark-accent/10
-                      px-3 py-1
-                      text-xs font-medium
-                      text-light-accent dark:text-dark-accent
-                      "
-                                >
-                                  <FiBook className="w-3 h-3" />
-
-                                  Chapter {ch.chapterNumber}
-                                </div>
-
-                                <div
-                                  className={`
-                      rounded-full px-3 py-1 text-xs font-medium
-                      ${ch.status === "published"
-                                      ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                                    }
-                      `}
-                                >
-                                  {ch.status}
-                                </div>
-
-                              </div>
-
-                              {/* TITLE */}
-                              <h3
-                                className="
-                    mt-4
-                    text-2xl font-semibold tracking-tight
-                    text-light-primary dark:text-dark-primary
-                    "
-                              >
-                                {ch.title}
-                              </h3>
-
-                              {/* DESCRIPTION */}
-                              <p
-                                className="
-                    mt-3
-                    max-w-3xl
-                    text-sm leading-relaxed
-                    text-light-secondary dark:text-dark-secondary
-                    "
-                              >
-                                {ch.description ||
-                                  "Continue editing and refining this chapter."}
-                              </p>
-
-                            </div>
-
-                            {/* ACTIONS */}
-                            <div className="flex flex-col sm:flex-row gap-3">
-
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  navigate(`/read/${project.id}/${ch.id}`)
-                                }
-                                className="
-                    bg-transparent
-                    border border-light-border dark:border-dark-border
-                    hover:bg-light-surface dark:hover:bg-dark-surface
-                    "
-                              >
-                                Preview
-                              </Button>
-
-                              <Button
-                                size="sm"
-                                onClick={() =>
-                                  navigate(`/editor/${project.id}/${ch.id}`)
-                                }
-                              >
-                                Edit Chapter
-                              </Button>
-
-                            </div>
-
-                          </div>
-
-                        </div>
-
-                      ))}
-
-                    </div>
-
-                  )}
-
-                </div>
 
               </div>
 
-            )}
+              <ChapterList
+                chapters={chapters}
+                currentChapterId={null}
+                onSelectChapter={(chapterId) => {
+                  navigate(`/read/${projectId}/${chapterId}`);
+                }}
+                onChaptersChange={loadData}
+                projectId={projectId}
+              />
+
+            </div>
 
           </div>
 
         </div>
-
       </div>
 
       {/* MODALS */}
+
       {showRequestModal && (
         <CollaborationRequestModal
           projectTitle={project.title}
           onSubmit={handleRequestSubmit}
-          onClose={() => setShowRequestModal(false)}
+          onClose={() =>
+            setShowRequestModal(false)
+          }
         />
       )}
 
       {showReportModal && (
         <ReportsModal
           isOpen={showReportModal}
-          onClose={() => setShowReportModal(false)}
+          onClose={() =>
+            setShowReportModal(false)
+          }
           onSubmit={handleReportSubmit}
         />
       )}
 
-      {/* ✅ NEW: Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-[#1e293b] rounded-lg max-w-md w-full p-4 sm:p-6">
-            <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-gray-200 mb-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+          <div className="bg-white dark:bg-[#1e293b] rounded-lg p-6 max-w-md w-full">
+
+            <h2 className="text-xl font-bold mb-4">
               Delete Project?
             </h2>
-            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mb-6">
-              Are you sure you want to delete "{project?.title}"? This action cannot be undone.
+
+            <p className="mb-6">
+              Are you sure you want to delete this project?
             </p>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+
+            <div className="flex gap-3">
+
               <Button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="flex-1 bg-gray-400 hover:bg-gray-500"
+                onClick={() =>
+                  setShowDeleteConfirm(false)
+                }
+                className="bg-gray-400"
               >
                 Cancel
               </Button>
+
               <Button
                 onClick={() => {
                   handleDeleteProject();
                   setShowDeleteConfirm(false);
                 }}
-                className="flex-1 bg-red-500 hover:bg-red-600 text-white"
+                className="bg-red-500 hover:bg-red-600 text-white"
               >
                 Delete
               </Button>
+
             </div>
+
           </div>
+
         </div>
       )}
 

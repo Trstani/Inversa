@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiClient } from "../../api/client";
 
 const AdminStats = () => {
 
@@ -9,30 +10,36 @@ const AdminStats = () => {
     hiddenProjects: 0
   });
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    const loadStats = async () => {
+      setLoading(true);
+      try {
+        const projectsResponse = await apiClient.projects.getAll();
+        const usersResponse = await apiClient.users.getAll();
+        const reportsResponse = await apiClient.reports.getAll();
 
-    const projectsData =
-      JSON.parse(localStorage.getItem("inversa_projects")) || { projects: [] };
+        const projects = projectsResponse.data || [];
+        const users = usersResponse.data || [];
+        const reports = reportsResponse.data || [];
 
-    const users =
-      JSON.parse(localStorage.getItem("inversa_users")) || [];
+        const hiddenProjects = projects.filter(p => p.is_hidden).length;
 
-    const reportsData =
-      JSON.parse(localStorage.getItem("inversa_reports")) || { reports: [] };
+        setStats({
+          projects: projects.length,
+          users: users.length,
+          reports: reports.length,
+          hiddenProjects
+        });
+      } catch (error) {
+        console.error('Error loading stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    const projects = projectsData.projects || [];
-    const reports = reportsData.reports || [];
-
-    const hiddenProjects =
-      projects.filter(p => p.hidden).length;
-
-    setStats({
-      projects: projects.length,
-      users: users.length,
-      reports: reports.length,
-      hiddenProjects
-    });
-
+    loadStats();
   }, []);
 
   return (
@@ -48,7 +55,7 @@ const AdminStats = () => {
         </p>
 
         <p className="text-3xl font-bold mt-2">
-          {stats.projects}
+          {loading ? "-" : stats.projects}
         </p>
 
       </div>
@@ -62,7 +69,7 @@ const AdminStats = () => {
         </p>
 
         <p className="text-3xl font-bold mt-2">
-          {stats.users}
+          {loading ? "-" : stats.users}
         </p>
 
       </div>
@@ -76,7 +83,7 @@ const AdminStats = () => {
         </p>
 
         <p className="text-3xl font-bold mt-2">
-          {stats.reports}
+          {loading ? "-" : stats.reports}
         </p>
 
       </div>
@@ -96,7 +103,7 @@ const AdminStats = () => {
         </p>
 
         <p className="text-3xl font-bold text-light-primary dark:text-dark-primary mt-2">
-          {stats.hiddenProjects}
+          {loading ? "-" : stats.hiddenProjects}
         </p>
 
       </div>

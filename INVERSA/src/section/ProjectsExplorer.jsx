@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { FiSearch, FiBook } from "react-icons/fi";
 import { genres } from "../data/mockData";
-import { loadPublishedProjects } from '../utils/dataManager/projectManager';
+import { apiClient } from '../api/client';
 import CardProject from "../components/CardProject";
 import { useNavigate } from "react-router-dom";
 
@@ -13,12 +13,19 @@ const ProjectsExplorer = () => {
   const [selectedGenre, setSelectedGenre] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 🔥 Fetch langsung pakai dataManager (seperti Home lama kamu)
+  // 🔥 Fetch published projects dari API
   useEffect(() => {
     const fetchProjects = async () => {
-      const data = await loadPublishedProjects();
-      setProjects(data);
-      setLoading(false);
+      try {
+        const response = await apiClient.projects.getPublished();
+        const data = response.data || [];
+        setProjects(data);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchProjects();

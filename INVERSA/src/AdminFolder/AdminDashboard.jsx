@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { apiClient } from "../api/client";
 
 import AdminSidebar from "../AdminFolder/components/AdminSidebar";
 import AdminStats from "../AdminFolder/components/AdminStats";
@@ -10,20 +11,23 @@ const AdminDashboard = () => {
 
   const [section, setSection] = useState("dashboard");
   const [reports, setReports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const loadReports = () => {
-
-    const stored =
-      JSON.parse(localStorage.getItem("inversa_reports")) || { reports: [] };
-
-    setReports(stored.reports);
-
+  const loadReports = async () => {
+    setLoading(true);
+    try {
+      const response = await apiClient.reports.getAll();
+      setReports(response.data || []);
+    } catch (error) {
+      console.error('Error loading reports:', error);
+      setReports([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-
     loadReports();
-
   }, []);
 
   const renderSection = () => {
@@ -79,7 +83,13 @@ const AdminDashboard = () => {
           Admin Moderation Dashboard
         </h1>
 
-        {renderSection()}
+        {loading ? (
+          <div className="text-center py-8">
+            <p className="text-light-secondary dark:text-dark-secondary">Loading...</p>
+          </div>
+        ) : (
+          renderSection()
+        )}
 
       </div>
 

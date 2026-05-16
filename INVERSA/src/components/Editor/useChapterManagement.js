@@ -2,7 +2,7 @@
 // Shared logic for chapter management between EditorLayout and TeamEditorLayout
 
 import { useState } from 'react';
-import { createNewChapter, deleteChapter } from '../../utils/dataManager/index';
+import { apiClient } from '../../api/client';
 
 export const useChapterManagement = (project, chapters, onSelectChapter, onChaptersChange) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -11,7 +11,12 @@ export const useChapterManagement = (project, chapters, onSelectChapter, onChapt
     if (!project) return;
     
     try {
-      const newChapter = await createNewChapter(project.id, chapterData);
+      const response = await apiClient.chapters.create({
+        project_id: project.id,
+        ...chapterData
+      });
+      
+      const newChapter = response.data;
       setShowCreateModal(false);
       
       // Refresh chapters
@@ -30,7 +35,7 @@ export const useChapterManagement = (project, chapters, onSelectChapter, onChapt
   const handleDeleteChapter = async (chapterId) => {
     if (window.confirm("Are you sure you want to delete this chapter?")) {
       try {
-        await deleteChapter(chapterId);
+        await apiClient.chapters.delete(chapterId);
         
         // Refresh chapters
         if (onChaptersChange) {

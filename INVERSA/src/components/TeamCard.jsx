@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiUsers, FiFolder, FiEdit2, FiTrash2 } from 'react-icons/fi';
-import { getTeamProjects } from '../utils/dataManager/teamManager';
+import { apiClient } from '../api/client';
 
 const TeamCard = ({ team, onDelete, isOwner = false }) => {
   const navigate = useNavigate();

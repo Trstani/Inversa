@@ -10,13 +10,7 @@ import {
 import BadgeGenre from "./BadgeGenre";
 import BadgeCategories from "./BadgeCategories";
 
-import { findUserById } from "../utils/userManager/index";
-import {
-  incrementLikes,
-  decrementLikes,
-} from "../utils/dataManager/index";
-
-import { getTeamById } from "../utils/dataManager/teamManager";
+import { apiClient } from "../api/client";
 
 const CardProject = ({
   project,
@@ -27,83 +21,45 @@ const CardProject = ({
     project.likes || 0
   );
 
-  const [teamName, setTeamName] = useState(null);
 
   useEffect(() => {
-    if (project.isTeamProject && project.teamId) {
-      loadTeamName();
-    }
-  }, [project.id, project.teamId]);
-
-  const loadTeamName = async () => {
-    try {
-      const team = await getTeamById(project.teamId);
-      setTeamName(team?.title);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    const guestLikes = JSON.parse(
-      localStorage.getItem("guestLikes") || "[]"
-    );
-
-    setIsLiked(guestLikes.includes(project.id));
+    // Like status is now managed by the backend
+    // We'll check if the user has liked this project via the API
+    setIsLiked(false); // Default to not liked
   }, [project.id]);
 
   const handleLike = async (e) => {
     e.preventDefault();
 
-    const guestLikes = JSON.parse(
-      localStorage.getItem("guestLikes") || "[]"
-    );
-
-    if (isLiked) {
-      const newLikes = guestLikes.filter(
-        (id) => id !== project.id
-      );
-
-      localStorage.setItem(
-        "guestLikes",
-        JSON.stringify(newLikes)
-      );
-
-      setIsLiked(false);
-      setLikeCount((prev) => prev - 1);
-
-      await decrementLikes(project.id);
-    } else {
-      guestLikes.push(project.id);
-
-      localStorage.setItem(
-        "guestLikes",
-        JSON.stringify(guestLikes)
-      );
-
-      setIsLiked(true);
-      setLikeCount((prev) => prev + 1);
-
-      await incrementLikes(project.id);
+    try {
+      if (isLiked) {
+        await apiClient.projects.decrementLikes(project.id);
+        setIsLiked(false);
+        setLikeCount((prev) => Math.max(0, prev - 1));
+      } else {
+        await apiClient.projects.incrementLikes(project.id);
+        setIsLiked(true);
+        setLikeCount((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error('Error updating likes:', error);
+      // Revert state on error
+      setIsLiked(!isLiked);
+      setLikeCount(isLiked ? likeCount + 1 : likeCount - 1);
     }
   };
 
-  const author =
-    findUserById(project.initiatorId) || {
-      name: "Unknown",
-    };
+  const displayName = project.is_team_project
+    ? project.team_name
+    : project.initiator_name;
 
-  const displayName = project.isTeamProject
-    ? teamName
-    : author.name;
-
-  const DisplayIcon = project.isTeamProject
+  const DisplayIcon = project.is_team_project
     ? FiUsers
     : FiUser;
 
   const hasImage =
-    project.backgroundImage &&
-    project.backgroundImage.trim() !== "";
+    project.background_image &&
+    project.background_image.trim() !== "";
 
   return (
     <Link
@@ -129,16 +85,16 @@ const CardProject = ({
           {/* TOP */}
           <div>
             <div className="mb-4 flex flex-wrap gap-2">
-              {project.category && (
+              {project.category_id && (
                 <BadgeCategories
-                  categoryId={project.category}
+                  categoryId={project.category_id}
                   size="sm"
                 />
               )}
 
-              {project.genre && (
+              {project.genre_id && (
                 <BadgeGenre
-                  genreId={project.genre}
+                  genreId={project.genre_id}
                   size="sm"
                 />
               )}
@@ -254,7 +210,7 @@ const CardProject = ({
         >
           {hasImage ? (
             <img
-              src={project.backgroundImage}
+              src={project.background_image}
               alt={project.title}
               className="
               h-full w-full object-cover

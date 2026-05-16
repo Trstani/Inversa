@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { FiUsers } from 'react-icons/fi';
 import TeamCard from '../../components/TeamCard';
-import { loadTeams, deleteTeam } from '../../utils/dataManager/teamManager';
+import { apiClient } from '../../api/client';
 
 const MyTeamsSection = ({ projects }) => {
   const { user } = useAuth();
@@ -16,8 +16,8 @@ const MyTeamsSection = ({ projects }) => {
   const loadMyTeams = async () => {
     setLoading(true);
     try {
-      const allTeams = await loadTeams(user?.id);
-      setTeams(allTeams);
+      const response = await apiClient.teams.getUserTeams(user?.id);
+      setTeams(response.data || []);
     } catch (error) {
       console.error('Error loading teams:', error);
     } finally {
@@ -28,7 +28,7 @@ const MyTeamsSection = ({ projects }) => {
   const handleDeleteTeam = async (teamId) => {
     if (window.confirm('Are you sure you want to delete this team?')) {
       try {
-        await deleteTeam(teamId);
+        await apiClient.teams.delete(teamId);
         await loadMyTeams();
       } catch (error) {
         console.error('Error deleting team:', error);
@@ -68,7 +68,7 @@ const MyTeamsSection = ({ projects }) => {
           key={team.id}
           team={team}
           onDelete={handleDeleteTeam}
-          isOwner={team.initiatorId === user?.id}
+          isOwner={team.initiator_id === user?.id}
         />
       ))}
     </div>

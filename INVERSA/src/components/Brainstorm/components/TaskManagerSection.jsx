@@ -1,6 +1,6 @@
 import { FiPlus } from 'react-icons/fi';
 import TaskCard from './TaskCard';
-import { findUserById } from '../../../utils/userManager/index';
+import { apiClient } from '../../../api/client';
 
 const TaskManagerSection = ({
   chapters,

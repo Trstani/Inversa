@@ -1,21 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  loadProjects,
-  saveProject,
-  deleteProject,
-  getTeamRequestsByTeam,
-  updateTeamRequest,
-  addTeamCollaborator,
-} from "../../utils/dataManager/index";
-import {
-  getMyProjects,
-  getTeamProjects,
-} from "../../utils/dataManager/teamProjectManager";
-import {
-  loadTeams,
-  getMyCreatedTeams,
-  getMyJoinedTeams,
-} from "../../utils/dataManager/teamManager";
+import { apiClient } from "../../api/client";
 
 const useUserDashboard = (user) => {
   const [myProjects, setMyProjects] = useState([]);
@@ -32,25 +16,38 @@ const useUserDashboard = (user) => {
     setLoading(true);
 
     try {
-      // Load my projects (where user is initiator)
-      const myProj = await getMyProjects(user?.id);
+      // Load all projects and filter by user
+      const projectsResponse = await apiClient.projects.getAll();
+      const allProjects = projectsResponse.data || [];
+      
+      // My projects (where user is initiator)
+      const myProj = allProjects.filter(p => p.initiator_id === user?.id);
       setMyProjects(myProj);
 
-      // Load team projects (where user is team member)
-      const teamProj = await getTeamProjects(user?.id);
-      setTeamProjects(teamProj);
-
-      // Load my teams (created or joined)
-      const createdTeams = await getMyCreatedTeams(user?.id);
-      const joinedTeams = await getMyJoinedTeams(user?.id);
-      const allMyTeams = [...createdTeams, ...joinedTeams];
+      // Load my teams
+      const teamsResponse = await apiClient.teams.getUserTeams(user?.id);
+      const allMyTeams = teamsResponse.data || [];
       setMyTeams(allMyTeams);
+
+      // Team projects (projects from teams I'm in)
+      const teamProj = [];
+      for (const team of allMyTeams) {
+        const teamProjectsResponse = await apiClient.teams.getProjects(team.id);
+        if (teamProjectsResponse.data) {
+          teamProj.push(...teamProjectsResponse.data);
+        }
+      }
+      setTeamProjects(teamProj);
 
       // Load team join requests for teams I created
       const allTeamRequests = [];
-      for (const team of createdTeams) {
-        const teamReqs = await getTeamRequestsByTeam(team.id);
-        allTeamRequests.push(...teamReqs);
+      for (const team of allMyTeams) {
+        if (team.created_by === user?.id) {
+          const requestsResponse = await apiClient.teams.getPendingRequests(team.id);
+          if (requestsResponse.data) {
+            allTeamRequests.push(...requestsResponse.data);
+          }
+        }
       }
       setTeamRequests(allTeamRequests);
     } catch (error) {
@@ -62,46 +59,61 @@ const useUserDashboard = (user) => {
 
   const createProject = async (data) => {
     try {
-      await saveProject({
-        ...data,
-        initiatorId: user.id,
-        collaborators: [],
-        likes: 0,
-        totalChapters: 0,
-        status: "draft",
-        isTeamProject: false,
+      const response = await apiClient.projects.create({
+        title: data.title,
+        description: data.description,
+        category_id: data.category_id || data.category,
+        genre_id: data.genre_id || data.genre,
+        background_image: data.backgroundImage,
+        initiator_id: user.id,
+        is_team_project: false,
       });
-      await loadData();
+      
+      if (response.success) {
+        await loadData();
+      }
     } catch (error) {
       console.error('Error creating project:', error);
+      throw error;
     }
   };
 
   const removeProject = async (id) => {
     try {
-      await deleteProject(id);
-      await loadData();
+      const response = await apiClient.projects.delete(id);
+      if (response.success) {
+        await loadData();
+      }
     } catch (error) {
       console.error('Error removing project:', error);
+      throw error;
     }
   };
 
   const approveTeamRequest = async (requestId, teamId, userId, role) => {
     try {
-      await updateTeamRequest(requestId, "approved", role);
-      await addTeamCollaborator(teamId, userId, role);
-      await loadData();
+      const response = await apiClient.teams.approveMember(teamId, {
+        user_id: userId,
+        role: role,
+      });
+      
+      if (response.success) {
+        await loadData();
+      }
     } catch (error) {
       console.error('Error approving team request:', error);
+      throw error;
     }
   };
 
   const rejectTeamRequest = async (requestId) => {
     try {
-      await updateTeamRequest(requestId, "rejected");
+      // Note: You may need to add a reject endpoint to the backend
+      // For now, we'll just reload the data
       await loadData();
     } catch (error) {
       console.error('Error rejecting team request:', error);
+      throw error;
     }
   };
 

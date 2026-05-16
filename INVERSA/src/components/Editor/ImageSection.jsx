@@ -11,10 +11,10 @@ const ImageSection = ({
 
         {/* LEFT - IMAGE */}
         <div className="flex-1">
-          {section.imageUrl ? (
+          {section.image_url ? (
             <div className="w-full h-[300px] rounded-xl overflow-hidden">
               <img
-                src={section.imageUrl}
+                src={section.image_url}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -22,7 +22,7 @@ const ImageSection = ({
           ) : (
             canEdit && (
               <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-light-border dark:border-dark-border rounded-xl cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-surface dark:bg-dark-surface">
-                
+
                 <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
                   <span className="font-medium">Click to upload</span>
                   <span className="text-xs mt-1">PNG, JPG up to 5MB</span>

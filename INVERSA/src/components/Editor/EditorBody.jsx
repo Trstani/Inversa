@@ -4,7 +4,7 @@ import EditorActions from "./EditorActions";
 import TextEditorSection from "./TextEditorSection";
 import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
-import { submitContribution } from "../../utils/dataManager/index";
+import { apiClient } from "../../api/client";
 
 const EditorBody = ({
   chapter,
@@ -83,7 +83,7 @@ const EditorBody = ({
       {
         id: Date.now(),
         type: "image",
-        imageUrl: "",
+        image_url: "",
         caption: "",
       },
     ]);
@@ -112,7 +112,7 @@ const EditorBody = ({
 
     const reader = new FileReader();
     reader.onloadend = () => {
-      updateSection(id, { imageUrl: reader.result });
+      updateSection(id, { image_url: reader.result });
     };
     reader.readAsDataURL(file);
   };
