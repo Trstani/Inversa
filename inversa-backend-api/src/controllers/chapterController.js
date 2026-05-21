@@ -1,6 +1,8 @@
 import {
   createChapter,
   getChaptersByProject,
+  publishChapter,
+  updateChapter,
 } from '../services/chapterService.js';
 
 export const create = async (
@@ -71,5 +73,75 @@ export const getByProject =
         message: error.message,
       });
 
+    }
+};
+
+export const publish =
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const chapter =
+        await publishChapter(id);
+
+      res.json({
+        success: true,
+        message:
+          'Chapter published successfully',
+        data: chapter,
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+};
+
+export const update =
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const {
+        title,
+      } = req.body;
+
+      const chapter =
+        await updateChapter(
+          id,
+          {
+            title,
+          }
+        );
+
+      res.json({
+
+        success: true,
+
+        data: chapter,
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          error.message,
+      });
     }
 };

@@ -4,6 +4,8 @@ import {
   updateSection,
   deleteSection,
   reorderSection,
+  lockSection,
+  unlockSection,
 } from '../services/sectionService.js';
 
 export const create = async (
@@ -200,3 +202,107 @@ export const reorder = async (
 
   }
 };
+
+/*
+=========================
+LOCK SECTION
+=========================
+*/
+
+export const lock =
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const userId =
+        req.user.id;
+
+      const section =
+        await lockSection({
+
+          sectionId: id,
+          userId,
+
+        });
+
+      res.json({
+
+        success: true,
+
+        message:
+          'Section locked',
+
+        data: section,
+
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      res.status(409).json({
+
+        success: false,
+
+        message:
+          error.message,
+
+      });
+
+    }
+  };
+
+/*
+=========================
+UNLOCK SECTION
+=========================
+*/
+
+export const unlock =
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const userId =
+        req.user.id;
+
+      const section =
+        await unlockSection({
+
+          sectionId: id,
+          userId,
+
+        });
+
+      res.json({
+
+        success: true,
+
+        message:
+          'Section unlocked',
+
+        data: section,
+
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          error.message,
+
+      });
+
+    }
+  };

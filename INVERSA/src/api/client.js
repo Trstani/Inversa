@@ -84,6 +84,11 @@ export const apiClient = {
     getFollowing: (id) => makeRequest('GET', `/users/${id}/following`),
   },
 
+  admin: {
+
+  getDashboard: () => makeRequest('GET', '/admin/dashboard'),
+  },
+
   // ============ PROJECTS ============
   projects: {
     getAll: (filters = {}) => {
@@ -91,16 +96,20 @@ export const apiClient = {
       return makeRequest('GET', `/projects${params ? '?' + params : ''}`);
     },
     getById: (id) => makeRequest('GET', `/projects/${id}`),
-    getPublished: () => makeRequest('GET', '/projects?published=true'),
+    getPublished: () => makeRequest('GET', '/projects/published'),
     create: (data) => makeRequest('POST', '/projects', data),
     update: (id, data) => makeRequest('PUT', `/projects/${id}`, data),
     delete: (id) => makeRequest('DELETE', `/projects/${id}`),
     incrementViews: (id) => makeRequest('POST', `/projects/${id}/views`, {}),
-    incrementLikes: (id) => makeRequest('POST', `/projects/${id}/likes`, {}),
-    decrementLikes: (id) => makeRequest('DELETE', `/projects/${id}/likes`),
+    like: (id) => makeRequest('POST', `/projects/${id}/like`,{} ),
     hide: (id) => makeRequest('POST', `/projects/${id}/hide`, {}),
     unhide: (id) => makeRequest('POST', `/projects/${id}/unhide`, {}),
     getCollaborators: (id) => makeRequest('GET', `/projects/${id}/collaborators`),
+    follow: (id) => makeRequest('POST', `/projects/${id}/follow`, {}),
+    getMyFollows: () => makeRequest('GET', '/projects/follows/me'),
+    getUserFollows: (userId) => makeRequest('GET', `/projects/follows/user/${userId}`),
+    getUserHistory: (userId) => makeRequest('GET', `/reading-history/user/${userId}`),
+    getInteractions: (id) => makeRequest('GET',`/projects/${id}/interactions`),
   },
 
   // ============ CHAPTERS ============
@@ -131,24 +140,35 @@ export const apiClient = {
     create: (data) => makeRequest('POST', '/sections', data),
     update: (id, data) => makeRequest('PUT', `/sections/${id}`, data),
     delete: (id) => makeRequest('DELETE', `/sections/${id}`),
+    reorder: (id, data) => makeRequest('PATCH', `/sections/${id}/reorder`, data),
+    lock: (id) => makeRequest( 'POST', `/sections/${id}/lock`, {} ),
+    unlock: (id) => makeRequest('POST',`/sections/${id}/unlock`, {} ),
   },
 
-  // ============ TEAMS ============
-  teams: {
-    getAll: () => makeRequest('GET', '/teams'),
-    getById: (id) => makeRequest('GET', `/teams/${id}`),
-    getUserTeams: (userId) => makeRequest('GET', `/teams/user/${userId}`),
-    create: (data) => makeRequest('POST', '/teams', data),
-    update: (id, data) => makeRequest('PUT', `/teams/${id}`, data),
-    delete: (id) => makeRequest('DELETE', `/teams/${id}`),
-    getMembers: (id) => makeRequest('GET', `/teams/${id}/members`),
-    addMember: (id, data) => makeRequest('POST', `/teams/${id}/members`, data),
-    removeMember: (id, userId) => makeRequest('DELETE', `/teams/${id}/members/${userId}`),
-    requestJoin: (id) => makeRequest('POST', `/teams/${id}/request-join`, {}),
-    approveMember: (id, data) => makeRequest('POST', `/teams/${id}/approve-member`, data),
-    rejectMember: (id, data) => makeRequest('POST', `/teams/${id}/reject-member`, data),
-    getPendingRequests: (id) => makeRequest('GET', `/teams/${id}/pending-requests`),
-    getProjects: (id) => makeRequest('GET', `/teams/${id}/projects`),
+ // ============ TEAMS ============
+teams: {
+  getAll: () => makeRequest('GET', '/teams'),
+  getById: (id) => makeRequest('GET', `/teams/${id}`),
+  getUserTeams: (userId) => makeRequest('GET', `/teams/user/${userId}`),
+  create: (data) => makeRequest('POST', '/teams', data),
+  update: (id, data) => makeRequest('PUT', `/teams/${id}`, data),
+  delete: (id) => makeRequest('DELETE', `/teams/${id}`),
+  getMembers: (id) => makeRequest('GET', `/teams/${id}/members`),
+  removeMember: (id, userId) => makeRequest('DELETE', `/teams/${id}/members/${userId}`),
+  getProjects: (id) => makeRequest('GET', `/teams/${id}/projects`),
+  getRequests: (teamId) => makeRequest('GET', `/team-requests/team/${teamId}`),
+  createRequest: (data) => makeRequest('POST', '/team-requests', data),
+  approveRequest: (requestId) => makeRequest('PATCH',`/team-requests/${requestId}/approve`,{}),
+  rejectRequest: (requestId) => makeRequest('PATCH',`/team-requests/${requestId}/reject`, {}),
+  deleteRequest: (requestId) => makeRequest('DELETE', `/team-requests/${requestId}`),
+},
+
+  // ============ COMMENTS ============
+
+  comments: {
+    getByChapter: (chapterId) =>makeRequest('GET',`/comments/chapter/${chapterId}`),
+    create: (chapterId, data) => makeRequest('POST', `/comments/chapter/${chapterId}`, data),
+    delete: (commentId) => makeRequest('DELETE', `/comments/${commentId}`),
   },
 
   // ============ BRAINSTORM ============
@@ -156,16 +176,20 @@ export const apiClient = {
     getSession: (projectId) => makeRequest('GET', `/brainstorm/${projectId}`),
     getIdeas: (projectId) => makeRequest('GET', `/brainstorm/${projectId}/ideas`),
     addIdea: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/ideas`, data),
-    deleteIdea: (projectId, ideaId) => makeRequest('DELETE', `/brainstorm/${projectId}/ideas/${ideaId}`),
-    voteIdea: (projectId, ideaId) => makeRequest('POST', `/brainstorm/${projectId}/ideas/${ideaId}/vote`, {}),
+    deleteIdea: (projectId, ideaId) => makeRequest('DELETE', `/brainstorm/ideas/${ideaId}`),
+    voteIdea: (projectId, ideaId ) => makeRequest('POST', `/brainstorm/ideas/${ideaId}/vote`,{}),
     unvoteIdea: (projectId, ideaId) => makeRequest('DELETE', `/brainstorm/${projectId}/ideas/${ideaId}/vote`),
     getTasks: (projectId) => makeRequest('GET', `/brainstorm/${projectId}/tasks`),
     addTask: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/tasks`, data),
-    updateTask: (projectId, taskId, data) => makeRequest('PUT', `/brainstorm/${projectId}/tasks/${taskId}`, data),
-    deleteTask: (projectId, taskId) => makeRequest('DELETE', `/brainstorm/${projectId}/tasks/${taskId}`),
-    getComments: (projectId, ideaId) => makeRequest('GET', `/brainstorm/${projectId}/ideas/${ideaId}/comments`),
-    addComment: (projectId, ideaId, data) => makeRequest('POST', `/brainstorm/${projectId}/ideas/${ideaId}/comments`, data),
-    deleteComment: (projectId, ideaId, commentId) => makeRequest('DELETE', `/brainstorm/${projectId}/ideas/${ideaId}/comments/${commentId}`),
+    updateTask: (projectId, taskId, data) => makeRequest('PUT',`/brainstorm/tasks/${taskId}`,data),
+    deleteTask: (projectId, taskId) =>makeRequest('DELETE',`/brainstorm/tasks/${taskId}`),
+    getComments: (ideaId) => makeRequest('GET', `/brainstorm/ideas/${ideaId}/comments`),
+    addComment: (ideaId, data) => makeRequest('POST', `/brainstorm/ideas/${ideaId}/comments`, data),
+    deleteComment: (ideaId, commentId) => makeRequest('DELETE', `/brainstorm/ideas/${ideaId}/comments/${commentId}`),
+    getDiscussions: (projectId) =>makeRequest('GET', `/brainstorm/${projectId}/discussions`),
+    addDiscussion: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/discussions`, data),
+    getNotes: (projectId) => makeRequest('GET', `/brainstorm/${projectId}/notes`),
+    addNote: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/notes`, data),
   },
 
   // ============ COLLABORATION ============
@@ -186,6 +210,7 @@ export const apiClient = {
   // ============ READING HISTORY ============
   readingHistory: {
     getHistory: () => makeRequest('GET', '/reading-history'),
+    getUserHistory: (userId) => makeRequest('GET', `/reading-history/user/${userId}`),
     getContinueReading: () => makeRequest('GET', '/reading-history/continue'),
     getProjectHistory: (projectId) => makeRequest('GET', `/reading-history/project/${projectId}`),
     save: (data) => makeRequest('POST', '/reading-history', data),
@@ -195,14 +220,8 @@ export const apiClient = {
 
   // ============ REPORTS ============
   reports: {
-    getAll: (filters = {}) => {
-      const params = new URLSearchParams(filters).toString();
-      return makeRequest('GET', `/reports${params ? '?' + params : ''}`);
-    },
-    getById: (id) => makeRequest('GET', `/reports/${id}`),
-    getProjectReports: (projectId) => makeRequest('GET', `/reports/project/${projectId}`),
-    create: (projectId, data) => makeRequest('POST', `/reports/project/${projectId}`, data),
-    updateStatus: (id, data) => makeRequest('PUT', `/reports/${id}`, data),
+    getAll: () => makeRequest( 'GET', '/reports'),
+    create: (data) => makeRequest('POST', '/reports',data),
     delete: (id) => makeRequest('DELETE', `/reports/${id}`),
   },
 };
@@ -226,3 +245,4 @@ export const clearAuthToken = () => {
 export const isAuthenticated = () => {
   return !!getAuthToken();
 };
+

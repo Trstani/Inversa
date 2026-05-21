@@ -38,7 +38,7 @@ const ProjectsTable = () => {
   const toggleHidden = async (id) => {
     try {
       const project = projects.find(p => p.id === id);
-      if (project?.is_hidden) {
+      if (project?.hidden) {
         await apiClient.projects.unhide(id);
       } else {
         await apiClient.projects.hide(id);
@@ -84,7 +84,7 @@ const ProjectsTable = () => {
             </td>
 
             <td className="p-3 border">
-              {project.is_hidden ? "Hidden" : "Active"}
+              {project.hidden ? "Hidden" : "Active"}
             </td>
 
             <td className="p-3 border">
@@ -95,7 +95,7 @@ const ProjectsTable = () => {
                   onClick={() => toggleHidden(project.id)}
                   className="bg-yellow-500 text-white px-2 py-1 rounded"
                 >
-                  {project.is_hidden ? "Show" : "Hide"}
+                  {project.hidden ? "Show" : "Hide"}
                 </button>
 
                 <button

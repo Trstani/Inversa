@@ -20,25 +20,100 @@ const EditorBody = ({
 
   const [title, setTitle] = useState("");
   const [sections, setSections] = useState([]);
-
+  const [savingSection, setSavingSection] = useState(null);
+  const [editingSectionId, setEditingSectionId] = useState(null);
+  const [isReordering, setIsReordering] = useState(false);
   const MAX_TOTAL = 20;
   const MAX_TEXT = 15;
   const MAX_IMAGE = 5;
 
-  useEffect(() => {
-    if (chapter) {
-      setTitle(chapter.title || "");
-      setSections(chapter.sections || []);
+  const loadSections = async () => {
+    try {
+      const response =
+        await apiClient.sections.getByChapter(chapter.id);
+
+      setSections(response.data || []);
+    } catch (error) {
+      console.error('Failed to load sections:', error);
     }
+  };
+
+  useEffect(() => {
+    if (!chapter) return;
+
+    setTitle(chapter.title || "");
+
+    loadSections();
   }, [chapter]);
 
+  useEffect(() => {
+
+    if (!chapter?.id) {
+      return;
+    }
+
+    const interval =
+      setInterval(async () => {
+
+        try {
+
+          const response =
+            await apiClient.sections
+              .getByChapter(
+                chapter.id
+              );
+
+          setSections((prev) => {
+
+            return (
+              response.data || []
+            ).map((incoming) => {
+
+              /*
+              =========================
+              KEEP LOCAL EDITOR STATE
+              =========================
+              */
+
+              if (
+                incoming.id ===
+                editingSectionId
+              ) {
+
+                const local =
+                  prev.find(
+                    (p) =>
+                      p.id === incoming.id
+                  );
+
+                return local || incoming;
+              }
+
+              return incoming;
+            });
+
+          });
+
+        } catch (error) {
+
+          console.error(
+            "Polling failed:",
+            error
+          );
+
+        }
+
+      }, 3000);
+
+    return () =>
+      clearInterval(interval);
+
+  }, [chapter?.id]);
+
   if (!chapter) {
-    return (
-      <div className="card p-8 text-center">
-        No chapter selected.
-      </div>
-    );
+    return <div>Loading...</div>;
   }
+
 
   const isDraft = chapter.status === "draft";
 
@@ -62,31 +137,45 @@ const EditorBody = ({
     totalSections < MAX_TOTAL &&
     imageCount < MAX_IMAGE;
 
-  const addTextSection = () => {
+  const addTextSection = async () => {
     if (!canAddText) return;
 
-    setSections((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
+    try {
+      const nextOrder = sections.length + 1;
+
+      const response = await apiClient.sections.create({
+        chapter_id: chapter.id,
         type: "text",
         content: "",
-      },
-    ]);
+        section_order: nextOrder,
+      });
+
+      setSections((prev) => [...prev, response.data]);
+    } catch (error) {
+      console.error('Failed to add section:', error);
+      alert('Failed to add section');
+    }
   };
 
-  const addImageSection = () => {
+  const addImageSection = async () => {
     if (!canAddImage) return;
 
-    setSections((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
+    try {
+      const nextOrder = sections.length + 1;
+
+      const response = await apiClient.sections.create({
+        chapter_id: chapter.id,
         type: "image",
         image_url: "",
         caption: "",
-      },
-    ]);
+        section_order: nextOrder,
+      });
+
+      setSections((prev) => [...prev, response.data]);
+    } catch (error) {
+      console.error('Failed to add section:', error);
+      alert('Failed to add section');
+    }
   };
 
   const updateSection = (id, newData) => {
@@ -99,12 +188,118 @@ const EditorBody = ({
     );
   };
 
+  const saveSectionToAPI = async (sectionId, data) => {
+    if (!user) {
+      alert("You must be logged in.");
+      return;
+    }
+
+    if (!canEdit) {
+      alert("You do not have permission to edit this chapter.");
+      return;
+    }
+
+    setSavingSection(sectionId);
+    try {
+      await apiClient.sections.update(sectionId, data);
+      alert("Section saved successfully!");
+    } catch (error) {
+      console.error('Error saving section:', error);
+      alert('Failed to save section: ' + error.message);
+    } finally {
+      setSavingSection(null);
+    }
+  };
+
+  const moveSection = async (
+    index,
+    direction
+  ) => {
+
+    if (!canEdit || isReordering) return;
+
+    setIsReordering(true);
+
+    try {
+
+      const newSections = [...sections];
+
+      const targetIndex =
+        direction === 'up'
+          ? index - 1
+          : index + 1;
+
+      if (
+        targetIndex < 0 ||
+        targetIndex >= sections.length
+      ) {
+        return;
+      }
+
+      // swap
+      [
+        newSections[index],
+        newSections[targetIndex],
+      ] = [
+          newSections[targetIndex],
+          newSections[index],
+        ];
+
+      // rebuild order
+      const reorderedSections =
+        newSections.map((sec, idx) => ({
+          ...sec,
+          section_order: idx + 1,
+        }));
+
+      // optimistic UI
+      setSections(reorderedSections);
+
+      // IMPORTANT:
+      // wait ALL request finish
+      for (const sec of reorderedSections) {
+
+        await apiClient.sections.reorder(
+          sec.id,
+          {
+            section_order:
+              Number(sec.section_order),
+          }
+        );
+
+      }
+
+      // reload from DB
+      await loadSections();
+
+    } catch (error) {
+
+      console.error(
+        'Reorder failed:',
+        error
+      );
+
+      alert(
+        'Failed to reorder sections'
+      );
+
+    } finally {
+
+      setIsReordering(false);
+
+    }
+  };
+
   const deleteSection = (id) => {
     if (!canEdit) return;
 
     setSections((prev) =>
       prev.filter((sec) => sec.id !== id)
     );
+
+    apiClient.sections.delete(id).catch((error) => {
+      console.error('Delete failed:', error);
+    });
   };
 
   const handleImageUpload = (id, file) => {
@@ -134,36 +329,9 @@ const EditorBody = ({
       return;
     }
 
-    // =============================
-    // DIRECT SAVE FOR ALL AUTHORIZED USERS
-    // =============================
-    // Both initiators and team members can save directly
-    // No contribution workflow needed for team projects
-
-    const newVersionNumber = (chapter.currentVersion || 0) + 1;
-
-    const newVersion = {
-      version: newVersionNumber,
-      editedBy: user.id,
-      sections: sections,
-      createdAt: new Date().toISOString(),
-    };
-
-    let newStatus = chapter.status;
-
-    // Both initiators and team members can publish
-    if (publish && (isInitiator || isTeamMember)) {
-      newStatus = "published";
-    }
-
     const updatedChapter = {
-      ...chapter,
+      id: chapter.id,
       title,
-      sections,
-      currentVersion: newVersionNumber,
-      versions: [...(chapter.versions || []), newVersion],
-      status: newStatus,
-      updatedAt: new Date().toISOString(),
     };
 
     onSave(updatedChapter, publish);
@@ -188,10 +356,15 @@ const EditorBody = ({
         {MAX_IMAGE}
       </div>
 
-      {/* 🔥 Warning hanya untuk collaborator */}
-      {!isDraft && !isInitiator && (
-        <div className="mb-6 p-3 bg-yellow-100 text-yellow-800 rounded-lg">
-          This chapter is published. Editing is locked for collaborators.
+      {/* PUBLISHED INFO */}
+      {!isDraft && (
+        <div className="mb-6 p-3 bg-emerald-300 text-emerald-700 rounded-lg">
+
+          {chapter?.is_team_project
+            ? "This chapter is published. Team edits will update the live version for readers."
+            : "This chapter is published. Any changes will update the live version."
+          }
+
         </div>
       )}
 
@@ -224,15 +397,32 @@ const EditorBody = ({
 
       {/* RENDER SECTIONS */}
       <div className="space-y-8">
-        {sections.map((section) => {
+        {sections.map((section, index) => {
           if (section.type === "text") {
             return (
               <TextEditorSection
                 key={section.id}
                 section={section}
                 canEdit={canEdit}
+                setEditingSectionId={setEditingSectionId}
                 onDelete={deleteSection}
                 onUpdate={updateSection}
+                onSave={saveSectionToAPI}
+
+                onMoveUp={() =>
+                  moveSection(index, 'up')
+                }
+
+                onMoveDown={() =>
+                  moveSection(index, 'down')
+                }
+
+                isFirst={index === 0}
+
+                isLast={
+                  index === sections.length - 1
+                }
+
               />
             );
           }
@@ -246,6 +436,21 @@ const EditorBody = ({
                 onDelete={deleteSection}
                 onUpdate={updateSection}
                 onUpload={handleImageUpload}
+                onSave={saveSectionToAPI}
+
+                onMoveUp={() =>
+                  moveSection(index, 'up')
+                }
+
+                onMoveDown={() =>
+                  moveSection(index, 'down')
+                }
+
+                isFirst={index === 0}
+
+                isLast={
+                  index === sections.length - 1
+                }
               />
             );
           }
@@ -265,7 +470,7 @@ const EditorBody = ({
       {/* ACTIONS */}
       <EditorActions
         onBack={onBack}
-        onSaveDraft={() => handleSave(false)}
+        onSaveDraft={() => { if (isReordering) { alert('Please wait until reorder finishes.'); return; } handleSave(false); }}
         onPublish={() => handleSave(true)}
         loading={loading}
         isInitiator={isInitiator}

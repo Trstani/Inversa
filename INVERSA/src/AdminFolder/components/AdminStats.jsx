@@ -13,33 +13,48 @@ const AdminStats = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+
     const loadStats = async () => {
+
       setLoading(true);
+
       try {
-        const projectsResponse = await apiClient.projects.getAll();
-        const usersResponse = await apiClient.users.getAll();
-        const reportsResponse = await apiClient.reports.getAll();
 
-        const projects = projectsResponse.data || [];
-        const users = usersResponse.data || [];
-        const reports = reportsResponse.data || [];
+        const response =
+          await apiClient.admin.getDashboard();
 
-        const hiddenProjects = projects.filter(p => p.is_hidden).length;
+        const data =
+          response.data || {};
 
         setStats({
-          projects: projects.length,
-          users: users.length,
-          reports: reports.length,
-          hiddenProjects
+          projects:
+            data.totalProjects || 0,
+
+          users:
+            data.totalUsers || 0,
+
+          reports:
+            data.totalReports || 0,
+
+          hiddenProjects:
+            data.hiddenProjects || 0,
         });
+
       } catch (error) {
-        console.error('Error loading stats:', error);
+
+        console.error(
+          'Error loading stats:',
+          error
+        );
+
       } finally {
+
         setLoading(false);
       }
     };
 
     loadStats();
+
   }, []);
 
   return (

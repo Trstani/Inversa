@@ -1,61 +1,426 @@
-import { FiTrash2, FiCheckCircle, FiBook } from 'react-icons/fi';
-import { apiClient } from '../../../api/client';
+// components/Brainstorm/components/TaskCard.jsx
+
+import {
+  FiTrash2,
+  FiCheckCircle,
+  FiBook,
+  FiLock,
+  FiPlay,
+  FiLoader,
+  FiUser,
+} from 'react-icons/fi';
 
 const TaskCard = ({
+
   task,
+
   status,
+
   onDelete,
+
   onUpdateStatus,
-  getChapterTitle
+
+  getChapterTitle,
+
+  user,
+
+  isInitiator = false,
+
 }) => {
+
+  /*
+  =========================
+  ASSIGNED USER
+  =========================
+  */
+
+  const assignedUserId =
+
+    task.assigned_to ||
+
+    task.assignedTo ||
+
+    null;
+
+  const assignedUserName =
+
+    task.assigned_name ||
+
+    task.assignedName ||
+
+    null;
+
+  /*
+  =========================
+  CHAPTER
+  =========================
+  */
+
+  const chapterId =
+
+    task.chapter_id ||
+
+    task.chapterReference ||
+
+    null;
+
+  /*
+  =========================
+  PERMISSIONS
+  =========================
+  */
+
+  const isAssignedUser =
+
+    Number(user?.id) ===
+    Number(assignedUserId);
+
+  const canManageTask =
+
+    isAssignedUser ||
+    isInitiator;
+
+  /*
+  =========================
+  STATUS
+  =========================
+  */
+
+  const currentStatus =
+
+    task.status ||
+    status;
+
+  const nextStatus =
+
+    currentStatus === 'pending'
+
+      ? 'in-progress'
+
+      : 'completed';
+
+  const buttonLabel =
+
+    currentStatus === 'pending'
+
+      ? 'Start'
+
+      : 'Complete';
+
+  /*
+  =========================
+  STATUS ICON
+  =========================
+  */
+
+  const StatusIcon =
+
+    currentStatus === 'pending'
+
+      ? FiPlay
+
+      : currentStatus ===
+        'in-progress'
+
+        ? FiLoader
+
+        : FiCheckCircle;
+
+  /*
+  =========================
+  RENDER
+  =========================
+  */
+
   return (
-    <div className="card p-3 bg-light-surface dark:bg-dark-surface border border-light-accent/10 dark:border-dark-accent/10 hover:border-light-accent dark:hover:border-dark-accent transition">
-      <div className="flex justify-between items-start gap-2 mb-2">
+
+    <div
+      className="
+        card p-4
+
+        bg-light-surface
+        dark:bg-dark-surface
+
+        border
+        border-light-accent/10
+        dark:border-dark-accent/10
+
+        hover:border-light-accent
+        dark:hover:border-dark-accent
+
+        transition
+      "
+    >
+
+      {/* HEADER */}
+
+      <div
+        className="
+          flex justify-between
+          items-start
+
+          gap-3
+
+          mb-3
+        "
+      >
+
+        {/* TITLE */}
+
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-xs text-light-primary dark:text-dark-primary line-clamp-2">
+
+          <p
+            className="
+              font-semibold
+
+              text-sm
+
+              text-light-primary
+              dark:text-dark-primary
+
+              line-clamp-2
+            "
+          >
             {task.title}
           </p>
+
         </div>
-        <button
-          onClick={() => onDelete(task.id)}
-          className="p-1 text-red-500 hover:bg-red-500/10 rounded transition flex-shrink-0"
-        >
-          <FiTrash2 className="w-4 h-4" />
-        </button>
+
+        {/* DELETE */}
+
+        {canManageTask && (
+
+          <button
+            onClick={() =>
+              onDelete(
+                task.id
+              )
+            }
+
+            className="
+              p-1
+
+              rounded-lg
+
+              text-red-500
+
+              hover:bg-red-500/10
+
+              transition
+            "
+          >
+
+            <FiTrash2 className="w-4 h-4" />
+
+          </button>
+
+        )}
+
       </div>
 
+      {/* DESCRIPTION */}
+
       {task.description && (
-        <p className="text-xs text-light-secondary dark:text-dark-secondary mb-2 line-clamp-2">
+
+        <p
+          className="
+            text-xs
+
+            text-light-secondary
+            dark:text-dark-secondary
+
+            mb-3
+
+            whitespace-pre-wrap
+          "
+        >
           {task.description}
         </p>
+
       )}
 
-      {task.assignedTo && (
-        <p className="text-xs text-light-accent dark:text-dark-accent mb-2">
-          👤 {findUserById(task.assignedTo)?.name || task.assignedTo}
-        </p>
-      )}
+      {/* ASSIGNED */}
 
-      {task.chapterReference && (
-        <p className="text-xs text-light-secondary dark:text-dark-secondary mb-2 flex items-center gap-1">
-          <FiBook className="w-3 h-3" />
-          {getChapterTitle(task.chapterReference)}
-        </p>
-      )}
+      {assignedUserId && (
 
-      {status !== 'completed' && (
-        <button
-          onClick={() =>
-            onUpdateStatus(task.id, {
-              status: status === 'pending' ? 'in-progress' : 'completed',
-            })
-          }
-          className="w-full px-2 py-1 text-xs bg-green-500/10 text-green-500 rounded hover:bg-green-500/20 transition flex items-center justify-center gap-1"
+        <div
+          className="
+            mb-2
+
+            text-xs
+
+            text-light-accent
+            dark:text-dark-accent
+
+            flex items-center gap-1
+          "
         >
-          <FiCheckCircle className="w-3 h-3" />
-          {status === 'pending' ? 'Start' : 'Complete'}
-        </button>
+
+          <FiUser className="w-3 h-3" />
+
+          {
+
+            assignedUserName ||
+
+            `User ${assignedUserId}`
+          }
+
+        </div>
+
       )}
+
+      {/* CHAPTER */}
+
+      {chapterId && (
+
+        <div
+          className="
+            mb-3
+
+            text-xs
+
+            text-light-secondary
+            dark:text-dark-secondary
+
+            flex items-center gap-1
+          "
+        >
+
+          <FiBook className="w-3 h-3" />
+
+          {
+            getChapterTitle(
+              chapterId
+            )
+          }
+
+        </div>
+
+      )}
+
+      {/* STATUS */}
+
+      <div className="mt-4">
+
+        {/* COMPLETED */}
+
+        {currentStatus ===
+          'completed' ? (
+
+          <div
+            className="
+              w-full
+
+              px-3 py-2
+
+              rounded-xl
+
+              bg-green-500/10
+              text-green-500
+
+              text-xs font-medium
+
+              flex items-center
+              justify-center
+              gap-2
+            "
+          >
+
+            <FiCheckCircle className="w-4 h-4" />
+
+            Completed
+
+          </div>
+
+        ) : canManageTask ? (
+
+          <button
+            onClick={() =>
+              onUpdateStatus(
+                task.id,
+                {
+                  status:
+                    nextStatus,
+                }
+              )
+            }
+
+            className={`
+              w-full
+
+              px-3 py-2
+
+              rounded-xl
+
+              text-xs font-medium
+
+              flex items-center
+              justify-center
+              gap-2
+
+              transition
+
+              ${
+                currentStatus ===
+                'pending'
+
+                  ? `
+                    bg-yellow-500/10
+                    text-yellow-500
+
+                    hover:bg-yellow-500/20
+                  `
+
+                  : `
+                    bg-blue-500/10
+                    text-blue-500
+
+                    hover:bg-blue-500/20
+                  `
+              }
+            `}
+          >
+
+            <StatusIcon className="w-4 h-4" />
+
+            {buttonLabel}
+
+          </button>
+
+        ) : (
+
+          <div
+            className="
+              w-full
+
+              px-3 py-2
+
+              rounded-xl
+
+              bg-light-background
+              dark:bg-dark-background
+
+              text-light-secondary
+              dark:text-dark-secondary
+
+              text-xs
+
+              flex items-center
+              justify-center
+              gap-2
+            "
+          >
+
+            <FiLock className="w-4 h-4" />
+
+            Assigned Task
+
+          </div>
+
+        )}
+
+      </div>
+
     </div>
   );
 };

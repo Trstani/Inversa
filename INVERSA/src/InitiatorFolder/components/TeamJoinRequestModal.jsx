@@ -3,7 +3,7 @@ import { FiX } from "react-icons/fi";
 
 const TeamJoinRequestModal = ({ isOpen, onClose, team, onSubmit }) => {
   const [formData, setFormData] = useState({
-    role: "writer",
+    role: "member",
     reason: "",
   });
   const [loading, setLoading] = useState(false);
@@ -75,9 +75,7 @@ const TeamJoinRequestModal = ({ isOpen, onClose, team, onSubmit }) => {
               onChange={handleChange}
               className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-light-primary dark:text-dark-primary focus:outline-none focus:ring-2 focus:ring-light-accent dark:focus:ring-dark-accent"
             >
-              <option value="writer">Writer</option>
-              <option value="illustrator">Illustrator</option>
-              <option value="editor">Editor</option>
+              <option value="member">Member</option>
             </select>
             <p className="text-xs text-light-secondary dark:text-dark-secondary mt-1">
               Select the role you want to have in this team

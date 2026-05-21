@@ -21,42 +21,144 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
+  const handleImageUpload =
+    (e) => {
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({
-        ...prev,
-        backgroundImage: reader.result,
-      }));
+      const file =
+        e.target.files[0];
+
+      if (!file) return;
+
+      const reader =
+        new FileReader();
+
+      reader.onload = (
+        event
+      ) => {
+
+        const img =
+          new Image();
+
+        img.onload = () => {
+
+          const canvas =
+            document.createElement(
+              "canvas"
+            );
+
+          const ctx =
+            canvas.getContext(
+              "2d"
+            );
+
+          const MAX_WIDTH = 1200;
+
+          const scale =
+            MAX_WIDTH /
+            img.width;
+
+          canvas.width =
+            MAX_WIDTH;
+
+          canvas.height =
+            img.height * scale;
+
+          ctx.drawImage(
+            img,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+
+          const compressed =
+            canvas.toDataURL(
+              "image/jpeg",
+              0.7
+            );
+
+          setFormData(
+            (prev) => ({
+              ...prev,
+              backgroundImage:
+                compressed,
+            })
+          );
+        };
+
+        img.src =
+          event.target.result;
+      };
+
+      reader.readAsDataURL(
+        file
+      );
     };
-    reader.readAsDataURL(file);
-  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit =
+    async (e) => {
 
-    if (!formData.title.trim()) {
-      alert('Team name is required');
-      return;
-    }
+      e.preventDefault();
 
-    setLoading(true);
-    try {
-      await createTeam(formData, user.id);
+      if (
+        !formData.title.trim()
+      ) {
 
-      alert('Team created successfully!');
-      setFormData(initialState);
-      onSuccess?.();
-    } catch (error) {
-      console.error('Error creating team:', error);
-      alert('Failed to create team');
-    } finally {
-      setLoading(false);
-    }
-  };
+        alert(
+          'Team name is required'
+        );
+
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+
+        const response =
+          await apiClient.teams.create({
+
+            title:
+              formData.title,
+
+            description:
+              formData.description,
+
+            background_image:
+              formData.backgroundImage,
+          });
+
+        if (response.success) {
+
+          alert(
+            'Team created successfully!'
+          );
+
+          setFormData(
+            initialState
+          );
+
+          onSuccess?.();
+
+          onClose();
+        }
+
+      } catch (error) {
+
+        console.error(
+          'Error creating team:',
+          error
+        );
+
+        alert(
+          'Failed to create team'
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
 
   if (!isOpen) return null;
 

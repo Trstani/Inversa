@@ -114,6 +114,12 @@ export const reorderSection =
     section_order,
   }) => {
 
+    console.log(
+      'REORDER:',
+      id,
+      section_order
+    );
+
     const result = await pool.query(
       `
       UPDATE sections
@@ -131,6 +137,93 @@ export const reorderSection =
         id,
       ]
     );
+
+    console.log(
+      'UPDATED:',
+      result.rows[0]
+    );
+
+    return result.rows[0];
+};
+
+export const lockSection =
+  async ({
+    sectionId,
+    userId,
+  }) => {
+
+    const existing =
+      await pool.query(
+        `
+        SELECT locked_by
+        FROM sections
+        WHERE id = $1
+        `,
+        [sectionId]
+      );
+
+    const section =
+      existing.rows[0];
+
+    // already locked by another user
+    if (
+      section.locked_by &&
+      section.locked_by !== userId
+    ) {
+
+      throw new Error(
+        'Section already locked'
+      );
+    }
+
+    const result =
+      await pool.query(
+        `
+        UPDATE sections
+
+        SET
+          locked_by = $1,
+          locked_at = NOW()
+
+        WHERE id = $2
+
+        RETURNING *
+        `,
+        [
+          userId,
+          sectionId,
+        ]
+      );
+
+    return result.rows[0];
+};
+
+export const unlockSection =
+  async ({
+    sectionId,
+    userId,
+  }) => {
+
+    const result =
+      await pool.query(
+        `
+        UPDATE sections
+
+        SET
+          locked_by = NULL,
+          locked_at = NULL
+
+        WHERE
+          id = $1
+          AND locked_by = $2
+
+        RETURNING *
+        `,
+        [
+          sectionId,
+          userId,
+        ]
+      );
 
     return result.rows[0];
 };

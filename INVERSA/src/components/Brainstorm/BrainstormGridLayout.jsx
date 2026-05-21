@@ -1,293 +1,470 @@
 // components/Brainstorm/BrainstormGridLayout.jsx
+
 import { useState, useEffect } from 'react';
+
 import { FiZap, FiCheck } from 'react-icons/fi';
+
 import DiscussionPanel from './components/DiscussionPanel';
 import NotesPanel from './components/NotesPanel';
 import ContributionPanel from './components/ContributionPanel';
 import StoryIdeaSection from './components/StoryIdeaSection';
 import TaskManagerSection from './components/TaskManagerSection';
-import { apiClient } from '../../api/client';
+
 import useBrainstorm from '../../InitiatorFolder/hooks/useBrainstorm';
 
-const BrainstormGridLayout = ({ projectId, brainstorm, onUpdate, user }) => {
-  const [activeView, setActiveView] = useState('brainstorm'); // 'brainstorm' or 'tasks'
+import { apiClient } from '../../api/client';
+
+const BrainstormGridLayout = ({
+  projectId,
+  onUpdate,
+  user,
+}) => {
+
+  /*
+  =========================
+  STATES
+  =========================
+  */
+
+  const [activeView, setActiveView] = useState('brainstorm');
+
   const [chapters, setChapters] = useState([]);
   const [sections, setSections] = useState([]);
-  const [selectedChapter, setSelectedChapter] = useState(null);
-  const [filterChapter, setFilterChapter] = useState(null); // Filter untuk ideas dan tasks
   const [teamMembers, setTeamMembers] = useState([]);
+  const [project, setProject] = useState(null);
+  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [filterChapter, setFilterChapter] = useState(null);
+
   const [newIdeaInput, setNewIdeaInput] = useState('');
-  const [expandedIdea, setExpandedIdea] = useState(null); // Track expanded idea untuk comments
-  const [ideaComments, setIdeaComments] = useState({}); // Store comments per idea
-  const [newComment, setNewComment] = useState('');
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
     chapterReference: null,
     sectionReference: null,
-    assignedTo: null
+    assignedTo: null,
   });
-  const { addNewIdea, removeIdea, createTask, updateTaskStatus, removeTask } = useBrainstorm(projectId);
+
+  /*
+  =========================
+  HOOK
+  =========================
+  */
+
+  const {
+    session,
+    loading,
+
+    addNewIdea,
+    removeIdea,
+    vote,
+
+    createTask,
+    updateTaskStatus,
+    removeTask,
+
+  } = useBrainstorm(projectId);
+
+  /*
+  =========================
+  LOAD DATA
+  =========================
+  */
 
   useEffect(() => {
-    loadChaptersData();
+    loadChapters();
     loadTeamMembers();
-    loadCommentsFromAPI();
   }, [projectId]);
 
-  const loadCommentsFromAPI = async () => {
+  /*
+  =========================
+  CHAPTERS
+  =========================
+  */
+
+  const loadChapters = async () => {
+
     try {
-      const response = await apiClient.brainstorm.getComments(projectId, null);
-      if (response.success && response.data) {
-        setIdeaComments(response.data);
-      }
+
+      const response =
+        await apiClient.chapters.getByProject(projectId);
+
+      setChapters(response.data || []);
+
     } catch (error) {
-      console.error('Error loading comments:', error);
+
+      console.error(error);
     }
   };
 
-  const saveCommentsToAPI = async (comments) => {
-    try {
-      // Comments are saved via API when they're created
-      // This function is kept for compatibility
-    } catch (error) {
-      console.error('Error saving comments:', error);
-    }
-  };
-
-  const loadChaptersData = async () => {
-    try {
-      const response = await apiClient.chapters.getByProject(projectId);
-      const chaptersList = response.data || [];
-      setChapters(chaptersList);
-    } catch (error) {
-      console.error('Error loading chapters:', error);
-    }
-  };
+  /*
+  =========================
+  TEAM MEMBERS
+  =========================
+  */
 
   const loadTeamMembers = async () => {
+
     try {
-      const projectResponse = await apiClient.projects.getById(projectId);
-      const project = projectResponse.data;
-      
-      if (project?.is_team_project && project?.team_id) {
-        const teamResponse = await apiClient.teams.getById(project.team_id);
-        const team = teamResponse.data;
-        setTeamMembers(team?.members || []);
-      }
+
+      const projectResponse =
+        await apiClient.projects.getById(projectId);
+
+      const project =
+        projectResponse.data;
+
+        setProject(project);
+
+      if (!project?.team_id) return;
+
+      const teamResponse =
+        await apiClient.teams.getById(project.team_id);
+
+      setTeamMembers(
+        teamResponse.data?.members || []
+      );
+
     } catch (error) {
-      console.error('Error loading team members:', error);
+
+      console.error(error);
     }
   };
 
+  /*
+  =========================
+  IDEA ACTIONS
+  =========================
+  */
+
   const handleAddIdea = async () => {
+
     if (!newIdeaInput.trim()) return;
-    await addNewIdea(user.id, user.name, newIdeaInput, selectedChapter);
+
+    await addNewIdea(
+      user?.id,
+      user?.name,
+      newIdeaInput,
+      selectedChapter
+    );
+
     setNewIdeaInput('');
     setSelectedChapter(null);
-    onUpdate?.();
+
+    
   };
 
   const handleDeleteIdea = async (ideaId) => {
+
     await removeIdea(ideaId);
-    onUpdate?.();
+
+    
   };
 
-  const handleAddComment = (ideaId) => {
-    if (!newComment.trim()) return;
-    const updatedComments = {
-      ...ideaComments,
-      [ideaId]: [
-        ...(ideaComments[ideaId] || []),
-        {
-          id: Date.now(),
-          userId: user.id,
-          userName: user.name,
-          text: newComment,
-          createdAt: new Date().toISOString()
-        }
-      ]
-    };
-    setIdeaComments(updatedComments);
-    saveCommentsToStorage(updatedComments);
-    setNewComment('');
-  };
+  const handleVoteIdea =
+  async (ideaId) => {
 
-  const handleDeleteComment = (ideaId, commentId) => {
-    const updatedComments = {
-      ...ideaComments,
-      [ideaId]: ideaComments[ideaId].filter(c => c.id !== commentId)
-    };
-    setIdeaComments(updatedComments);
-    saveCommentsToStorage(updatedComments);
-  };
+    try {
 
-  const handleChapterChange = async (chapterId) => {
-    setNewTask(prev => ({ ...prev, chapterReference: chapterId, sectionReference: null }));
-    if (chapterId) {
-      const sectionsList = await getSectionsByChapter(chapterId);
-      setSections(sectionsList);
-    } else {
-      setSections([]);
+      await vote(
+        ideaId
+      );
+
+      
+
+    } catch (error) {
+
+      console.error(error);
     }
   };
 
+  /*
+  =========================
+  TASK ACTIONS
+  =========================
+  */
+
   const handleAddTask = async () => {
+
     if (!newTask.title.trim()) return;
+
     await createTask({
       title: newTask.title,
       description: newTask.description,
-      chapterReference: newTask.chapterReference,
-      sectionReference: newTask.sectionReference,
-      assignedTo: newTask.assignedTo
+
+      assigned_to: newTask.assignedTo,
+
+      chapter_id: newTask.chapterReference,
+
+      section_id: newTask.sectionReference,
+
+      status: 'pending',
     });
+
     setNewTask({
       title: '',
       description: '',
       chapterReference: null,
       sectionReference: null,
-      assignedTo: null
+      assignedTo: null,
     });
+
     setSections([]);
-    onUpdate?.();
+
+    
   };
 
   const handleUpdateTask = async (taskId, updates) => {
+
     await updateTaskStatus(taskId, updates);
-    onUpdate?.();
+
+    
   };
 
   const handleDeleteTask = async (taskId) => {
+
     await removeTask(taskId);
-    onUpdate?.();
+
+    
+  };
+
+  /*
+  =========================
+  TASK STATUS
+  =========================
+  */
+
+  const normalizeStatus = (status) => {
+    if (!status) return 'pending';
+    return status;
   };
 
   const tasksByStatus = {
-    pending: brainstorm?.tasks?.filter(t => t.status === 'pending') || [],
-    'in-progress': brainstorm?.tasks?.filter(t => t.status === 'in-progress') || [],
-    completed: brainstorm?.tasks?.filter(t => t.status === 'completed') || [],
+
+    pending:
+      session?.tasks?.filter(
+        t => normalizeStatus(t.status) === 'pending'
+      ) || [],
+
+    'in-progress':
+      session?.tasks?.filter(
+        t => normalizeStatus(t.status) === 'in-progress'
+      ) || [],
+
+    completed:
+      session?.tasks?.filter(
+        t => normalizeStatus(t.status) === 'completed'
+      ) || [],
   };
+
+  /*
+  =========================
+  CHAPTER TITLE
+  =========================
+  */
 
   const getChapterTitle = (chapterId) => {
-    const chapter = chapters.find(c => c.id === chapterId);
-    return chapter ? `Chapter ${chapter.chapterNumber}: ${chapter.title}` : 'Unknown Chapter';
+
+    const chapter =
+      chapters.find(
+        c => Number(c.id) === Number(chapterId)
+      );
+
+    if (!chapter) return 'Unknown Chapter';
+
+    return `Chapter ${
+      chapter.chapter_number ||
+      chapter.chapterNumber ||
+      chapter.id
+    }: ${chapter.title}`;
   };
 
+  /*
+  =========================
+  LOADING
+  =========================
+  */
+
+  if (loading) {
+
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-light-secondary dark:text-dark-secondary">
+          Loading brainstorm...
+        </p>
+      </div>
+    );
+  }
+
+  /*
+  =========================
+  RENDER
+  =========================
+  */
+
   return (
+
     <div className="min-h-screen bg-light-background dark:bg-dark-background">
-      {/* View Tabs - Brainstorm vs Task Manager */}
-      <div className="sticky top-0 z-10 bg-light-background dark:bg-dark-background px-4 py-4 border-light-accent/20 dark:border-dark-accent/20">
+
+      {/* TOP NAV */}
+
+      <div className="sticky top-0 z-10 bg-light-background dark:bg-dark-background px-4 py-4">
+
         <div className="max-w-7xl mx-auto">
-          <div className="flex gap-2">
-            <div className="flex gap-1 p-1 bg-white/20 dark:bg-black/20 backdrop-blur-md rounded-2xl border border-white/30 dark:border-white/10 shadow-sm">
-              <button
-                onClick={() => setActiveView('brainstorm')}
-                className={`flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${activeView === 'brainstorm'
-                    ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
-                    : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30 dark:hover:bg-dark-secondary/30'
-                  }`}
-              >
-                <FiZap className="w-4 h-4" />
-                Vote Idea
-              </button>
-              <button
-                onClick={() => setActiveView('tasks')}
-                className={`flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${activeView === 'tasks'
-                    ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
-                    : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30 dark:hover:bg-dark-secondary/30'
-                  }`}
-              >
-                <FiCheck className="w-4 h-4" />
-                Task Manager
-              </button>
-            </div>
+
+          <div className="flex gap-1 p-1 rounded-2xl bg-white/20 dark:bg-black/20 backdrop-blur-md border border-white/20">
+
+            <button
+              onClick={() => setActiveView('brainstorm')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${
+                activeView === 'brainstorm'
+                  ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
+                  : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
+              }`}
+            >
+              <FiZap className="w-4 h-4" />
+              Vote Idea
+            </button>
+
+            <button
+              onClick={() => setActiveView('tasks')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${
+                activeView === 'tasks'
+                  ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
+                  : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
+              }`}
+            >
+              <FiCheck className="w-4 h-4" />
+              Task Manager
+            </button>
+
           </div>
+
         </div>
+
       </div>
 
-      {/* Main Content */}
+      {/* MAIN */}
+
       <div className="max-w-7xl mx-auto px-4 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Top Row - Large Section for Ideas or Tasks */}
-          <div className="lg:col-span-3">
-            <div className="card p-4 sm:p-6 bg-light-surface dark:bg-dark-surface mb-4">
-              {activeView === 'brainstorm' ? (
-                <StoryIdeaSection
-                  brainstorm={brainstorm}
-                  chapters={chapters}
-                  selectedChapter={selectedChapter}
-                  filterChapter={filterChapter}
-                  newIdeaInput={newIdeaInput}
-                  expandedIdea={expandedIdea}
-                  ideaComments={ideaComments}
-                  newComment={newComment}
-                  onSelectChapter={setSelectedChapter}
-                  onFilterChapter={setFilterChapter}
-                  onIdeaInputChange={setNewIdeaInput}
-                  onAddIdea={handleAddIdea}
-                  onToggleExpandIdea={(ideaId) => setExpandedIdea(expandedIdea === ideaId ? null : ideaId)}
-                  onDeleteIdea={handleDeleteIdea}
-                  onCommentChange={setNewComment}
-                  onAddComment={handleAddComment}
-                  onDeleteComment={handleDeleteComment}
-                  user={user}
-                  getChapterTitle={getChapterTitle}
-                />
-              ) : (
-                <TaskManagerSection
-                  chapters={chapters}
-                  sections={sections}
-                  teamMembers={teamMembers}
-                  filterChapter={filterChapter}
-                  newTask={newTask}
-                  tasksByStatus={tasksByStatus}
-                  user={user}
-                  onFilterChapter={setFilterChapter}
-                  onTaskTitleChange={(value) => setNewTask({ ...newTask, title: value })}
-                  onTaskDescriptionChange={(value) => setNewTask({ ...newTask, description: value })}
-                  onTaskChapterChange={handleChapterChange}
-                  onTaskSectionChange={(value) => setNewTask({ ...newTask, sectionReference: value })}
-                  onTaskAssignChange={(value) => setNewTask({ ...newTask, assignedTo: value })}
-                  onAddTask={handleAddTask}
-                  onDeleteTask={handleDeleteTask}
-                  onUpdateTaskStatus={handleUpdateTask}
-                  getChapterTitle={getChapterTitle}
-                />
-              )}
-            </div>
-          </div>
+
+        <div className="card p-4 sm:p-6 bg-light-surface dark:bg-dark-surface mb-4">
+
+          {activeView === 'brainstorm' ? (
+
+            <StoryIdeaSection
+              brainstorm={session}
+              chapters={chapters}
+
+              selectedChapter={selectedChapter}
+              filterChapter={filterChapter}
+
+              newIdeaInput={newIdeaInput}
+
+              onSelectChapter={setSelectedChapter}
+              onFilterChapter={setFilterChapter}
+              onIdeaInputChange={setNewIdeaInput}
+
+              onAddIdea={handleAddIdea}
+              onDeleteIdea={handleDeleteIdea}
+
+              onVote={handleVoteIdea}
+
+              user={user}
+
+              getChapterTitle={getChapterTitle}
+            />
+
+          ) : (
+
+            <TaskManagerSection
+              chapters={chapters}
+              sections={sections}
+              teamMembers={teamMembers}
+
+              filterChapter={filterChapter}
+
+              newTask={newTask}
+              tasksByStatus={tasksByStatus}
+              isInitiator={Number(user?.id) === Number(project?.initiator_id)}
+              user={user}
+
+              onFilterChapter={setFilterChapter}
+
+              onTaskTitleChange={(value) =>
+                setNewTask({
+                  ...newTask,
+                  title: value,
+                })
+              }
+
+              onTaskDescriptionChange={(value) =>
+                setNewTask({
+                  ...newTask,
+                  description: value,
+                })
+              }
+
+              onTaskChapterChange={(value) =>
+                setNewTask({
+                  ...newTask,
+                  chapterReference: value,
+                })
+              }
+
+              onTaskSectionChange={(value) =>
+                setNewTask({
+                  ...newTask,
+                  sectionReference: value,
+                })
+              }
+
+              onTaskAssignChange={(value) =>
+                setNewTask({
+                  ...newTask,
+                  assignedTo: value,
+                })
+              }
+
+              onAddTask={handleAddTask}
+
+              onDeleteTask={handleDeleteTask}
+
+              onUpdateTaskStatus={handleUpdateTask}
+
+              getChapterTitle={getChapterTitle}
+            />
+
+          )}
 
         </div>
 
-        {/* Bottom Row - Discussion, Notes, Contribution in one row */}
+        {/* BOTTOM */}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div>
-            <DiscussionPanel
-              projectId={projectId}
-              brainstorm={brainstorm}
-              onUpdate={onUpdate}
-              user={user}
-            />
-          </div>
 
-          <div>
-            <NotesPanel
-              projectId={projectId}
-              brainstorm={brainstorm}
-              onUpdate={onUpdate}
-              user={user}
-            />
-          </div>
+          <DiscussionPanel
+            projectId={projectId}
+            brainstorm={session}
+            onUpdate={onUpdate}
+            user={user}
+          />
 
-          <div>
-            <ContributionPanel
-              projectId={projectId}
-              brainstorm={brainstorm}
-              user={user}
-            />
-          </div>
+          <NotesPanel
+            projectId={projectId}
+            brainstorm={session}
+            onUpdate={onUpdate}
+            user={user}
+          />
+
+          <ContributionPanel
+            projectId={projectId}
+            brainstorm={session}
+            user={user}
+          />
+
         </div>
+
       </div>
+
     </div>
   );
 };

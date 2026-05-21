@@ -46,23 +46,24 @@ const Recommendation = ({ type, projects }) => {
   const hasMore = visibleCount < projects.length;
 
   return (
-    <section className="py-16">
-      <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+    <section className="py-12 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         {/* HEADER */}
-        <div className="mb-10">
-          <div className="flex items-center gap-3">
+        <div className="mb-8 sm:mb-10">
+          <div className="flex items-start gap-3 sm:gap-4">
             <div
               className="
-              flex h-11 w-11 items-center justify-center
-              rounded-2xl
-              bg-slate-100 dark:bg-slate-900
+              flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center
+              rounded-lg sm:rounded-xl
+              bg-light-accent/10 dark:bg-dark-accent/10
+              shrink-0
               "
             >
               <Icon
                 className="
-                h-5 w-5
-                text-slate-700 dark:text-slate-300
+                h-5 w-5 sm:h-6 sm:w-6
+                text-light-accent dark:text-dark-accent
                 "
               />
             </div>
@@ -70,8 +71,8 @@ const Recommendation = ({ type, projects }) => {
             <div>
               <h2
                 className="
-                text-2xl font-semibold
-                text-slate-900 dark:text-white
+                text-2xl sm:text-3xl font-bold
+                text-light-primary dark:text-dark-primary
                 "
               >
                 {current.title}
@@ -79,8 +80,8 @@ const Recommendation = ({ type, projects }) => {
 
               <p
                 className="
-                mt-1 text-sm
-                text-slate-500 dark:text-slate-400
+                mt-1 text-sm sm:text-base
+                text-light-secondary dark:text-dark-secondary
                 "
               >
                 {current.description}
@@ -90,7 +91,7 @@ const Recommendation = ({ type, projects }) => {
         </div>
 
         {/* LIST */}
-        <div className="space-y-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           {displayedProjects.map((project) => (
             <CardProject
               key={project.id}
@@ -101,21 +102,22 @@ const Recommendation = ({ type, projects }) => {
 
         {/* LOAD MORE */}
         {hasMore && (
-          <div className="mt-10 flex justify-center">
+          <div className="mt-8 sm:mt-10 flex justify-center">
             <button
               onClick={() =>
                 setVisibleCount((prev) => prev + 5)
               }
               className="
-              inline-flex items-center gap-2
-              rounded-2xl
-              border border-slate-200 dark:border-slate-800
-              bg-white dark:bg-slate-950
-              px-5 py-3
+              inline-flex items-center justify-center gap-2
+              rounded-lg
+              border border-light-border dark:border-dark-border
+              bg-light-surface dark:bg-dark-surface
+              px-5 sm:px-6 py-2.5 sm:py-3
               text-sm font-medium
-              text-slate-700 dark:text-slate-200
-              transition-all
-              hover:border-indigo-400/30
+              text-light-primary dark:text-dark-primary
+              transition-all duration-300
+              hover:border-light-accent/50 dark:hover:border-dark-accent/50
+              hover:shadow-md
               "
             >
               Load More

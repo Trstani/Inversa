@@ -1,49 +1,206 @@
 import pool from '../config/database.js';
 
-export const createChapter = async ({
-  project_id,
-  chapter_number,
-  title,
-}) => {
+/*
+=========================
+CREATE CHAPTER
+=========================
+*/
 
-  const result = await pool.query(
-    `
-    INSERT INTO chapters (
-      project_id,
-      chapter_number,
-      title
-    )
+export const createChapter =
+  async ({
+    project_id,
+    title,
+  }) => {
 
-    VALUES ($1, $2, $3)
+    /*
+    =========================
+    AUTO GENERATE
+    CHAPTER NUMBER
+    =========================
+    */
 
-    RETURNING *
-    `,
-    [
-      project_id,
-      chapter_number,
-      title,
-    ]
-  );
+    const chapterCount =
+      await pool.query(
+        `
+        SELECT COUNT(*)::int AS total
 
-  return result.rows[0];
+        FROM chapters
+
+        WHERE
+          project_id = $1
+
+          AND deleted_at IS NULL
+        `,
+        [project_id]
+      );
+
+    const nextChapterNumber =
+      chapterCount.rows[0].total + 1;
+
+    /*
+    =========================
+    INSERT CHAPTER
+    =========================
+    */
+
+    const result =
+      await pool.query(
+        `
+        INSERT INTO chapters (
+          project_id,
+          chapter_number,
+          title,
+          status
+        )
+
+        VALUES (
+          $1,
+          $2,
+          $3,
+          'draft'
+        )
+
+        RETURNING *
+        `,
+        [
+          project_id,
+          nextChapterNumber,
+          title,
+        ]
+      );
+
+    /*
+    =========================
+    UPDATE TOTAL CHAPTERS
+    =========================
+    */
+
+    const totalResult =
+      await pool.query(
+        `
+        SELECT COUNT(*)::int AS total
+
+        FROM chapters
+
+        WHERE
+          project_id = $1
+
+          AND deleted_at IS NULL
+        `,
+        [project_id]
+      );
+
+    const total =
+      totalResult.rows[0].total;
+
+    await pool.query(
+      `
+      UPDATE projects
+
+      SET
+        total_chapters = $1,
+        updated_at = NOW()
+
+      WHERE id = $2
+      `,
+      [
+        total,
+        project_id,
+      ]
+    );
+
+    return result.rows[0];
 };
+
+/*
+=========================
+GET CHAPTERS BY PROJECT
+=========================
+*/
 
 export const getChaptersByProject =
   async (projectId) => {
 
-    const result = await pool.query(
-      `
-      SELECT *
-      FROM chapters
+    const result =
+      await pool.query(
+        `
+        SELECT *
 
-      WHERE
-        project_id = $1
-        AND deleted_at IS NULL
+        FROM chapters
 
-      ORDER BY chapter_number ASC
-      `,
-      [projectId]
-    );
+        WHERE
+          project_id = $1
+
+          AND deleted_at IS NULL
+
+        ORDER BY chapter_number ASC
+        `,
+        [projectId]
+      );
 
     return result.rows;
+};
+
+/*
+=========================
+PUBLISH CHAPTER
+=========================
+*/
+
+export const publishChapter =
+  async (id) => {
+
+    const result =
+      await pool.query(
+        `
+        UPDATE chapters
+
+        SET
+          status = 'published',
+          updated_at = NOW()
+
+        WHERE id = $1
+
+        RETURNING *
+        `,
+        [id]
+      );
+
+    return result.rows[0];
+};
+
+/*
+=========================
+UPDATE CHAPTER
+=========================
+*/
+
+export const updateChapter =
+  async (
+    id,
+    {
+      title,
+    }
+  ) => {
+
+    const result =
+      await pool.query(
+        `
+        UPDATE chapters
+
+        SET
+          title = $1,
+          updated_at = NOW()
+
+        WHERE id = $2
+
+        RETURNING *
+        `,
+        [
+          title,
+          id,
+        ]
+      );
+
+    return result.rows[0];
 };

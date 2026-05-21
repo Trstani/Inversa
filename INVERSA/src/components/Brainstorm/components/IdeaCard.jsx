@@ -1,131 +1,273 @@
-import { FiTrash2, FiX, FiSend, FiBook, FiMessageCircle } from 'react-icons/fi';
+import { useState } from 'react';
+
+import {
+  FiTrash2,
+  FiBook,
+  FiMessageCircle,
+  FiThumbsUp,
+} from 'react-icons/fi';
+
+import IdeaComments from './IdeaComments';
 
 const IdeaCard = ({
   idea,
-  isExpanded,
-  onToggleExpand,
   onDelete,
-  comments,
-  newComment,
-  onCommentChange,
-  onAddComment,
-  onDeleteComment,
+  onVote,
   user,
-  getChapterTitle
+  getChapterTitle,
 }) => {
-  const commentCount = comments?.length || 0;
+
+  /*
+  =========================
+  STATES
+  =========================
+  */
+
+  const [
+    showComments,
+    setShowComments,
+  ] = useState(false);
+
+  /*
+  =========================
+  IDEA DATA
+  =========================
+  */
+
+  const ideaOwnerId =
+    idea.user_id ||
+    idea.userId;
+
+  const isOwner =
+    Number(user?.id) ===
+    Number(ideaOwnerId);
+
+  const canVote =
+    !isOwner;
+
+  const hasVoted =
+    idea.has_voted || false;
+
+  const displayName =
+    idea.user_name ||
+    idea.userName ||
+    idea.name ||
+    'Unknown';
+
+  const chapterId =
+    idea.chapter_id ||
+    idea.chapterReference ||
+    null;
+
+  const ideaContent =
+    idea.description ||
+    idea.content ||
+    idea.title ||
+    '';
+
+  const votes =
+    idea.votes || 0;
+
+  const formattedDate =
+    idea.created_at
+      ? new Date(
+          idea.created_at
+        ).toLocaleDateString()
+
+      : idea.createdAt
+        ? new Date(
+            idea.createdAt
+          ).toLocaleDateString()
+
+        : 'Unknown Date';
+
+  /*
+  =========================
+  VOTE
+  =========================
+  */
+
+  const handleVote =
+    async () => {
+
+      try {
+
+        await onVote(
+          idea.id
+        );
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+      }
+    };
+
+  /*
+  =========================
+  RENDER
+  =========================
+  */
 
   return (
+
     <div className="card p-4 bg-light-surface dark:bg-dark-surface border border-light-accent/20 dark:border-dark-accent/20 hover:border-light-accent dark:hover:border-dark-accent transition">
-      {/* Card Header - Clickable */}
-      <div
-        className="flex justify-between items-start gap-2 mb-3 cursor-pointer"
-        onClick={() => onToggleExpand(idea.id)}
-      >
+
+      {/* HEADER */}
+
+      <div className="flex justify-between items-start gap-3 mb-3">
+
         <div className="flex-1">
+
           <p className="font-medium text-sm text-light-primary dark:text-dark-primary">
-            {idea.userName}
+
+            {displayName}
+
           </p>
-          {idea.chapterReference && (
+
+          {chapterId && (
+
             <p className="text-xs text-light-accent dark:text-dark-accent mt-1 flex items-center gap-1">
+
               <FiBook className="w-3 h-3" />
-              {getChapterTitle(idea.chapterReference)}
+
+              {getChapterTitle(
+                chapterId
+              )}
+
             </p>
+
           )}
+
         </div>
+
         <div className="flex items-center gap-2">
+
+          {/* DISCUSSION */}
+
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleExpand(idea.id);
-            }}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-light-background dark:bg-dark-background text-light-secondary dark:text-dark-secondary rounded hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 transition"
+            onClick={() =>
+              setShowComments(
+                !showComments
+              )
+            }
+
+            className="flex items-center gap-1 px-2 py-1 text-xs rounded-lg bg-light-background dark:bg-dark-background text-light-secondary dark:text-dark-secondary hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 transition"
           >
+
             <FiMessageCircle className="w-3 h-3" />
-            Comments ({commentCount})
+
+            Discussion
+
           </button>
-          {user?.id === idea.userId && (
+
+          {/* DELETE */}
+
+          {isOwner && (
+
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(idea.id);
-              }}
-              className="p-1 text-red-500 hover:bg-red-500/10 rounded transition"
+              onClick={() =>
+                onDelete(
+                  idea.id
+                )
+              }
+
+              className="p-1 rounded-lg text-red-500 hover:bg-red-500/10 transition"
             >
+
               <FiTrash2 className="w-4 h-4" />
+
             </button>
+
           )}
+
         </div>
+
       </div>
 
-      {/* Card Content */}
-      <p className="text-sm text-light-secondary dark:text-dark-secondary mb-3 line-clamp-3">
-        {idea.content}
-      </p>
+      {/* TITLE */}
 
-      <p className="text-xs text-light-secondary dark:text-dark-secondary opacity-70 mb-3">
-        {new Date(idea.createdAt).toLocaleDateString()}
-      </p>
+      {idea.title && (
 
-      {/* Expanded Comments Section */}
-      {isExpanded && (
-        <div className="border-t border-light-accent/20 dark:border-dark-accent/20 pt-3 mt-3">
-          {/* Comments List */}
-          <div className="space-y-2 mb-3 max-h-40 overflow-y-auto">
-            {comments?.length === 0 ? (
-              <p className="text-xs text-light-secondary dark:text-dark-secondary text-center py-2">
-                No comments yet
-              </p>
-            ) : (
-              comments?.map(comment => (
-                <div key={comment.id} className="bg-light-background dark:bg-dark-background p-2 rounded text-xs">
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex-1">
-                      <p className="font-medium text-light-primary dark:text-dark-primary">
-                        {comment.userName}
-                      </p>
-                      <p className="text-light-secondary dark:text-dark-secondary mt-1">
-                        {comment.text}
-                      </p>
-                    </div>
-                    {user?.id === comment.userId && (
-                      <button
-                        onClick={() => onDeleteComment(idea.id, comment.id)}
-                        className="text-red-500 hover:bg-red-500/10 p-1 rounded transition flex-shrink-0"
-                      >
-                        <FiX className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+        <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-2">
 
-          {/* Add Comment Input */}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newComment}
-              onChange={(e) => onCommentChange(e.target.value)}
-              placeholder="Add comment..."
-              className="flex-1 px-2 py-1 text-xs bg-light-background dark:bg-dark-background border border-light-accent/20 dark:border-dark-accent/20 rounded text-light-primary dark:text-dark-primary placeholder-light-secondary dark:placeholder-dark-secondary focus:outline-none focus:border-light-accent dark:focus:border-dark-accent"
-              onKeyDown={(e) => e.key === 'Enter' && onAddComment(idea.id)}
-              onClick={(e) => e.stopPropagation()}
-            />
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddComment(idea.id);
-              }}
-              disabled={!newComment.trim()}
-              className="px-2 py-1 text-xs bg-light-accent dark:bg-dark-accent text-white rounded hover:opacity-90 disabled:opacity-50 transition flex-shrink-0"
-            >
-              <FiSend className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
+          {idea.title}
+
+        </h3>
+
       )}
+
+      {/* CONTENT */}
+
+      <p className="text-sm text-light-secondary dark:text-dark-secondary mb-4 whitespace-pre-wrap">
+
+        {ideaContent}
+
+      </p>
+
+      {/* FOOTER */}
+
+      <div className="flex items-center justify-between">
+
+        <span className="text-xs text-light-secondary/70 dark:text-dark-secondary/70">
+
+          {formattedDate}
+
+        </span>
+
+        {/* VOTE */}
+
+        {canVote ? (
+
+          <button
+            onClick={handleVote}
+
+            title="vote"
+
+            className={`cursor-pointer transition-all px-3 py-1 rounded-lg border-b-[4px] text-xs flex items-center gap-1 ${
+              hasVoted
+
+                ? 'bg-orange-500 text-white border-orange-700 hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px] active:border-b-[2px] active:brightness-90 active:translate-y-[2px]'
+
+                : 'bg-blue-500 text-white border-blue-700 hover:brightness-110 hover:-translate-y-[1px] hover:border-b-[6px] active:border-b-[2px] active:brightness-90 active:translate-y-[2px]'
+            }`}
+          >
+
+            <FiThumbsUp className="w-3 h-3" />
+
+            {votes}
+
+          </button>
+
+        ) : (
+
+          <div className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs bg-light-background dark:bg-dark-background text-light-secondary dark:text-dark-secondary">
+
+            <FiThumbsUp className="w-3 h-3" />
+
+            {votes}
+
+          </div>
+
+        )}
+
+      </div>
+
+      {/* COMMENTS */}
+
+      {showComments && (
+
+        <div className="mt-5 pt-5 border-t border-light-border dark:border-dark-border">
+
+          <IdeaComments
+            ideaId={idea.id}
+          />
+
+        </div>
+
+      )}
+
     </div>
   );
 };

@@ -36,7 +36,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
-      <div className="bg-white p-6 rounded-lg w-96 text-slate-950">
+      <div className="bg-white dark:bg-dark-background p-6 rounded-lg w-96 text-slate-950 dark:text-dark-primary">
 
         <h2 className="text-lg font-semibold mb-4 text-red-600">
           Report Project
@@ -45,7 +45,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
         <select
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-          className="w-full border p-2 rounded mb-3"
+          className="w-full border p-2 rounded mb-3 dark:bg-dark-background"
         >
           <option value="">Select reason</option>
           <option value="spam">Spam</option>
@@ -59,7 +59,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           rows={3}
-          className="w-full border p-2 rounded mb-4"
+          className="w-full border p-2 rounded mb-4 dark:bg-dark-surface"
         />
 
         <div className="flex justify-end gap-2">

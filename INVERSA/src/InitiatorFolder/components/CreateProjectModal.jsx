@@ -22,18 +22,75 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
+  const handleImageUpload = (
+    e
+  ) => {
+
+    const file =
+      e.target.files[0];
+
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData(prev => ({
-        ...prev,
-        backgroundImage: reader.result,
-      }));
-      setImagePreview(reader.result);
+    const reader =
+      new FileReader();
+
+    reader.onload = (
+      event
+    ) => {
+
+      const img =
+        new Image();
+
+      img.onload = () => {
+
+        const canvas =
+          document.createElement(
+            "canvas"
+          );
+
+        const ctx =
+          canvas.getContext("2d");
+
+        const MAX_WIDTH = 1200;
+
+        const scale =
+          MAX_WIDTH / img.width;
+
+        canvas.width =
+          MAX_WIDTH;
+
+        canvas.height =
+          img.height * scale;
+
+        ctx.drawImage(
+          img,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        );
+
+        const compressed =
+          canvas.toDataURL(
+            "image/jpeg",
+            0.7
+          );
+
+        setFormData((prev) => ({
+          ...prev,
+          backgroundImage:
+            compressed,
+        }));
+
+        setImagePreview(
+          compressed
+        );
+      };
+
+      img.src =
+        event.target.result;
     };
+
     reader.readAsDataURL(file);
   };
 

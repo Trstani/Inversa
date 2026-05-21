@@ -31,106 +31,103 @@ const ProjectsExplorer = () => {
     fetchProjects();
   }, []);
 
-  // 🔥 Memo biar filter gak dihitung terus
-  const filteredProjects = useMemo(() => {
-    return projects.filter((project) => {
-      const matchesGenre =
-        selectedGenre === "all" || project.genre === selectedGenre;
+  const filteredProjects =
+    useMemo(() => {
 
-      const matchesSearch =
-        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.description.toLowerCase().includes(searchQuery.toLowerCase());
+      return projects.filter(
+        (project) => {
 
-      return matchesGenre && matchesSearch;
-    });
-  }, [projects, selectedGenre, searchQuery]);
+          const matchesGenre =
+
+            selectedGenre === "all" ||
+
+            project.genre_id ===
+            selectedGenre;
+
+          const matchesSearch =
+
+            project.title
+              .toLowerCase()
+              .includes(
+                searchQuery.toLowerCase()
+              )
+
+            ||
+
+            (
+              project.description || ""
+            )
+              .toLowerCase()
+              .includes(
+                searchQuery.toLowerCase()
+              );
+
+          return (
+            matchesGenre &&
+            matchesSearch
+          );
+        }
+      );
+
+    }, [
+      projects,
+      selectedGenre,
+      searchQuery,
+    ]);
 
   return (
-    <section className="py-14">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-8 sm:py-12 md:py-16 bg-light-background dark:bg-dark-background">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
 
-        {/* TITLE */}
-        <div className="mb-4 flex items-center gap-3">
-          <div
-            className="
-        flex h-11 w-11 items-center justify-center
-        rounded-2xl
-        bg-slate-100 dark:bg-slate-900
-        "
-          >
-            <FiBook
-              className="
-          h-8 w-8
-          text-slate-700 dark:text-slate-300
-          "
-            />
-          </div>
+        {/* TITLE SECTION */}
+        <div className="mb-8 sm:mb-10 md:mb-12">
+          <div className="flex items-start gap-4 sm:gap-5">
+            <div className="flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-2xl bg-light-accent/10 dark:bg-dark-accent/10 shrink-0">
+              <FiBook className="h-6 w-6 sm:h-7 sm:w-7 text-light-accent dark:text-dark-accent" />
+            </div>
 
-          <div>
-            <h2
-              className="
-          text-2xl font-semibold
-          text-slate-900 dark:text-white
-          "
-            >
-              {selectedGenre === "all"
-                ? "Explore Projects"
-                : genres.find(
-                  (g) => g.id === selectedGenre
-                )?.name}
-            </h2>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-2xl sm:text-3xl font-bold text-light-primary dark:text-dark-primary">
+                {selectedGenre === "all"
+                  ? "Explore Projects"
+                  : genres.find(
+                    (g) => g.id === selectedGenre
+                  )?.name}
+              </h2>
 
-            <p className="mt-1 text-sm text-slate-500">
-              {filteredProjects.length} published projects
-            </p>
+              <p className="mt-2 text-sm sm:text-base text-light-secondary dark:text-dark-secondary">
+                {filteredProjects.length} published {filteredProjects.length === 1 ? 'project' : 'projects'}
+              </p>
+            </div>
           </div>
         </div>
 
-        {/* SEARCH */}
-        <div className="mb-10">
+        {/* SEARCH SECTION */}
+        <div className="mb-8 sm:mb-10 md:mb-12">
           <div className="relative">
-            <FiSearch
-              className="
-          absolute left-4 top-1/2
-          -translate-y-1/2
-          w-5 h-5
-          text-slate-400
-          "
-            />
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-light-secondary dark:text-dark-secondary" />
 
             <input
               type="text"
               placeholder="Search projects, stories, or genres..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="
-          w-full rounded-2xl
-          border border-slate-200 dark:border-slate-800
-          bg-white dark:bg-slate-950
-          px-12 py-4
-          text-sm
-          outline-none
-          transition-all
-          focus:border-indigo-400/40
-          "
+              className="w-full rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-base text-light-primary dark:text-dark-primary placeholder-light-secondary dark:placeholder-dark-secondary outline-none transition-all focus:border-light-accent/50 dark:focus:border-dark-accent/50 focus:shadow-lg"
             />
           </div>
         </div>
 
-        {/* FILTER */}
-        <div className="mb-12">
-          <div className="flex flex-wrap gap-2">
+        {/* FILTER SECTION */}
+        <div className="mb-10 sm:mb-12 md:mb-14">
+          <div className="flex flex-wrap gap-2 sm:gap-3">
 
             <button
               onClick={() => setSelectedGenre("all")}
-              className={`
-          rounded-full border px-4 py-2
-          text-sm transition-all
-          ${selectedGenre === "all"
-                  ? "border-indigo-400/40 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
-                  : "border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300"
-                }
-          `}
+              className={`rounded-full border px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium transition-all duration-300 ${
+                selectedGenre === "all"
+                  ? "border-light-accent/50 dark:border-dark-accent/50 bg-light-accent/10 dark:bg-dark-accent/10 text-light-accent dark:text-dark-accent"
+                  : "border-light-border dark:border-dark-border text-light-secondary dark:text-dark-secondary hover:border-light-accent/30 dark:hover:border-dark-accent/30"
+              }`}
             >
               All
             </button>
@@ -139,14 +136,11 @@ const ProjectsExplorer = () => {
               <button
                 key={genre.id}
                 onClick={() => setSelectedGenre(genre.id)}
-                className={`
-            rounded-full border px-4 py-2
-            text-sm transition-all
-            ${selectedGenre === genre.id
-                    ? "border-indigo-400/40 bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300"
-                    : "border-slate-200 dark:border-slate-800 text-slate-500 hover:border-slate-300"
-                  }
-            `}
+                className={`rounded-full border px-4 sm:px-5 py-2 sm:py-2.5 text-sm font-medium transition-all duration-300 ${
+                  selectedGenre === genre.id
+                    ? "border-light-accent/50 dark:border-dark-accent/50 bg-light-accent/10 dark:bg-dark-accent/10 text-light-accent dark:text-dark-accent"
+                    : "border-light-border dark:border-dark-border text-light-secondary dark:text-dark-secondary hover:border-light-accent/30 dark:hover:border-dark-accent/30"
+                }`}
               >
                 {genre.name}
               </button>
@@ -154,16 +148,16 @@ const ProjectsExplorer = () => {
           </div>
         </div>
 
-        {/* CONTENT */}
+        {/* CONTENT SECTION */}
         {loading ? (
-          <div className="py-20 text-center">
-            <p className="text-slate-500">
+          <div className="py-16 sm:py-20 md:py-24 text-center">
+            <p className="text-light-secondary dark:text-dark-secondary">
               Loading projects...
             </p>
           </div>
         ) : filteredProjects.length > 0 ? (
 
-          <div className="space-y-5">
+          <div className="space-y-4 sm:space-y-5 md:space-y-6">
             {filteredProjects.map((project) => (
               <CardProject
                 key={project.id}
@@ -173,16 +167,13 @@ const ProjectsExplorer = () => {
           </div>
 
         ) : (
-          <div
-            className="
-        rounded-3xl
-        border border-dashed
-        border-slate-200 dark:border-slate-800
-        py-20 text-center
-        "
-          >
-            <p className="text-slate-500">
+          <div className="rounded-2xl sm:rounded-3xl border-2 border-dashed border-light-border dark:border-dark-border py-16 sm:py-20 md:py-24 text-center">
+            <FiBook className="h-12 w-12 sm:h-14 sm:w-14 mx-auto mb-4 text-light-secondary dark:text-dark-secondary opacity-40" />
+            <p className="text-light-secondary dark:text-dark-secondary text-base sm:text-lg">
               No projects found.
+            </p>
+            <p className="mt-2 text-sm text-light-secondary dark:text-dark-secondary opacity-75">
+              Try adjusting your search or filters
             </p>
           </div>
         )}

@@ -1,8 +1,15 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
 
-import { apiClient } from "../api/client";
+import {
+  useParams,
+  useNavigate,
+} from "react-router-dom";
+
+import { useAuth }
+from "../context/AuthContext";
+
+import { apiClient }
+from "../api/client";
 
 import {
   FiFlag,
@@ -12,319 +19,479 @@ import {
   FiEye,
   FiBook,
   FiPlay,
-  FiEdit2
+  FiEdit2,
+  FiStar,
 } from "react-icons/fi";
 
-import Button from "../components/Button";
-import Breadcrumbs from "../components/Breadcrumbs";
-import CollaborationRequestModal from "../components/CollaborationRequestModal";
-import ReportsModal from "../components/ReportsModal";
-import ChapterList from "../components/ChapterList";
+import Button
+from "../components/Button";
+
+import Breadcrumbs
+from "../components/Breadcrumbs";
+
+import CollaborationRequestModal
+from "../components/CollaborationRequestModal";
+
+import ReportsModal
+from "../components/ReportsModal";
+
+import ChapterList
+from "../components/ChapterList";
 
 const ProjectDetail = () => {
 
-  const { projectId } = useParams();
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { projectId } =
+    useParams();
 
-  const [project, setProject] = useState(null);
-  const [chapters, setChapters] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { user } =
+    useAuth();
 
-  const [activeTab, setActiveTab] = useState("read");
+  const navigate =
+    useNavigate();
 
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [project, setProject] =
+    useState(null);
 
-  const [isLiked, setIsLiked] = useState(false);
+  const [chapters, setChapters] =
+    useState([]);
 
-  const [userRequest, setUserRequest] = useState(null);
-  const [isCollaborator, setIsCollaborator] = useState(false);
-  const [isTeamMember, setIsTeamMember] = useState(false);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [teamMembers, setTeamMembers] = useState([]);
+  const [activeTab, setActiveTab] =
+    useState("read");
+
+  const [
+    showRequestModal,
+    setShowRequestModal
+  ] = useState(false);
+
+  const [
+    showReportModal,
+    setShowReportModal
+  ] = useState(false);
+
+  const [
+    showDeleteConfirm,
+    setShowDeleteConfirm
+  ] = useState(false);
+
+  const [isLiked, setIsLiked] =
+    useState(false);
+
+  const [
+    isFollowed,
+    setIsFollowed
+  ] = useState(false);
+
+  const [
+    userRequest,
+    setUserRequest
+  ] = useState(null);
+
+  const [
+    isCollaborator,
+    setIsCollaborator
+  ] = useState(false);
+
+  const [
+    isTeamMember,
+    setIsTeamMember
+  ] = useState(false);
+
+  const [
+    teamMembers,
+    setTeamMembers
+  ] = useState([]);
+
+  /*
+  =========================
+  LOAD PROJECT
+  =========================
+  */
 
   useEffect(() => {
+
     loadData();
-  }, [projectId, user?.id]);
+
+  }, [
+    projectId,
+    user?.id
+  ]);
+
+  /*
+  =========================
+  LOAD INTERACTIONS
+  =========================
+  */
 
   useEffect(() => {
-    if (user?.id && projectId) {
-      checkLikeStatus();
-    }
-  }, [user?.id, projectId]);
 
-  const checkLikeStatus = async () => {
-    try {
-      const response =
-        await apiClient.projects.getById(projectId);
+    const loadInteractions =
+      async () => {
 
-      const projectData = response.data;
+        if (!user?.id)
+          return;
 
-      setIsLiked(projectData.user_liked || false);
+        try {
 
-    } catch (error) {
-      console.error(
-        "Error checking like status:",
-        error
-      );
-    }
-  };
+          const response =
+            await apiClient.projects
+              .getInteractions(
+                projectId
+              );
 
-  const handleLike = async () => {
+          setIsLiked(
+            response.data.liked
+          );
 
-    if (!user?.id) {
-      alert("Please login first");
-      return;
-    }
+          setIsFollowed(
+            response.data.followed
+          );
 
-    try {
+        } catch (error) {
 
-      if (isLiked) {
+          console.error(error);
+        }
+      };
 
-        await apiClient.projects.decrementLikes(
-          project.id
+    loadInteractions();
+
+  }, [
+    user?.id,
+    projectId
+  ]);
+
+  /*
+  =========================
+  HANDLE LIKE
+  =========================
+  */
+
+  const handleLike =
+    async () => {
+
+      if (!user?.id) {
+
+        alert(
+          "Please login first"
         );
 
-        setIsLiked(false);
-
-      } else {
-
-        await apiClient.projects.incrementLikes(
-          project.id
-        );
-
-        setIsLiked(true);
-      }
-
-      const response =
-        await apiClient.projects.getById(
-          project.id
-        );
-
-      if (response.success) {
-        setProject(response.data);
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Error updating likes:",
-        error
-      );
-    }
-  };
-
-  const loadData = async () => {
-
-    setLoading(true);
-
-    try {
-
-      // ================= PROJECT =================
-
-      const projectResponse =
-        await apiClient.projects.getById(
-          projectId
-        );
-
-      if (
-        !projectResponse.success ||
-        !projectResponse.data
-      ) {
-        setLoading(false);
         return;
       }
 
-      const projectData =
-        projectResponse.data;
+      try {
 
-      setProject(projectData);
-      console.log(projectData);
+        const response =
+          await apiClient.projects
+            .like(project.id);
 
-      // ================= CHAPTERS =================
-
-      const chaptersResponse =
-        await apiClient.chapters.getByProject(
-          projectId
+        setIsLiked(
+          response.data.liked
         );
 
-      setChapters(
-        chaptersResponse.data || []
-      );
-
-      // ================= COLLABORATORS =================
-
-      const isDirectCollaborator =
-        projectData.collaborators?.some(
-          (c) =>
-            c.user_id === user?.id &&
-            c.status === "approved"
+        setProject(
+          (prev) => ({
+            ...prev,
+            likes:
+              response.data.likes,
+          })
         );
 
-      const isInitiator =
-        projectData.initiator_id === user?.id;
+      } catch (error) {
 
-      // ================= TEAM MEMBERS =================
-
-      let userIsTeamMember = false;
-
-      if (
-        projectData.is_team_project &&
-        projectData.team_id
-      ) {
-
-        const teamResponse =
-          await apiClient.teams.getById(
-            projectData.team_id
-          );
-
-        if (
-          teamResponse.success &&
-          teamResponse.data
-        ) {
-
-          const team =
-            teamResponse.data;
-
-          userIsTeamMember =
-            team.members?.some(
-              (member) =>
-                member.user_id === user?.id &&
-                member.status === "approved"
-            );
-
-          setTeamMembers(
-            team.members?.filter(
-              (member) =>
-                member.status === "approved"
-            ) || []
-          );
-        }
+        console.error(
+          "Error updating likes:",
+          error
+        );
       }
+    };
 
-      setIsTeamMember(
-        userIsTeamMember
-      );
+  /*
+  =========================
+  HANDLE FOLLOW
+  =========================
+  */
 
-      const canCollaborate =
-        isDirectCollaborator ||
-        userIsTeamMember ||
-        isInitiator;
+  const handleFollow =
+    async () => {
 
-      setIsCollaborator(
-        canCollaborate
-      );
-
-      // ================= REQUESTS =================
-
-      const requestsResponse =
-        await apiClient.collaboration.getRequests();
-
-      const requests =
-        requestsResponse.data || [];
-
-      const currentRequest =
-        requests.find(
-          (r) =>
-            r.project_id ===
-            projectData.id &&
-            r.user_id === user?.id
-        );
-
-      setUserRequest(
-        currentRequest
-      );
-
-    } catch (error) {
-
-      console.error(
-        "Error loading project:",
-        error
-      );
-
-    } finally {
-
-      setLoading(false);
-    }
-
-    console.log("PROJECT ID:", projectId);
-
-  };
-
-  const handleRequestSubmit = async (
-    role
-  ) => {
-
-    try {
-
-      const response =
-        await apiClient.collaboration.createRequest({
-          project_id:
-            parseInt(projectId),
-
-          user_id: user.id,
-
-          requested_role: role,
-        });
-
-      if (response.success) {
-
-        setShowRequestModal(false);
-
-        await loadData();
-      }
-
-    } catch (error) {
-
-      console.error(
-        "Error submitting request:",
-        error
-      );
-
-      alert(
-        "Failed to submit request"
-      );
-    }
-  };
-
-  const handleReportSubmit = async (
-    data
-  ) => {
-
-    try {
-
-      const response =
-        await apiClient.reports.create(
-          project.id,
-          {
-            reason: data.reason,
-            note: data.note,
-          }
-        );
-
-      if (response.success) {
+      if (!user?.id) {
 
         alert(
-          "Report submitted successfully"
+          "Please login first"
         );
 
-        setShowReportModal(false);
+        return;
       }
 
-    } catch (error) {
+      try {
 
-      console.error(
-        "Error submitting report:",
-        error
-      );
+        const response =
+          await apiClient.projects
+            .follow(project.id);
 
-      alert(
-        "Failed to submit report"
-      );
-    }
-  };
+        setIsFollowed(
+          response.data.followed
+        );
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    };
+
+  /*
+  =========================
+  LOAD DATA
+  =========================
+  */
+
+  const loadData =
+    async () => {
+
+      setLoading(true);
+
+      try {
+
+        /*
+        =========================
+        PROJECT
+        =========================
+        */
+
+        const projectResponse =
+          await apiClient.projects
+            .getById(projectId);
+
+        if (
+          !projectResponse.success ||
+          !projectResponse.data
+        ) {
+
+          setLoading(false);
+
+          return;
+        }
+
+        const projectData =
+          projectResponse.data;
+
+        setProject(projectData);
+
+        /*
+        =========================
+        CHAPTERS
+        =========================
+        */
+
+        const chaptersResponse =
+          await apiClient.chapters
+            .getByProject(
+              projectId
+            );
+
+        setChapters(
+          chaptersResponse.data || []
+        );
+
+        /*
+        =========================
+        COLLABORATORS
+        =========================
+        */
+
+        const isDirectCollaborator =
+          projectData.collaborators
+            ?.some(
+              (c) =>
+                c.user_id ===
+                  user?.id &&
+                c.status ===
+                  "approved"
+            );
+
+        const isInitiator =
+          projectData.initiator_id ===
+          user?.id;
+
+        /*
+        =========================
+        TEAM MEMBERS
+        =========================
+        */
+
+        let userIsTeamMember =
+          false;
+
+        if (
+          projectData.is_team_project &&
+          projectData.team_id
+        ) {
+
+          const teamResponse =
+            await apiClient.teams
+              .getById(
+                projectData.team_id
+              );
+
+          if (
+            teamResponse.success &&
+            teamResponse.data
+          ) {
+
+            const team =
+              teamResponse.data;
+
+            userIsTeamMember =
+              team.members?.some(
+                (member) =>
+                  member.user_id ===
+                    user?.id &&
+                  member.status ===
+                    "approved"
+              );
+
+            setTeamMembers(
+              team.members?.filter(
+                (member) =>
+                  member.status ===
+                  "approved"
+              ) || []
+            );
+          }
+        }
+
+        setIsTeamMember(
+          userIsTeamMember
+        );
+
+        const canCollaborate =
+          isDirectCollaborator ||
+          userIsTeamMember ||
+          isInitiator;
+
+        setIsCollaborator(
+          canCollaborate
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Error loading project:",
+          error
+        );
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+  /*
+  =========================
+  REQUEST SUBMIT
+  =========================
+  */
+
+  const handleRequestSubmit =
+    async (role) => {
+
+      try {
+
+        const response =
+          await apiClient
+            .collaboration
+            .createRequest({
+
+              project_id:
+                parseInt(projectId),
+
+              user_id:
+                user.id,
+
+              requested_role:
+                role,
+            });
+
+        if (response.success) {
+
+          setShowRequestModal(
+            false
+          );
+
+          await loadData();
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Error submitting request:",
+          error
+        );
+
+        alert(
+          "Failed to submit request"
+        );
+      }
+    };
+
+  /*
+  =========================
+  REPORT
+  =========================
+  */
+
+  const handleReportSubmit =
+    async (data) => {
+
+      try {
+
+        const response =
+          await apiClient
+            .reports
+            .create({
+
+              project_id:
+                project.id,
+
+              reason:
+                data.reason,
+
+              note:
+                data.note,
+            });
+
+        if (response.success) {
+
+          alert(
+            "Report submitted successfully"
+          );
+
+          setShowReportModal(
+            false
+          );
+        }
+
+      } catch (error) {
+
+        console.error(
+          "Error submitting report:",
+          error
+        );
+
+        alert(
+          error.message ||
+          "Failed to submit report"
+        );
+      }
+    };
+
+  /*
+  =========================
+  DELETE PROJECT
+  =========================
+  */
 
   const handleDeleteProject =
     async () => {
@@ -332,9 +499,8 @@ const ProjectDetail = () => {
       try {
 
         const response =
-          await apiClient.projects.delete(
-            project.id
-          );
+          await apiClient.projects
+            .delete(project.id);
 
         if (response.success) {
 
@@ -358,7 +524,14 @@ const ProjectDetail = () => {
       }
     };
 
+  /*
+  =========================
+  LOADING
+  =========================
+  */
+
   if (loading) {
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         Loading...
@@ -367,12 +540,19 @@ const ProjectDetail = () => {
   }
 
   if (!project) {
+
     return (
       <div className="min-h-screen flex items-center justify-center">
         Project not found
       </div>
     );
   }
+
+  /*
+  =========================
+  COMPUTED
+  =========================
+  */
 
   const approvedCollaborators =
     project.collaborators?.filter(
@@ -381,7 +561,8 @@ const ProjectDetail = () => {
     ) || [];
 
   const isInitiator =
-    project.initiator_id === user?.id;
+    project.initiator_id ===
+    user?.id;
 
   const canEdit =
     isInitiator ||
@@ -390,30 +571,35 @@ const ProjectDetail = () => {
 
   const isCollaborative =
     approvedCollaborators.length > 0 ||
+
     (
       project.is_team_project &&
       teamMembers.length > 0
     );
 
   return (
+
     <div className="min-h-screen bg-white dark:bg-[#0f172a] text-gray-800 dark:text-gray-200">
 
       {/* HEADER */}
-      <div
-        className="w-full relative overflow-hidden"
-        style={{
-          backgroundImage: `url(${project.background_image || "/default-cover.jpg"})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          minHeight: "400px",
-        }}
-      >
+
+      <div className="relative w-full min-h-[400px] overflow-hidden">
+
+        <img
+          src={
+            project.background_image ||
+            "/default-cover.jpg"
+          }
+          alt="project cover"
+          className="absolute inset-0 w-full h-full object-cover"
+        />
 
         <div className="absolute inset-0 bg-black/60" />
 
-        <div className="relative z-10 p-8 flex flex-col justify-between min-h-[400px]">
+        <div className="relative z-10 flex flex-col justify-between min-h-[400px] p-8">
 
           {/* TOP */}
+
           <div className="flex items-start justify-between">
 
             <div className="flex gap-2 flex-wrap">
@@ -446,6 +632,7 @@ const ProjectDetail = () => {
           </div>
 
           {/* CENTER */}
+
           <div>
 
             <h1 className="text-5xl font-bold text-white">
@@ -459,9 +646,11 @@ const ProjectDetail = () => {
           </div>
 
           {/* BOTTOM */}
+
           <div className="flex justify-between items-end text-white">
 
             <div>
+
               <p className="text-sm text-gray-300">
                 Created by
               </p>
@@ -470,6 +659,7 @@ const ProjectDetail = () => {
                 {project.initiator_name ||
                   "Unknown"}
               </p>
+
             </div>
 
             <div className="flex gap-6">
@@ -483,6 +673,7 @@ const ProjectDetail = () => {
                 onClick={handleLike}
                 className="flex items-center gap-2"
               >
+
                 <FiHeart
                   className={
                     isLiked
@@ -492,6 +683,28 @@ const ProjectDetail = () => {
                 />
 
                 {project.likes || 0}
+
+              </button>
+
+              <button
+                onClick={handleFollow}
+                className="flex items-center gap-2"
+              >
+
+                <FiStar
+                  className={
+                    isFollowed
+                      ? "fill-yellow-500 text-yellow-500"
+                      : ""
+                  }
+                />
+
+                <span>
+                  {isFollowed
+                    ? "Followed"
+                    : "Follow"}
+                </span>
+
               </button>
 
             </div>
@@ -503,10 +716,12 @@ const ProjectDetail = () => {
       </div>
 
       {/* MAIN */}
+
       <div className="max-w-6xl mx-auto p-6">
 
         {isInitiator && (
           <div className="mb-6">
+
             <Breadcrumbs
               items={[
                 {
@@ -519,13 +734,16 @@ const ProjectDetail = () => {
                 },
               ]}
             />
+
           </div>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
           {/* SIDEBAR */}
+
           {isCollaborative && (
+
             <div className="lg:col-span-3 bg-gray-100 dark:bg-[#1e293b] p-4 rounded-lg">
 
               <h2 className="font-semibold mb-4">
@@ -536,12 +754,31 @@ const ProjectDetail = () => {
 
                 teamMembers.map(
                   (member) => (
+
                     <div
                       key={member.user_id}
                       className="flex gap-2 mb-3"
                     >
 
-                      <div className="w-8 h-8 bg-gray-400 rounded-full" />
+                      <div className="w-9 h-9 overflow-hidden rounded-full bg-gray-300 dark:bg-slate-700 flex items-center justify-center shrink-0">
+
+                        {member.profile_image ? (
+
+                          <img
+                            src={member.profile_image}
+                            alt={member.name}
+                            className="w-full h-full object-cover"
+                          />
+
+                        ) : (
+
+                          <span className="text-xs font-bold text-white">
+                            {member.name?.charAt(0)?.toUpperCase()}
+                          </span>
+
+                        )}
+
+                      </div>
 
                       <div>
 
@@ -563,6 +800,7 @@ const ProjectDetail = () => {
 
                 approvedCollaborators.map(
                   (collab) => (
+
                     <div
                       key={collab.user_id}
                       className="flex gap-2 mb-3"
@@ -589,22 +827,27 @@ const ProjectDetail = () => {
               )}
 
             </div>
+
           )}
 
           {/* MAIN CONTENT */}
+
           <div className={`
-    ${isCollaborative
-              ? "lg:col-span-9"
-              : "lg:col-span-12"
+            ${
+              isCollaborative
+                ? "lg:col-span-9"
+                : "lg:col-span-12"
             }
-  `}>
+          `}>
 
             {/* CHAPTER LIST */}
+
             <div className="bg-gray-100 dark:bg-[#1e293b] rounded-lg p-5">
 
               <div className="flex items-center justify-between mb-5">
 
                 <div>
+
                   <h2 className="text-2xl font-bold">
                     Chapters
                   </h2>
@@ -613,18 +856,24 @@ const ProjectDetail = () => {
                     {chapters.length} chapter
                     {chapters.length !== 1 ? "s" : ""}
                   </p>
+
                 </div>
 
                 {canEdit && (
+
                   <Button
                     onClick={() =>
                       navigate(`/editor/${projectId}`)
                     }
                     className="flex items-center gap-2"
                   >
+
                     <FiEdit2 />
+
                     Manage Chapters
+
                   </Button>
+
                 )}
 
               </div>
@@ -644,11 +893,13 @@ const ProjectDetail = () => {
           </div>
 
         </div>
+
       </div>
 
       {/* MODALS */}
 
       {showRequestModal && (
+
         <CollaborationRequestModal
           projectTitle={project.title}
           onSubmit={handleRequestSubmit}
@@ -656,9 +907,11 @@ const ProjectDetail = () => {
             setShowRequestModal(false)
           }
         />
+
       )}
 
       {showReportModal && (
+
         <ReportsModal
           isOpen={showReportModal}
           onClose={() =>
@@ -666,9 +919,11 @@ const ProjectDetail = () => {
           }
           onSubmit={handleReportSubmit}
         />
+
       )}
 
       {showDeleteConfirm && (
+
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
 
           <div className="bg-white dark:bg-[#1e293b] rounded-lg p-6 max-w-md w-full">
@@ -707,6 +962,7 @@ const ProjectDetail = () => {
           </div>
 
         </div>
+
       )}
 
     </div>

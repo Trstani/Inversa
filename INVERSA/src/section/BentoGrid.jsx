@@ -10,7 +10,7 @@ import {
   FiUserPlus,
 } from "react-icons/fi";
 
-import CardProjectMini from "../components/CardProjectMini";
+import FollowedList from "./design/FollowedList";
 import HistoryList from "./design/HistoryList";
 
 const BentoGrid = ({
@@ -204,29 +204,20 @@ const BentoGrid = ({
           )}
 
           {/* FOLLOWED */}
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5">
-            <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
+
+          <div className=" rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 flex flex-col">
+
+            <h4 className=" mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widetext-slate-500">
               <FiStar className="h-4 w-4" />
               Followed
             </h4>
 
-            {follows.length === 0 ? (
-              <div className="flex h-[180px] items-center justify-center rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                <p className="text-sm text-slate-400">
-                  No followed projects yet
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {follows.slice(0, 3).map((project, index) => (
-                  <CardProjectMini
-                    key={project.id}
-                    project={project}
-                    rank={index + 1}
-                  />
-                ))}
-              </div>
-            )}
+            <div className="flex-1 min-h-0">
+
+              <FollowedList followedProjects={follows} />
+
+            </div>
+
           </div>
 
           {/* HISTORY */}

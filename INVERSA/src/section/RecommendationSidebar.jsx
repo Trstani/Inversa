@@ -14,25 +14,27 @@ const RecommendationSidebar = ({ projects = [] }) => {
         .slice(0, 3);
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-8 sm:space-y-10">
 
             {/* Trending */}
             <div>
-                <div className="flex items-center gap-2 mb-4">
-                    <FiTrendingUp className="text-orange-500" />
-                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                <div className="flex items-center gap-2 mb-5 sm:mb-6">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-light-accent/10 dark:bg-dark-accent/10 text-light-accent dark:text-dark-accent">
+                        <FiTrendingUp className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-light-primary dark:text-dark-primary">
                         Trending
                     </h3>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {trending.length > 0 ? (
                         trending.map((project) => (
                             <CardProjectMini key={project.id} project={project} />
                         ))
                     ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Belum ada project trending.
+                        <p className="text-sm text-light-secondary dark:text-dark-secondary">
+                            No trending projects yet.
                         </p>
                     )}
                 </div>
@@ -40,21 +42,23 @@ const RecommendationSidebar = ({ projects = [] }) => {
 
             {/* Most Liked */}
             <div>
-                <div className="flex items-center gap-2 mb-4">
-                    <FiHeart className="text-pink-500" />
-                    <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
+                <div className="flex items-center gap-2 mb-5 sm:mb-6">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-500/10 text-red-500">
+                        <FiHeart className="w-4 h-4" />
+                    </div>
+                    <h3 className="font-semibold text-lg text-light-primary dark:text-dark-primary">
                         Most Liked
                     </h3>
                 </div>
 
-                <div className="space-y-4">
+                <div className="space-y-3">
                     {mostLiked.length > 0 ? (
                         mostLiked.map((project) => (
                             <CardProjectMini key={project.id} project={project} />
                         ))
                     ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                            Belum ada project populer.
+                        <p className="text-sm text-light-secondary dark:text-dark-secondary">
+                            No liked projects yet.
                         </p>
                     )}
                 </div>

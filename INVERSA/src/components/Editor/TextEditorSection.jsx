@@ -1,7 +1,9 @@
-import { useEditor, EditorContent } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import TextAlign from "@tiptap/extension-text-align"
-import Placeholder from "@tiptap/extension-placeholder"
+import { useState, useEffect } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+
+import StarterKit from "@tiptap/starter-kit";
+import TextAlign from "@tiptap/extension-text-align";
+import Placeholder from "@tiptap/extension-placeholder";
 
 import {
   FiBold,
@@ -11,172 +13,463 @@ import {
   FiAlignCenter,
   FiAlignRight,
   FiType,
-} from "react-icons/fi"
+  FiArrowUp,
+  FiArrowDown,
+  FiSave,
+} from "react-icons/fi";
+
+import { apiClient } from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 
 const TextEditorSection = ({
   section,
   canEdit,
   onDelete,
   onUpdate,
-
+  onMoveUp,
+  onMoveDown,
+  onSave,
+  isFirst,
+  isLast,
+  setEditingSectionId,
 }) => {
+
+  const { user } = useAuth();
+
+  /*
+  =========================
+  STATES
+  =========================
+  */
+
+  const [isSaving, setIsSaving] =
+    useState(false);
+
+  const [hasChanges, setHasChanges] =
+    useState(false);
+
+  const [
+    lastSavedContent,
+    setLastSavedContent,
+  ] = useState(
+    section.content || ""
+  );
+
+  const [isLocked, setIsLocked] =
+    useState(
+      section.locked_by &&
+      section.locked_by !== user?.id
+    );
+
+  const [locking, setLocking] =
+    useState(false);
+
+  /*
+  =========================
+  LOCK SECTION
+  =========================
+  */
+
+  const handleLock = async () => {
+
+    if (
+      !canEdit ||
+      isLocked ||
+      locking
+    ) {
+      return;
+    }
+
+    try {
+
+      setLocking(true);
+
+      await apiClient.sections.lock(
+        section.id
+      );
+
+      setIsLocked(false);
+
+    } catch (error) {
+
+      console.error(error);
+
+      setIsLocked(true);
+
+    } finally {
+
+      setLocking(false);
+
+    }
+  };
+
+  /*
+  =========================
+  UNLOCK SECTION
+  =========================
+  */
+
+  const handleUnlock =
+    async () => {
+
+      try {
+
+        await apiClient.sections.unlock(
+          section.id
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Unlock failed:",
+          error
+        );
+
+      }
+    };
+
+  /*
+  =========================
+  EDITOR
+  =========================
+  */
+
   const editor = useEditor({
+
     extensions: [
+
       StarterKit,
+
       TextAlign.configure({
-        types: ["heading", "paragraph"],
+        types: [
+          "heading",
+          "paragraph",
+        ],
       }),
+
       Placeholder.configure({
-        placeholder: ({ node }) => {
-          if (node.type.name === "heading") {
-            return "Title"
+
+        placeholder: ({
+          node,
+        }) => {
+
+          if (
+            node.type.name ===
+            "heading"
+          ) {
+            return "Title";
           }
-          return "Write something..."
+
+          return "Write something...";
         },
+
         emptyEditorClass:
           "before:content-[attr(data-placeholder)] before:text-gray-400 before:float-left before:h-0 before:pointer-events-none",
-      }),
-    ],
-    content: section.content || "",
-    editable: canEdit,
-    onUpdate: ({ editor }) => {
-      onUpdate(section.id, {
-        content: editor.getHTML(),
-      })
-    },
-  })
 
-  if (!editor) return null
+      }),
+
+    ],
+
+    content:
+      section.content || "",
+
+    editable:
+      canEdit && !isLocked,
+
+    onFocus: () => {
+
+      setEditingSectionId(
+        section.id
+      );
+
+      handleLock();
+    },
+
+    onUpdate: ({ editor }) => {
+
+      const content =
+        editor.getHTML();
+
+      onUpdate(section.id, {
+        content,
+      });
+
+      setHasChanges(
+        content !==
+        lastSavedContent
+      );
+    },
+
+  });
+
+  /*
+  =========================
+  SYNC CONTENT
+  =========================
+  */
+
+  useEffect(() => {
+
+    /*
+    =========================
+    SKIP ACTIVE EDITOR
+    =========================
+    */
+
+    if (
+      editor?.isFocused
+    ) {
+      return;
+    }
+
+    /*
+    =========================
+    SYNC REMOTE CONTENT
+    =========================
+    */
+
+    if (
+      editor &&
+      section.content !==
+      editor.getHTML()
+    ) {
+
+      editor.commands.setContent(
+        section.content || ""
+      );
+    }
+
+  }, [section.content]);
+  /*
+  =========================
+  CLEANUP
+  =========================
+  */
+
+  useEffect(() => {
+
+    return () => {
+
+      setEditingSectionId(null);
+
+      handleUnlock();
+
+    };
+
+  }, []);
+
+  /*
+  =========================
+  SAVE
+  =========================
+  */
+
+  const handleSave =
+    async () => {
+
+      if (
+        !editor ||
+        !hasChanges
+      ) {
+        return;
+      }
+
+      setIsSaving(true);
+
+      try {
+
+        const content =
+          editor.getHTML();
+
+        await onSave(
+          section.id,
+          { content }
+        );
+
+        setLastSavedContent(
+          content
+        );
+
+        setHasChanges(false);
+
+        await handleUnlock();
+
+        setEditingSectionId(null);
+
+      } catch (error) {
+
+        console.error(
+          "Failed to save section:",
+          error
+        );
+
+        alert(
+          "Failed to save section"
+        );
+
+      } finally {
+
+        setIsSaving(false);
+
+      }
+    };
+
+  /*
+  =========================
+  RENDER
+  =========================
+  */
+
+  if (!editor) return null;
 
   const buttonClass =
-    "border rounded-lg py-2 flex items-center justify-center hover:bg-white dark:hover:bg-dark-surface"
+    "border rounded-lg py-2 flex items-center justify-center hover:bg-white dark:hover:bg-dark-surface";
 
   return (
-    <div className="card p-6">
+
+    <div className="card p-6 relative">
+
+      {/* LOCK OVERLAY */}
+
+      {isLocked && (
+
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl">
+
+          <div className="bg-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium">
+            Section is being edited
+          </div>
+
+        </div>
+
+      )}
+
       <div className="flex gap-6">
 
-        {/* LEFT - EDITOR */}
+        {/* EDITOR */}
+
         <div className="flex-1">
+
           <EditorContent
             editor={editor}
             className="border rounded-lg min-h-[200px] p-4 bg-white dark:bg-dark-surface focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500 [&_.ProseMirror]:outline-none [&_.ProseMirror]:min-h-[200px] [&_.ProseMirror]:cursor-text [&_.ProseMirror_p]:m-0"
           />
+
         </div>
 
-        {/* RIGHT - TOOLBAR */}
-        {canEdit && (
+        {/* TOOLBAR */}
+
+        {canEdit && !isLocked && (
+
           <div className="w-56 flex flex-col">
 
             <div className="grid grid-cols-2 gap-3">
 
-              {/* TEXT STYLE */}
-              <button
-                onClick={() => editor.chain().focus().toggleBold().run()}
-                className={buttonClass}
-                title="Bold"
-              >
+              <button onClick={() => editor.chain().focus().toggleBold().run()} className={buttonClass}>
                 <FiBold />
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().toggleItalic().run()}
-                className={buttonClass}
-                title="Italic"
-              >
+              <button onClick={() => editor.chain().focus().toggleItalic().run()} className={buttonClass}>
                 <FiItalic />
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().setParagraph().run()}
-                className={buttonClass}
-                title="Paragraph"
-              >
+              <button onClick={() => editor.chain().focus().setParagraph().run()} className={buttonClass}>
                 <FiType />
               </button>
 
-              {/* LIST */}
-              <button
-                onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={buttonClass}
-                title="Bullet List"
-              >
+              <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={buttonClass}>
                 <FiList />
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={buttonClass}
-                title="Numbered List"
-              >
+              <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={buttonClass}>
                 1.
               </button>
 
-              {/* ALIGN */}
-              <button
-                onClick={() => editor.chain().focus().setTextAlign("left").run()}
-                className={buttonClass}
-                title="Align Left"
-              >
+              <button onClick={() => editor.chain().focus().setTextAlign("left").run()} className={buttonClass}>
                 <FiAlignLeft />
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().setTextAlign("center").run()}
-                className={buttonClass}
-                title="Align Center"
-              >
+              <button onClick={() => editor.chain().focus().setTextAlign("center").run()} className={buttonClass}>
                 <FiAlignCenter />
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().setTextAlign("right").run()}
-                className={buttonClass}
-                title="Align Right"
-              >
+              <button onClick={() => editor.chain().focus().setTextAlign("right").run()} className={buttonClass}>
                 <FiAlignRight />
               </button>
 
-              {/* HEADINGS */}
-              <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                className={buttonClass}
-                title="Heading 1"
-              >
+              <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={buttonClass}>
                 H1
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={buttonClass}
-                title="Heading 2"
-              >
+              <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={buttonClass}>
                 H2
               </button>
 
-              <button
-                onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-                className={buttonClass}
-                title="Heading 3"
-              >
+              <button onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={buttonClass}>
                 H3
               </button>
 
             </div>
 
-            {/* DELETE */}
+            {/* SAVE */}
+
             <button
-              onClick={() => onDelete(section.id)}
-              className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm px-4 py-2.5 text-center leading-5 mt-4"
-              title="Delete section"
+              onClick={handleSave}
+              disabled={!hasChanges || isSaving}
+              className={`flex items-center justify-center gap-2 font-medium rounded-lg text-sm px-4 py-2.5 mt-4 ${hasChanges && !isSaving
+                  ? "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/50"
+                  : "bg-gray-400 cursor-not-allowed text-gray-600"
+                }`}
+            >
+
+              <FiSave />
+
+              {isSaving
+                ? "Saving..."
+                : "Save"}
+
+            </button>
+
+            {/* MOVE */}
+
+            <div className="grid grid-cols-2 gap-3 mt-4">
+
+              <button
+                onClick={onMoveUp}
+                disabled={isFirst}
+                className={buttonClass}
+              >
+                <FiArrowUp />
+              </button>
+
+              <button
+                onClick={onMoveDown}
+                disabled={isLast}
+                className={buttonClass}
+              >
+                <FiArrowDown />
+              </button>
+
+            </div>
+
+            {/* DELETE */}
+
+            <button
+              onClick={() =>
+                onDelete(section.id)
+              }
+              className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 rounded-lg text-sm px-4 py-2.5 mt-4"
             >
               ✕
             </button>
 
           </div>
-        )}
-      </div>
-    </div>
-  )
-}
 
-export default TextEditorSection
+        )}
+
+      </div>
+
+    </div>
+  );
+};
+
+export default TextEditorSection;

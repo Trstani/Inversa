@@ -13,7 +13,7 @@ const Home = () => {
   const [projects, setProjects] = useState([]);
   const [follows, setFollows] = useState([]);
   const [readingHistory, setReadingHistory] = useState([]);
-  const [continueReading, setContinueReading] = useState(null);
+ 
 
   useEffect(() => {
 
@@ -26,18 +26,23 @@ const Home = () => {
 
         if (isAuthenticated && user) {
 
-          // FOLLOW - Get user's following projects
+          // FOLLOWED PROJECTS
           try {
-            const followingResponse = await apiClient.users.getFollowing(user.id);
-            const followingUsers = followingResponse.data || [];
-            
-            // Get projects from followed users
-            const followedProjects = data.filter(p => 
-              followingUsers.some(fu => fu.id === p.initiator_id)
+
+            const followResponse =
+              await apiClient.projects
+                .getMyFollows();
+
+            setFollows(
+              followResponse.data || []
             );
-            setFollows(followedProjects.slice(0, 3));
+
           } catch (err) {
-            console.error('Error loading followed projects:', err);
+
+            console.error(
+              "Error loading follows:",
+              err
+            );
           }
 
           // HISTORY - Get reading history
@@ -47,14 +52,6 @@ const Home = () => {
             setReadingHistory(hist.slice(0, 3));
           } catch (err) {
             console.error('Error loading reading history:', err);
-          }
-
-          // CONTINUE READING
-          try {
-            const continueResponse = await apiClient.readingHistory.getContinueReading();
-            setContinueReading(continueResponse.data);
-          } catch (err) {
-            console.error('Error loading continue reading:', err);
           }
 
         }
@@ -91,7 +88,6 @@ const Home = () => {
 
         follows={follows}
         history={readingHistory}
-        continueReading={continueReading}
       />
 
       {/* FEATURED */}

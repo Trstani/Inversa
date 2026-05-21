@@ -24,8 +24,8 @@ const AdminSidebar = ({ current, setCurrent }) => {
           <button
             key={item.id}
             onClick={() => setCurrent(item.id)}
-            className={`flex items-center gap-2 text-left p-2 rounded hover:bg-gradient-to-r from-purple-600 via-purple-600 to-purple-700 :bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800
-            ${current === item.id ? "bg-gradient-to-r from-purple-600 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 font-semibold" : ""}`}
+            className={`flex items-center gap-2 text-left p-2 rounded 
+            ${current === item.id ? "bg-gradient-to-r from-indigo-500 via-indigo-600 to-indigo-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-indigo-300 dark:focus:ring-indigo-800 font-semibold" : ""}`}
           >
             {item.icon}
             {item.label}

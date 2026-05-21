@@ -1,133 +1,301 @@
 // pages/TeamEditorPage.jsx
 
-import React, { useState, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import React, {
+  useState,
+  useEffect,
+} from "react";
 
-import { apiClient } from "../api/client";
+import {
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 
-import TeamEditorLayout from "../components/Editor/TeamEditorLayout";
+import {
+  useAuth,
+} from "../context/AuthContext";
+
+import {
+  apiClient,
+} from "../api/client";
+
+import TeamEditorLayout
+  from "../components/Editor/TeamEditorLayout";
 
 const TeamEditorPage = () => {
 
-  const { user } = useAuth();
-  const { projectId, chapterId } = useParams();
-  const navigate = useNavigate();
+  /*
+  =========================
+  HOOKS
+  =========================
+  */
 
-  const [project, setProject] = useState(null);
-  const [chapters, setChapters] = useState([]);
-  const [currentChapter, setCurrentChapter] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [isInitiator, setIsInitiator] = useState(false);
-  const [isTeamMember, setIsTeamMember] = useState(false);
+  const { user } =
+    useAuth();
+
+  const {
+    projectId,
+    chapterId,
+  } = useParams();
+
+  const navigate =
+    useNavigate();
 
   /*
   =========================
-  LOAD PROJECT + CHAPTER
+  STATES
+  =========================
+  */
+
+  const [project, setProject] =
+    useState(null);
+
+  const [chapters, setChapters] =
+    useState([]);
+
+  const [
+    currentChapter,
+    setCurrentChapter,
+  ] = useState(null);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [
+    isInitiator,
+    setIsInitiator,
+  ] = useState(false);
+
+  const [
+    isTeamMember,
+    setIsTeamMember,
+  ] = useState(false);
+
+  /*
+  =========================
+  LOAD DATA
   =========================
   */
 
   useEffect(() => {
 
-    const loadData = async () => {
+    const loadData =
+      async () => {
 
-      if (!projectId || !user?.id) return;
+        if (
+          !projectId ||
+          !user?.id
+        ) {
+          return;
+        }
 
-      try {
+        try {
 
-        const projectData = await getProjectById(projectId);
-        setProject(projectData);
+          /*
+          =========================
+          PROJECT
+          =========================
+          */
 
-        // Check if user is initiator
-        const userIsInitiator = projectData?.initiatorId === user.id;
-        setIsInitiator(userIsInitiator);
+          const projectResponse =
+            await apiClient.projects
+              .getById(projectId);
 
-        // For team projects, check if user is a member of the team
-        let userIsTeamMember = false;
-        if (projectData?.isTeamProject && projectData?.teamId) {
-          const team = await apiClient.teams.getById(projectData.teamId);
-          
-          userIsTeamMember = team?.collaborators?.some(
-            c => c.userId === user.id && c.status === 'approved'
+          const projectData =
+            projectResponse.data;
+
+          setProject(projectData);
+
+          /*
+          =========================
+          INITIATOR
+          =========================
+          */
+
+          const userIsInitiator =
+            projectData?.initiator_id ===
+            user.id;
+
+          setIsInitiator(
+            userIsInitiator
           );
 
-          // If user is neither initiator nor team member, deny access
-          if (!userIsInitiator && !userIsTeamMember) {
-            alert("You don't have access to this project");
+          /*
+          =========================
+          TEAM MEMBER
+          =========================
+          */
+
+          let userIsTeamMember =
+            false;
+
+          if (
+            projectData?.is_team_project &&
+            projectData?.team_id
+          ) {
+
+            const teamResponse =
+              await apiClient.teams
+                .getById(
+                  projectData.team_id
+                );
+
+            const team =
+              teamResponse.data;
+
+            userIsTeamMember =
+              team?.members?.some(
+                (member) =>
+                  member.user_id ===
+                    user.id &&
+                  member.status ===
+                    'approved'
+              );
+
+            /*
+            =========================
+            ACCESS DENIED
+            =========================
+            */
+
+            if (
+              !userIsInitiator &&
+              !userIsTeamMember
+            ) {
+
+              alert(
+                "You don't have access to this project"
+              );
+
+              navigate('/dashboard');
+
+              return;
+            }
+
+          } else if (
+            !userIsInitiator
+          ) {
+
+            alert(
+              "You don't have access to this project"
+            );
+
             navigate('/dashboard');
+
             return;
           }
-        } else if (!userIsInitiator) {
-          // For solo projects, only initiator can access
-          alert("You don't have access to this project");
-          navigate('/dashboard');
-          return;
+
+          setIsTeamMember(
+            userIsTeamMember
+          );
+
+          /*
+          =========================
+          CHAPTERS
+          =========================
+          */
+
+          const chaptersResponse =
+            await apiClient.chapters
+              .getByProject(
+                projectId
+              );
+
+          const allChapters =
+            chaptersResponse.data || [];
+
+          /*
+          =========================
+          LOAD SECTIONS
+          =========================
+          */
+
+          for (
+            const chapter of allChapters
+          ) {
+
+            const sectionsResponse =
+              await apiClient.sections
+                .getByChapter(
+                  chapter.id
+                );
+
+            chapter.sections =
+              sectionsResponse.data || [];
+          }
+
+          setChapters(
+            allChapters
+          );
+
+          /*
+          =========================
+          CURRENT CHAPTER
+          =========================
+          */
+
+          let chapter = null;
+
+          if (chapterId) {
+
+            chapter =
+              allChapters.find(
+                (c) =>
+                  c.id ===
+                  parseInt(chapterId)
+              );
+
+          } else if (
+            allChapters.length > 0
+          ) {
+
+            chapter =
+              allChapters[0];
+          }
+
+          /*
+          =========================
+          LOCK CHECK
+          =========================
+          */
+
+          if (
+            chapter?.locked_by &&
+            chapter.locked_by !==
+              user.id
+          ) {
+
+            alert(
+              "Chapter is edited by another user"
+            );
+
+            navigate(
+              `/project/${projectId}`
+            );
+
+            return;
+          }
+
+          setCurrentChapter(
+            chapter || null
+          );
+
+        } catch (error) {
+
+          console.error(
+            'Error loading editor:',
+            error
+          );
         }
-
-        setIsTeamMember(userIsTeamMember);
-
-        const allChapters = await loadChapters(projectId);
-        setChapters(allChapters);
-
-        let chapter = null;
-
-        if (chapterId) {
-          chapter = allChapters.find(c => c.id === parseInt(chapterId));
-        } else if (allChapters.length > 0) {
-          chapter = allChapters[0];
-        }
-
-        // cek apakah chapter sedang di lock
-        if (chapter?.lockedBy && chapter.lockedBy !== user.id) {
-          alert("Chapter is edited by another user");
-          navigate(`/project/${projectId}`);
-          return;
-        }
-
-        setCurrentChapter(chapter || null);
-
-      } catch (err) {
-
-        console.error(err);
-
-      }
-
-    };
+      };
 
     loadData();
 
-  }, [projectId, chapterId, user?.id, navigate]);
-
-
-  /*
-  =========================
-  LOCK CHAPTER
-  =========================
-  */
-
-  useEffect(() => {
-
-    if (!currentChapter || !user) return;
-
-    try {
-
-      lockChapter(currentChapter.id, user.id);
-
-    } catch (err) {
-
-      alert(err.message);
-      navigate(`/project/${projectId}`);
-
-    }
-
-    return () => {
-
-      unlockChapter(currentChapter.id, user.id);
-
-    };
-
-  }, [currentChapter?.id, user?.id, projectId, navigate]);
-
+  }, [
+    projectId,
+    chapterId,
+    user?.id,
+    navigate,
+  ]);
 
   /*
   =========================
@@ -135,78 +303,188 @@ const TeamEditorPage = () => {
   =========================
   */
 
-  const handleSave = async (chapterData, publishNow = false) => {
+  const handleSave =
+    async (
+      chapterData,
+      publishNow = false
+    ) => {
 
-    setLoading(true);
+      setLoading(true);
 
-    try {
+      try {
 
-      await saveChapter({
-        ...chapterData,
-        projectId: parseInt(projectId),
-        authorId: user.id,
-        status: publishNow ? "published" : "draft"
-      });
+        /*
+        =========================
+        UPDATE CHAPTER
+        =========================
+        */
 
-      // reload chapters
-      const updated = await loadChapters(projectId);
-      setChapters(updated);
+        await apiClient.chapters
+          .update(
+            chapterData.id,
+            {
+              title:
+                chapterData.title,
+            }
+          );
 
-      // update current chapter
-      if (chapterData.id === currentChapter?.id) {
+       
+        /*
+        =========================
+        PUBLISH
+        =========================
+        */
 
-        const updatedCurrent = updated.find(c => c.id === chapterData.id);
-        setCurrentChapter(updatedCurrent || null);
+        if (publishNow) {
 
+          await apiClient.chapters
+            .publish(
+              chapterData.id
+            );
+        }
+
+        /*
+        =========================
+        RELOAD CHAPTERS
+        =========================
+        */
+
+        const chaptersResponse =
+          await apiClient.chapters
+            .getByProject(
+              projectId
+            );
+
+        const updatedChapters =
+          chaptersResponse.data || [];
+
+        /*
+        =========================
+        LOAD SECTIONS
+        =========================
+        */
+
+        for (
+          const chapter of updatedChapters
+        ) {
+
+          const sectionsResponse =
+            await apiClient.sections
+              .getByChapter(
+                chapter.id
+              );
+
+          chapter.sections =
+            sectionsResponse.data || [];
+        }
+
+        setChapters(
+          updatedChapters
+        );
+
+        /*
+        =========================
+        UPDATE CURRENT
+        =========================
+        */
+
+        const updatedCurrent =
+          updatedChapters.find(
+            (c) =>
+              c.id ===
+              chapterData.id
+          );
+
+        setCurrentChapter(
+          updatedCurrent || null
+        );
+
+        alert(
+          publishNow
+            ? 'Chapter published!'
+            : 'Draft saved!'
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          'Failed to save chapter'
+        );
+
+      } finally {
+
+        setLoading(false);
       }
-
-      // unlock setelah save
-      unlockChapter(chapterData.id, user.id);
-
-      alert(publishNow ? "Chapter published!" : "Draft saved!");
-
-    } catch (err) {
-
-      console.error(err);
-      alert("Failed to save chapter");
-
-    } finally {
-
-      setLoading(false);
-
-    }
-
-  };
-
+    };
 
   /*
   =========================
-  UPDATE CHAPTER LIST
+  CHAPTERS CHANGE
   =========================
   */
 
-  const handleChaptersChange = async () => {
+  const handleChaptersChange =
+    async () => {
 
-    const updated = await loadChapters(projectId);
-    setChapters(updated);
+      try {
 
-  };
+        const response =
+          await apiClient.chapters
+            .getByProject(
+              projectId
+            );
 
+        const updatedChapters =
+          response.data || [];
+
+        for (
+          const chapter of updatedChapters
+        ) {
+
+          const sectionsResponse =
+            await apiClient.sections
+              .getByChapter(
+                chapter.id
+              );
+
+          chapter.sections =
+            sectionsResponse.data || [];
+        }
+
+        setChapters(
+          updatedChapters
+        );
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    };
 
   /*
   =========================
-  GUARD
+  LOADING
   =========================
   */
 
   if (!project) {
-  return (
-    <div className="flex items-center justify-center h-screen">
-      Loading editor...
-    </div>
-  );
-}
 
+    return (
+
+      <div
+        className="
+          flex items-center
+          justify-center
+
+          h-screen
+        "
+      >
+        Loading editor...
+      </div>
+    );
+  }
 
   /*
   =========================
@@ -223,15 +501,20 @@ const TeamEditorPage = () => {
       onSelectChapter={setCurrentChapter}
       onSave={handleSave}
       loading={loading}
-      onBack={() => navigate(`/project/${projectId}`)}
-      onChaptersChange={handleChaptersChange}
+      onBack={() =>
+        navigate(
+          `/project/${projectId}`
+        )
+      }
+      onChaptersChange={
+        handleChaptersChange
+      }
       isInitiator={isInitiator}
       isTeamMember={isTeamMember}
       user={user}
     />
 
   );
-
 };
 
 export default TeamEditorPage;

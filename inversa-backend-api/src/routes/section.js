@@ -8,6 +8,8 @@ import {
   update,
   remove,
   reorder,
+  lock,
+  unlock,
 } from '../controllers/sectionController.js';
 
 const router = express.Router();
@@ -39,6 +41,18 @@ router.patch(
   '/:id/reorder',
   authMiddleware,
   reorder
+);
+
+router.post(
+  '/:id/lock',
+  authMiddleware,
+  lock
+);
+
+router.post(
+  '/:id/unlock',
+  authMiddleware,
+  unlock
 );
 
 export default router;

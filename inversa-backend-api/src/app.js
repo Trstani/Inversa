@@ -10,6 +10,14 @@ import userRoutes from './routes/users.js';
 import projectRoutes from './routes/projects.js';
 import chapterRoutes from './routes/chapters.js';
 import sectionRoutes from './routes/section.js';
+import teamRoutes from './routes/teams.js';
+import teamRequestRoutes from './routes/teamRequests.js';
+import brainstormRoutes from './routes/brainstorm.js';
+import commentRoutes from './routes/comments.js';
+import reportRoutes from './routes/reports.js';
+import readingHistoryRoutes from './routes/readingHistory.js';
+
+import adminRoutes from './routes/admin.js';
 
 import pool from './config/database.js';
 import authMiddleware from './middleware/authMiddleware.js';
@@ -56,6 +64,13 @@ app.use('/api/users', userRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/chapters', chapterRoutes);
 app.use('/api/sections', sectionRoutes);
+app.use('/api/teams', teamRoutes);
+app.use('/api/brainstorm', brainstormRoutes);
+app.use('/api/team-requests', teamRequestRoutes);
+app.use('/api/comments', commentRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/reading-history', readingHistoryRoutes);
 
 app.get('/api/test-db', async (req, res) => {
   try {

@@ -1,36 +1,34 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiArrowLeft, FiUsers, FiFolder, FiUserPlus, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiFolder, FiTrash2, FiPlus } from 'react-icons/fi';
 import { apiClient } from '../api/client';
+import DashboardProjectCard from '../components/DashboardProjectCard';
 import CreateTeamProjectModal from './components/CreateTeamProjectModal';
-import CardProject from '../components/CardProject';
+import TeamJoinRequestModal from './components/TeamJoinRequestModal';
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  
   const [team, setTeam] = useState(null);
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
+  const [showJoinModal, setShowJoinModal] = useState(false);
+  const [requests, setRequests] = useState([]);
 
-  useEffect(() => {
-    loadTeamData();
-  }, [teamId]);
+  useEffect(() => { loadTeamData(); }, [teamId]);
 
   const loadTeamData = async () => {
     setLoading(true);
     try {
-      const teamData = await getTeamById(teamId);
+      const teamData = (await apiClient.teams.getById(teamId)).data;
       setTeam(teamData);
-
-      if (teamData) {
-        const teamProjects = await getTeamProjects(teamId);
-        setProjects(teamProjects);
-      }
+      const projRes = await apiClient.teams.getProjects(teamId);
+      setProjects(projRes.data || []);
+      const reqRes = await apiClient.teams.getRequests(teamId);
+      setRequests(reqRes.data || []);
     } catch (error) {
       console.error('Error loading team:', error);
     } finally {
@@ -38,178 +36,175 @@ const TeamDetailPage = () => {
     }
   };
 
-  const handleRemoveMember = async (memberId) => {
-    if (window.confirm('Remove this member from the team?')) {
-      try {
-        await removeTeamCollaborator(teamId, memberId);
-        await loadTeamData();
-      } catch (error) {
-        console.error('Error removing member:', error);
-        alert('Failed to remove member');
-      }
-    }
-  };
-
   const handleDeleteTeam = async () => {
-    if (window.confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
-      try {
-        await deleteTeam(teamId);
-        navigate('/dashboard/teams');
-      } catch (error) {
-        console.error('Error deleting team:', error);
-        alert('Failed to delete team');
-      }
+    if (!window.confirm('Delete this team permanently?')) return;
+    try {
+      await apiClient.teams.delete(teamId);
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting team:', error);
+      alert('Failed to delete team');
     }
   };
 
-  const isTeamOwner = team?.initiatorId === user?.id;
+  const handleDeleteProject = async (projectId) => {
+    if (!window.confirm('Delete this project?')) return;
+    try {
+      await apiClient.projects.delete(projectId);
+      await loadTeamData();
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      alert('Failed to delete project');
+    }
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-light-secondary dark:text-dark-secondary">Loading team...</p>
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-screen bg-light-background dark:bg-dark-background">
+      <p className="text-light-secondary dark:text-dark-secondary">Loading team...</p>
+    </div>
+  );
 
-  if (!team) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-light-secondary dark:text-dark-secondary mb-4">Team not found</p>
-          <button
-            onClick={() => navigate('/dashboard/teams')}
-            className="px-4 py-2 bg-light-accent dark:bg-dark-accent text-white rounded hover:opacity-90"
-          >
-            Back to Teams
-          </button>
-        </div>
+  if (!team) return (
+    <div className="flex items-center justify-center min-h-screen bg-light-background dark:bg-dark-background">
+      <div className="text-center">
+        <p className="text-light-secondary dark:text-dark-secondary mb-4">Team not found</p>
+        <button onClick={() => navigate('/dashboard')} className="px-5 py-2.5 rounded-xl bg-light-accent dark:bg-dark-accent text-white font-medium hover:opacity-90 transition-all">Back</button>
       </div>
-    );
-  }
+    </div>
+  );
+
+  const isOwner = team.initiator_id === user?.id;
+  const isMember = team.members?.some(m => m.user_id === user?.id);
+  const hasPendingRequest = requests.some(r => r.user_id === user?.id && r.status === 'pending');
+  const memberCount = team.members?.length || 0;
+  const hasBackground = team.background_image && team.background_image.trim() !== '';
 
   return (
-    <div className="min-h-screen bg-light-background dark:bg-dark-background py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        {/* Back Button */}
-        <button
-          onClick={() => navigate('/dashboard/teams')}
-          className="flex items-center gap-2 text-light-accent dark:text-dark-accent hover:opacity-80 mb-6"
+    <div className="min-h-screen bg-light-background dark:bg-dark-background py-6 sm:py-8 md:py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
+        
+        {/* BACK BUTTON */}
+        <button 
+          onClick={() => navigate('/dashboard')} 
+          className="flex items-center gap-2 mb-6 sm:mb-8 text-light-accent dark:text-dark-accent hover:opacity-80 transition-all font-medium"
         >
-          <FiArrowLeft className="w-5 h-5" />
-          Back to Teams
+          <FiArrowLeft className="w-5 h-5" /> Back to Dashboard
         </button>
 
-        {/* Team Header */}
-        <div className="card p-4 sm:p-6 mb-6">
-          {team.backgroundImage && (
-            <div
-              className="w-full h-48 rounded-lg mb-4 bg-cover bg-center"
-              style={{ backgroundImage: `url(${team.backgroundImage})` }}
-            />
-          )}
-
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-light-primary dark:text-dark-primary mb-2">
-                {team.title}
-              </h1>
-              <p className="text-sm sm:text-base text-light-secondary dark:text-dark-secondary mb-4">
-                {team.description}
-              </p>
+        {/* HERO SECTION */}
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-light-border dark:border-dark-border bg-gradient-to-br from-light-surface via-light-background to-light-surface dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 sm:p-8 md:p-10 mb-8 sm:mb-10 md:mb-12">
+          {hasBackground && (
+            <div className="absolute inset-0">
+              <img src={team.background_image} alt={team.title} className="w-full h-full object-cover opacity-[0.08] dark:opacity-[0.10]" />
+              <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/85 to-white/95 dark:from-black/20 dark:via-slate-950/70 dark:to-slate-950/95" />
             </div>
-
-            {isTeamOwner && (
-              <button
-                onClick={handleDeleteTeam}
-                className="p-2 bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 transition"
-              >
-                <FiTrash2 className="w-5 h-5" />
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {/* Team Members */}
-          <div className="lg:col-span-1">
-            <div className="card p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-light-primary dark:text-dark-primary flex items-center gap-2">
-                  <FiUsers className="w-5 h-5" />
-                  Members
-                </h2>
-                {isTeamOwner && (
-                  <button
-                    onClick={() => setShowInviteModal(true)}
-                    className="p-2 bg-light-accent/10 dark:bg-dark-accent/10 text-light-accent dark:text-dark-accent rounded hover:bg-light-accent/20 dark:hover:bg-dark-accent/20"
+          )}
+          
+          <div className="relative z-10">
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 md:gap-8">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 rounded-full bg-light-accent/10 dark:bg-dark-accent/10 px-4 py-2 text-sm font-medium text-light-accent dark:text-dark-accent mb-5">
+                  <FiUsers className="w-4 h-4" /> Team Workspace
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-light-primary dark:text-dark-primary mb-4">
+                  {team.title}
+                </h1>
+                <p className="max-w-3xl text-sm sm:text-base text-light-secondary dark:text-dark-secondary leading-relaxed">
+                  {team.description}
+                </p>
+              </div>
+              
+              <div className="flex gap-3 flex-shrink-0">
+                {!isOwner && !isMember && (
+                  <button 
+                    onClick={() => setShowJoinModal(true)} 
+                    disabled={hasPendingRequest}
+                    className="rounded-xl bg-light-accent dark:bg-dark-accent px-5 py-3 text-sm font-medium text-white hover:opacity-90 transition-all disabled:opacity-50 whitespace-nowrap"
                   >
-                    <FiUserPlus className="w-4 h-4" />
+                    {hasPendingRequest ? 'Request Pending' : 'Join Team'}
+                  </button>
+                )}
+                {isOwner && (
+                  <button 
+                    onClick={handleDeleteTeam} 
+                    className="flex items-center justify-center rounded-xl bg-red-500/10 hover:bg-red-500/20 px-4 py-3 text-red-500 transition-all"
+                    title="Delete team"
+                  >
+                    <FiTrash2 className="w-5 h-5" />
                   </button>
                 )}
               </div>
+            </div>
+            
+            <div className="mt-8 flex flex-wrap items-center gap-6 sm:gap-8 text-sm text-light-secondary dark:text-dark-secondary pt-6 sm:pt-8 border-t border-light-border dark:border-dark-border">
+              <div className="flex items-center gap-2">
+                <FiUsers className="w-4 h-4" /> 
+                <span className="font-medium">{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FiFolder className="w-4 h-4" /> 
+                <span className="font-medium">{projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-              <div className="space-y-3">
-                {/* Show all team members from collaborators list (includes owner) */}
-                {team.collaborators?.map(collaborator => {
-                  const memberUser = findUserById(collaborator.userId);
-                  const isCurrentUser = collaborator.userId === user?.id;
-                  const isOwner = collaborator.userId === team.initiatorId;
-
-                  return (
-                    <div
-                      key={collaborator.userId}
-                      className="p-3 bg-light-surface dark:bg-dark-surface rounded flex justify-between items-center"
-                    >
-                      <div>
-                        <p className="font-medium text-light-primary dark:text-dark-primary">
-                          {isCurrentUser ? 'You' : memberUser?.name || `User ${collaborator.userId}`}
-                        </p>
-                        <p className="text-xs text-light-secondary dark:text-dark-secondary capitalize">
-                          {isOwner ? 'Team Owner' : collaborator.role || 'Member'}
-                        </p>
+        {/* CONTENT GRID */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 md:gap-10">
+          
+          {/* MEMBERS SECTION */}
+          <div className="lg:col-span-4">
+            <div className="rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 sm:p-8">
+              <h2 className="text-xl font-semibold text-light-primary dark:text-dark-primary mb-6">Team Members</h2>
+              <div className="space-y-2">
+                {team.members?.map(member => (
+                  <Link key={member.user_id} to={`/profile/${member.user_id}`} className="block transition-all duration-300 hover:scale-[1.01]">
+                    <div className="flex items-center justify-between rounded-xl bg-light-background dark:bg-dark-background p-4 hover:bg-light-accent/5 dark:hover:bg-dark-accent/5 transition-colors">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 overflow-hidden rounded-full bg-light-accent/10 dark:bg-dark-accent/10 flex items-center justify-center shrink-0">
+                          {member.profile_image ? (
+                            <img src={member.profile_image} alt={member.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-sm font-bold text-light-accent dark:text-dark-accent">{member.name?.charAt(0)?.toUpperCase()}</span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium text-light-primary dark:text-dark-primary truncate">{member.name}</p>
+                          <p className="text-xs sm:text-sm capitalize text-light-secondary dark:text-dark-secondary">{member.role}</p>
+                        </div>
                       </div>
-
-                      {isTeamOwner && !isOwner && (
-                        <button
-                          onClick={() => handleRemoveMember(collaborator.userId)}
-                          className="p-1 text-red-500 hover:bg-red-500/10 rounded transition"
-                        >
-                          <FiTrash2 className="w-4 h-4" />
-                        </button>
-                      )}
                     </div>
-                  );
-                })}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Team Projects */}
-          <div className="lg:col-span-2">
-            <div className="card p-4 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg sm:text-xl font-semibold text-light-primary dark:text-dark-primary flex items-center gap-2">
-                  <FiFolder className="w-5 h-5" />
-                  Projects ({projects.length})
-                </h2>
-                <button
-                  onClick={() => setShowCreateProjectModal(true)}
-                  className="flex items-center gap-2 px-3 py-2 bg-light-accent/10 dark:bg-dark-accent/10 text-light-accent dark:text-dark-accent rounded hover:bg-light-accent/20 dark:hover:bg-dark-accent/20 transition text-sm font-medium"
-                >
-                  <FiPlus className="w-4 h-4" />
-                  New Project
-                </button>
+          {/* PROJECTS SECTION */}
+          <div className="lg:col-span-8">
+            <div className="rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 sm:p-8">
+              <div className="flex items-center justify-between mb-6 sm:mb-8">
+                <h2 className="text-xl font-semibold text-light-primary dark:text-dark-primary">Team Projects</h2>
+                {isMember && (
+                  <button 
+                    onClick={() => setShowCreateProjectModal(true)} 
+                    className="flex items-center gap-2 rounded-xl bg-light-accent dark:bg-dark-accent px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-all whitespace-nowrap"
+                  >
+                    <FiPlus className="w-4 h-4" /> New Project
+                  </button>
+                )}
               </div>
-
+              
               {projects.length === 0 ? (
-                <p className="text-light-secondary dark:text-dark-secondary text-center py-8">
-                  No projects yet. Create one to get started!
-                </p>
+                <div className="py-12 sm:py-16 text-center">
+                  <FiFolder className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 text-light-secondary dark:text-dark-secondary opacity-40" />
+                  <p className="text-light-secondary dark:text-dark-secondary">No projects yet.</p>
+                  <p className="mt-2 text-sm text-light-secondary dark:text-dark-secondary opacity-75">Create your first team project to get started</p>
+                </div>
               ) : (
-                <div className="space-y-5">
+                <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
                   {projects.map(project => (
-                    <CardProject key={project.id} project={project} />
+                    <DashboardProjectCard key={project.id} project={project} onDelete={handleDeleteProject} />
                   ))}
                 </div>
               )}
@@ -218,37 +213,26 @@ const TeamDetailPage = () => {
         </div>
       </div>
 
-      {/* Create Project Modal */}
+      {showJoinModal && (
+        <TeamJoinRequestModal
+          isOpen={showJoinModal}
+          onClose={() => setShowJoinModal(false)}
+          team={team}
+          onSubmit={async (data) => {
+            await apiClient.teams.createRequest({ team_id: parseInt(teamId), role: data.role, reason: data.reason });
+            await loadTeamData();
+            setShowJoinModal(false);
+          }}
+        />
+      )}
+
       {showCreateProjectModal && (
         <CreateTeamProjectModal
           isOpen={showCreateProjectModal}
           onClose={() => setShowCreateProjectModal(false)}
-          onSuccess={() => {
-            setShowCreateProjectModal(false);
-            loadTeamData();
-          }}
+          onSuccess={() => { setShowCreateProjectModal(false); loadTeamData(); }}
           teamId={teamId}
         />
-      )}
-
-      {/* Invite Modal - Placeholder */}
-      {showInviteModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="card p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-semibold text-light-primary dark:text-dark-primary mb-4">
-              Invite Members
-            </h2>
-            <p className="text-light-secondary dark:text-dark-secondary mb-4">
-              Invite feature coming soon
-            </p>
-            <button
-              onClick={() => setShowInviteModal(false)}
-              className="w-full px-4 py-2 bg-light-accent dark:bg-dark-accent text-white rounded hover:opacity-90"
-            >
-              Close
-            </button>
-          </div>
-        </div>
       )}
     </div>
   );

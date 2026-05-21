@@ -135,7 +135,7 @@ const Footer = () => {
                       className="flex items-center space-x-2 hover:text-light-primary dark:hover:text-dark-primary"
                     >
                       <FiUsers className="w-4 h-4" />
-                      <span>Collaborations</span>
+                      <span>Teams</span>
                     </Link>
                   </li>
                 </>
