@@ -26,6 +26,7 @@ const EditorBody = ({
   const MAX_TOTAL = 20;
   const MAX_TEXT = 15;
   const MAX_IMAGE = 5;
+  
   useEffect(() => {
 
   socket.on(
@@ -39,9 +40,22 @@ const EditorBody = ({
     }
   );
 
+  socket.on(
+    'connect_error',
+    (err) => {
+
+      console.error(
+        '❌ Socket error:',
+        err
+      );
+
+    }
+  );
+
   return () => {
 
     socket.off('connect');
+    socket.off('connect_error');
 
   };
 
