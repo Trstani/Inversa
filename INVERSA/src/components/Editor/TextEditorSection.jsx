@@ -335,7 +335,7 @@ const TextEditorSection = ({
 
         <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-50 flex items-center justify-center rounded-xl">
 
-          <div className="bg-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium">
+          <div className="bg-white px-5 py-3 rounded-lg shadow-lg text-sm font-medium dark:bg-dark-background dark:text-white">
             Section is being edited
           </div>
 
