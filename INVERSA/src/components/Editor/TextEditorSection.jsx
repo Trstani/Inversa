@@ -56,9 +56,9 @@ const TextEditorSection = ({
     section.content || ""
   );
 
-  const [isLocked, setIsLocked] =
-      section.locked_by &&
-      section.locked_by !== user?.id
+  const isLocked =
+    !!section.locked_by &&
+    section.locked_by !== user?.id;
 
   const [locking, setLocking] =
     useState(false);
@@ -185,7 +185,7 @@ const TextEditorSection = ({
     ],
 
     content:
-      section.content || "",
+      section.content ?? "",
 
     editable:
       canEdit && !isLocked,
@@ -249,7 +249,7 @@ const TextEditorSection = ({
     ) {
 
       editor.commands.setContent(
-        section.content || ""
+        section.content ?? ""
       );
     }
 
