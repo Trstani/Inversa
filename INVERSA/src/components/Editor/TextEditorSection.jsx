@@ -19,6 +19,7 @@ import {
 } from "react-icons/fi";
 
 import { apiClient } from "../../api/client";
+import { socket } from "../../socket/socket";
 import { useAuth } from "../../context/AuthContext";
 
 const TextEditorSection = ({
@@ -56,10 +57,8 @@ const TextEditorSection = ({
   );
 
   const [isLocked, setIsLocked] =
-    useState(
       section.locked_by &&
       section.locked_by !== user?.id
-    );
 
   const [locking, setLocking] =
     useState(false);
@@ -86,6 +85,14 @@ const TextEditorSection = ({
 
       await apiClient.sections.lock(
         section.id
+      );
+
+      socket.emit(
+        "lock_section",
+        {
+          sectionId: section.id,
+          userId: user.id,
+        }
       );
 
       setIsLocked(false);
@@ -116,6 +123,13 @@ const TextEditorSection = ({
 
         await apiClient.sections.unlock(
           section.id
+        );
+
+        socket.emit(
+          "unlock_section",
+          {
+            sectionId: section.id,
+          }
         );
 
       } catch (error) {

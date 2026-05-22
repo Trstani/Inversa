@@ -28,6 +28,48 @@ io.on(
       socket.id
     );
 
+    /*
+    =========================
+    LOCK SECTION
+    =========================
+    */
+
+    socket.on(
+      'lock_section',
+      (data) => {
+
+        socket.broadcast.emit(
+          'section_locked',
+          data
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    UNLOCK SECTION
+    =========================
+    */
+
+    socket.on(
+      'unlock_section',
+      (data) => {
+
+        socket.broadcast.emit(
+          'section_unlocked',
+          data
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    DISCONNECT
+    =========================
+    */
+
     socket.on(
       'disconnect',
       () => {

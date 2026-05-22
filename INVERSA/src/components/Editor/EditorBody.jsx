@@ -4,8 +4,8 @@ import EditorActions from "./EditorActions";
 import TextEditorSection from "./TextEditorSection";
 import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
-import { apiClient } from "../../api/client";
 import { socket }from '../../socket/socket';
+import { apiClient } from "../../api/client";
 const EditorBody = ({
   chapter,
   chapters,
@@ -26,40 +26,96 @@ const EditorBody = ({
   const MAX_TOTAL = 20;
   const MAX_TEXT = 15;
   const MAX_IMAGE = 5;
-  
+
   useEffect(() => {
 
-  socket.on(
-    'connect',
-    () => {
+    /*
+    =========================
+    SECTION LOCKED
+    =========================
+    */
 
-      console.log(
-        '⚡ Socket connected'
+    socket.on(
+      'section_locked',
+      ({ sectionId, userId }) => {
+
+        setSections((prev) =>
+          prev.map((sec) => {
+
+            if (
+              sec.id === sectionId
+            ) {
+
+              return {
+
+                ...sec,
+                locked_by: userId,
+
+              };
+
+            }
+
+            return sec;
+
+          })
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    SECTION UNLOCKED
+    =========================
+    */
+
+    socket.on(
+      'section_unlocked',
+      ({ sectionId }) => {
+
+        setSections((prev) =>
+          prev.map((sec) => {
+
+            if (
+              sec.id === sectionId
+            ) {
+
+              return {
+
+                ...sec,
+                locked_by: null,
+
+              };
+
+            }
+
+            return sec;
+
+          })
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    CLEANUP
+    =========================
+    */
+
+    return () => {
+
+      socket.off(
+        'section_locked'
       );
 
-    }
-  );
-
-  socket.on(
-    'connect_error',
-    (err) => {
-
-      console.error(
-        '❌ Socket error:',
-        err
+      socket.off(
+        'section_unlocked'
       );
 
-    }
-  );
+    };
 
-  return () => {
-
-    socket.off('connect');
-    socket.off('connect_error');
-
-  };
-
-}, []);
+  }, []);
 
   const loadSections = async () => {
     try {
