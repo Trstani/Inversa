@@ -5,7 +5,7 @@ import TextEditorSection from "./TextEditorSection";
 import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
 import { apiClient } from "../../api/client";
-
+import { socket }from '../../socket/socket';
 const EditorBody = ({
   chapter,
   chapters,
@@ -26,6 +26,26 @@ const EditorBody = ({
   const MAX_TOTAL = 20;
   const MAX_TEXT = 15;
   const MAX_IMAGE = 5;
+  useEffect(() => {
+
+  socket.on(
+    'connect',
+    () => {
+
+      console.log(
+        '⚡ Socket connected'
+      );
+
+    }
+  );
+
+  return () => {
+
+    socket.off('connect');
+
+  };
+
+}, []);
 
   const loadSections = async () => {
     try {
@@ -113,6 +133,8 @@ const EditorBody = ({
   if (!chapter) {
     return <div>Loading...</div>;
   }
+
+  
 
 
   const isDraft = chapter.status === "draft";
