@@ -39,11 +39,9 @@ const HeroFst = () => {
         <div className="max-w-2xl text-white">
 
           {/* LOGO IMAGE */}
-          <img 
-            src="/INVERSA.png" 
-            alt="INVERSA Logo" 
-            className="h-16 sm:h-20 md:h-24 mb-6 sm:mb-8"
-          />
+          <h1 className="text-4xl md:text-6xl font-bold font-logo leading-tight">
+            <span className="block text-dark-accent">I</span>NVERSA
+          </h1>
 
           <h1 className="text-4xl md:text-6xl font-bold font-logo leading-tight">
             Kolaborasi Kreatif

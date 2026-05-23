@@ -272,6 +272,31 @@ const TextEditorSection = ({
 
   }, []);
 
+  useEffect(() => {
+
+    const handleBeforeUnload =
+      () => {
+
+        handleUnlock();
+
+      };
+
+    window.addEventListener(
+      'beforeunload',
+      handleBeforeUnload
+    );
+
+    return () => {
+
+      window.removeEventListener(
+        'beforeunload',
+        handleBeforeUnload
+      );
+
+    };
+
+  }, []);
+
   /*
   =========================
   SAVE
