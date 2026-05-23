@@ -250,25 +250,25 @@ export const createTask =
         assigned_to,
         chapter_id,
         section_id,
-        status,
+        due_date,
+        status
       } = req.body;
 
       if (!title?.trim()) {
 
         return res.status(400).json({
           success: false,
-          message: 'Task title is required',
+          message: 'Task title is required'
         });
+
       }
 
       const task =
         await createTaskService({
 
-          projectId:
-            req.params.projectId,
+          projectId: req.params.projectId,
 
-          title:
-            title.trim(),
+          title: title.trim(),
 
           description,
 
@@ -278,23 +278,29 @@ export const createTask =
 
           section_id,
 
-          status,
+          due_date,
+
+          status
+
         });
 
       res.status(201).json({
         success: true,
-        data: task,
+        data: task
       });
 
-    } catch (error) {
+    }
+    catch (error) {
 
       console.error(error);
 
       res.status(500).json({
         success: false,
-        message: error.message,
+        message: error.message
       });
+
     }
+
   };
 
 export const updateTask =

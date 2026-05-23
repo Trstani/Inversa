@@ -85,9 +85,9 @@ export const onIdeaDeleted = (callback) => {
   socket.on('idea_deleted', callback);
 };
 
-export const emitIdeaVoted = (projectId, ideaId, userId) => {
+export const emitIdeaVoted = (projectId, ideaId, userId, voted) => {
   const socket = getSocket();
-  socket.emit('idea_voted', { projectId, ideaId, userId });
+  socket.emit('idea_voted', { projectId, ideaId, userId, voted });
 };
 
 export const onIdeaVoted = (callback) => {

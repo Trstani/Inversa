@@ -150,13 +150,13 @@ io.on(
 
     socket.on(
       'idea_voted',
-      ({ projectId, ideaId, userId }) => {
+      ({ projectId, ideaId, userId, voted }) => {
 
         const roomName = `brainstorm_${projectId}`;
 
         io.to(roomName).emit(
           'idea_voted',
-          { ideaId, userId }
+          { ideaId, userId, voted }
         );
 
         console.log(

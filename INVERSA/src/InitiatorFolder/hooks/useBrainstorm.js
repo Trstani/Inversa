@@ -105,6 +105,8 @@ async(id)=>{
  .brainstorm
  .voteIdea(projectId,id);
 
+ return res.data;
+
 };
 
 const createTask=

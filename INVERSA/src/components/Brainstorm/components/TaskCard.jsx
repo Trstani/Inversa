@@ -8,6 +8,7 @@ import {
   FiPlay,
   FiLoader,
   FiUser,
+  FiCalendar,
 } from 'react-icons/fi';
 
 const TaskCard = ({
@@ -63,6 +64,20 @@ const TaskCard = ({
     task.chapterReference ||
 
     null;
+
+  /*
+=========================
+DUE DATE
+=========================
+*/
+
+  const dueDate =
+
+    task.due_date ||
+
+    task.dueDate ||
+
+    null;  
 
   /*
   =========================
@@ -291,6 +306,33 @@ const TaskCard = ({
           {
             getChapterTitle(
               chapterId
+            )
+          }
+
+        </div>
+
+      )}
+
+      {/* DUE DATE */}
+
+      {dueDate && (
+
+        <div className=" mb-3 text-xs text-light-secondary dark:text-dark-secondary flex items-center gap-1">
+
+          <FiCalendar className="w-3 h-3" />
+
+          {
+            new Date(
+              dueDate
+            ).toLocaleString(
+              'ID-id',
+              {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+              }
             )
           }
 

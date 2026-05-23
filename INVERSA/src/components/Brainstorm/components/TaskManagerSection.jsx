@@ -38,6 +38,8 @@ const TaskManagerSection = ({
 
   onTaskAssignChange,
 
+  onTaskDueDateChange,
+
   onAddTask,
 
   onDeleteTask,
@@ -577,6 +579,62 @@ const TaskManagerSection = ({
             )}
 
           </select>
+
+          {/* DUE DATE */}
+
+          <div className="space-y-1">
+
+            <label
+              className="
+      text-sm
+      font-medium
+
+      text-light-primary
+      dark:text-dark-primary
+    "
+            >
+              Due Date
+            </label>
+
+            <input
+              type="datetime-local"
+
+              value={
+                newTask.dueDate ||
+
+                newTask.due_date ||
+
+                ''
+              }
+
+              onChange={(e) =>
+                onTaskDueDateChange(
+                  e.target.value
+                )
+              }
+
+              className="
+      w-full
+
+      px-4 py-2
+
+      rounded-xl
+
+      bg-light-background
+      dark:bg-dark-background
+
+      border
+      border-light-accent/20
+      dark:border-dark-accent/20
+
+      text-light-primary
+      dark:text-dark-primary
+
+      focus:outline-none
+    "
+            />
+
+          </div>
 
           {/* BUTTON */}
 

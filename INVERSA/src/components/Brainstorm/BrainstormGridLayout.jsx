@@ -74,6 +74,7 @@ const BrainstormGridLayout = ({
     chapterReference: null,
     sectionReference: null,
     assignedTo: null,
+    dueDate:'',
   });
 
   /*
@@ -297,57 +298,78 @@ SOCKET.IO SETUP
 
       };
 
-     const ideaVoted =
-({
-  ideaId,
-  userId
-}) => {
+    const ideaVoted =
+      ({
+        ideaId,
+        userId,
+        voted
+      }) => {
 
-  setSession(prev => ({
+        setSession(prev => ({
 
-    ...prev,
+          ...prev,
 
-    ideas:
-      prev?.ideas?.map(
+          ideas:
+            prev?.ideas?.map(
 
-        idea => {
+              idea => {
 
-          if (
-            idea.id !== ideaId
-          ) return idea;
+                if (
+                  idea.id !== ideaId
+                ) {
+                  return idea;
+                }
 
-          const voters =
-            idea.voters || [];
+                const voters =
+                  idea.voters || [];
 
-          if (
-            voters.includes(
-              userId
-            )
-          ) {
-            return idea;
-          }
+                if (voted) {
 
-          return {
+                  return {
 
-            ...idea,
+                    ...idea,
 
-            voters: [
-              ...voters,
-              userId
-            ],
+                    voters:
+                      voters.includes(userId)
+                        ? voters
+                        : [...voters, userId],
 
-            votes:
-              (idea.votes || 0) + 1
+                    votes:
+                      (idea.votes || 0) +
+                      (
+                        voters.includes(userId)
+                          ? 0
+                          : 1
+                      )
 
-          };
+                  };
 
-        }
+                }
 
-      ) || []
+                return {
 
-  }));
+                  ...idea,
 
-};
+                  voters:
+                    voters.filter(
+                      id => id !== userId
+                    ),
+
+                  votes:
+                    Math.max(
+                      (idea.votes || 0) - 1,
+                      0
+                    )
+
+                };
+
+              }
+
+            ) || []
+
+        }));
+
+      };
 
     const taskUpdated =
       ({
@@ -560,10 +582,9 @@ SOCKET.IO SETUP
     async (ideaId) => {
 
       try {
+        const result = await vote(ideaId);
 
-        await vote(ideaId);
-
-        emitIdeaVoted(projectId, ideaId, user?.id);
+        emitIdeaVoted(projectId, ideaId, user?.id, result.voted);
 
 
 
@@ -607,6 +628,9 @@ SOCKET.IO SETUP
             section_id:
               newTask.sectionReference,
 
+            due_date:
+              newTask.dueDate || null,
+
             status:
               'pending'
 
@@ -625,7 +649,8 @@ SOCKET.IO SETUP
           chapterReference: null,
           sectionReference: null,
 
-          assignedTo: null
+          assignedTo: null,
+          dueDate: ''
 
         });
 
@@ -854,6 +879,13 @@ SOCKET.IO SETUP
                   assignedTo: value,
                 })
               }
+
+                onTaskDueDateChange={(value) =>
+                  setNewTask({
+                    ...newTask,
+                    dueDate: value,
+                  })
+                }
 
               onAddTask={handleAddTask}
 
