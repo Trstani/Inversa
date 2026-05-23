@@ -103,16 +103,15 @@ const ProjectsExplorer = () => {
         </div>
 
         {/* SEARCH SECTION */}
-        <div className="mb-8 sm:mb-10 md:mb-12">
-          <div className="relative">
-            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-light-secondary dark:text-dark-secondary" />
-
+       <div className="mb-8 sm:mb-10 md:mb-12">
+          <div className="relative flex">
+            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-light-secondary dark:text-dark-secondary pointer-events-none" />
             <input
               type="text"
               placeholder="Search projects, stories, or genres..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface px-4 sm:px-5 py-3 sm:py-4 text-sm sm:text-base text-light-primary dark:text-dark-primary placeholder-light-secondary dark:placeholder-dark-secondary outline-none transition-all focus:border-light-accent/50 dark:focus:border-dark-accent/50 focus:shadow-lg"
+              className="w-full rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface pl-12 pr-5 py-3 sm:py-4 text-sm sm:text-base text-light-primary dark:text-dark-primary placeholder-light-secondary dark:placeholder-dark-secondary outline-none transition-all focus:border-light-accent/50 dark:focus:border-dark-accent/50 focus:shadow-lg"
             />
           </div>
         </div>

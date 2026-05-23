@@ -12,6 +12,9 @@ import {
   FiFolder,
   FiArrowRight,
   FiTrash2,
+  FiClock,
+  FiCheck,
+  FiPlus,
 } from 'react-icons/fi';
 
 import {
@@ -22,6 +25,9 @@ const TeamCard = ({
   team,
   onDelete,
   isOwner = false,
+  requestStatus = null,
+  onRequestToJoin = null,
+  showRequestStatus = false,
 }) => {
 
   const navigate =
@@ -100,6 +106,34 @@ const TeamCard = ({
   const hasBackground =
     team.background_image &&
     team.background_image.trim() !== '';
+
+  /*
+  =========================
+  RENDER STATUS INDICATOR
+  =========================
+  */
+
+  const renderStatusIndicator = () => {
+    if (requestStatus === 'pending') {
+      return (
+        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-light-surface dark:bg-dark-surface text-light-secondary dark:text-dark-secondary rounded-lg text-sm font-medium">
+          <FiClock className="w-4 h-4" />
+          <span>Request Pending</span>
+        </div>
+      );
+    }
+
+    if (requestStatus === 'approved') {
+      return (
+        <div className="flex items-center justify-center gap-2 px-3 py-2 bg-green-500/20 text-green-600 dark:text-green-400 rounded-lg text-sm font-medium">
+          <FiCheck className="w-4 h-4" />
+          <span>Approved</span>
+        </div>
+      );
+    }
+
+    return null;
+  };
 
   /*
   =========================
@@ -233,78 +267,122 @@ const TeamCard = ({
 
         {/* ACTIONS */}
 
-        <div className="flex gap-2 mt-auto">
+        <div className="flex flex-col gap-2 mt-auto">
 
-          {/* VIEW TEAM */}
+          {/* STATUS INDICATOR OR ACTION BUTTONS */}
 
-          <button
-            onClick={() =>
-              navigate(`/team/${team.id}`)
-            }
-            className="
-              flex-1
+          {showRequestStatus ? (
+            <>
+              {requestStatus === 'pending' || requestStatus === 'approved' ? (
+                renderStatusIndicator()
+              ) : (
+                <button
+                  onClick={() => onRequestToJoin?.(team)}
+                  className="
+                    w-full
 
-              flex items-center
-              justify-center
-              gap-2
+                    flex items-center
+                    justify-center
+                    gap-2
 
-              px-4 py-2.5 sm:py-3
+                    px-3 py-2
 
-              bg-light-accent/10
-              dark:bg-dark-accent/10
+                    bg-light-accent/10
+                    dark:bg-dark-accent/10
 
-              text-light-accent
-              dark:text-dark-accent
+                    text-light-accent
+                    dark:text-dark-accent
 
-              rounded-lg
+                    rounded-lg
 
-              hover:bg-light-accent/20
-              dark:hover:bg-dark-accent/20
+                    hover:bg-light-accent/20
+                    dark:hover:bg-dark-accent/20
 
-              transition-all duration-300
+                    transition-all duration-300
 
-              text-sm
-              font-medium
-            "
-          >
+                    text-sm
+                    font-medium
+                  "
+                >
+                  <FiPlus className="w-4 h-4" />
+                  Request to Join
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              {/* VIEW TEAM */}
 
-            <FiArrowRight className="w-4 h-4" />
+              <button
+                onClick={() =>
+                  navigate(`/team/${team.id}`)
+                }
+                className="
+                  flex-1
 
-            <span className="hidden sm:inline">View Team</span>
-            <span className="sm:hidden">Open</span>
+                  flex items-center
+                  justify-center
+                  gap-2
 
-          </button>
+                  px-4 py-2.5 sm:py-3
 
-          {/* DELETE */}
+                  bg-light-accent/10
+                  dark:bg-dark-accent/10
 
-          {isOwner && (
+                  text-light-accent
+                  dark:text-dark-accent
 
-            <button
-              onClick={() =>
-                onDelete?.(team.id)
-              }
-              className="
-                flex items-center
-                justify-center
+                  rounded-lg
 
-                px-3 sm:px-4 py-2.5 sm:py-3
+                  hover:bg-light-accent/20
+                  dark:hover:bg-dark-accent/20
 
-                bg-red-500/10
-                text-red-500
+                  transition-all duration-300
 
-                rounded-lg
+                  text-sm
+                  font-medium
+                "
+              >
 
-                hover:bg-red-500/20
+                <FiArrowRight className="w-4 h-4" />
 
-                transition-all duration-300
-              "
-              title="Delete team"
-            >
+                <span className="hidden sm:inline">View Team</span>
+                <span className="sm:hidden">Open</span>
 
-              <FiTrash2 className="w-4 h-4" />
+              </button>
 
-            </button>
+              {/* DELETE */}
 
+              {isOwner && (
+
+                <button
+                  onClick={() =>
+                    onDelete?.(team.id)
+                  }
+                  className="
+                    flex items-center
+                    justify-center
+
+                    px-3 sm:px-4 py-2.5 sm:py-3
+
+                    bg-red-500/10
+                    text-red-500
+
+                    rounded-lg
+
+                    hover:bg-red-500/20
+
+                    transition-all duration-300
+                  "
+                  title="Delete team"
+                >
+
+                  <FiTrash2 className="w-4 h-4" />
+
+                </button>
+
+              )}
+            </>
           )}
 
         </div>

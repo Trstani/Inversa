@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { FiSend, FiMessageCircle, FiTrash2 } from 'react-icons/fi';
 import { apiClient } from '../../../api/client';
-import { socket } from '../../../socket/socket';
+import { emitDiscussionAdded, emitDiscussionDeleted } from '../../../socket/socket';
 
-const DiscussionPanel = ({ projectId, onUpdate, user }) => {
+const DiscussionPanel = ({ 
+  projectId, 
+  onUpdate, 
+  user,
+  onDiscussionAdded,
+  onDiscussionDeleted,
+}) => {
   const [newDiscussion, setNewDiscussion] = useState('');
   const [discussions, setDiscussions] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -12,82 +18,96 @@ const DiscussionPanel = ({ projectId, onUpdate, user }) => {
 
   const loadDiscussions = async () => {
     setLoading(true);
-    try { const response = await apiClient.brainstorm.getDiscussions(projectId); setDiscussions(response.data || []); } catch (error) { console.error('Error loading discussions:', error); } finally { setLoading(false); }
+    try { 
+      const response = await apiClient.brainstorm.getDiscussions(projectId); 
+      setDiscussions(response.data || []); 
+    } catch (error) { 
+      console.error('Error loading discussions:', error); 
+    } finally { 
+      setLoading(false); 
+    }
   };
 
   const handleAddDiscussion = async () => {
 
-  if (!newDiscussion.trim())
-    return;
+    if (!newDiscussion.trim())
+      return;
 
-  try {
+    try {
 
-    await apiClient
-      .brainstorm
-      .addDiscussion(
-        projectId,
-        {
-          message:
-            newDiscussion
-        }
+      const response = await apiClient
+        .brainstorm
+        .addDiscussion(
+          projectId,
+          {
+            message:
+              newDiscussion
+          }
+        );
+
+      const newDiscussionData = response.data;
+
+      setNewDiscussion('');
+
+      // Add to local state immediately
+      setDiscussions(prev => [...prev, newDiscussionData]);
+
+      // Emit real-time update
+      if (onDiscussionAdded) {
+        onDiscussionAdded(newDiscussionData);
+      } else {
+        emitDiscussionAdded(projectId, newDiscussionData);
+      }
+
+    } catch (error) {
+
+      console.error(
+        'Error adding discussion:',
+        error
       );
 
-    setNewDiscussion('');
+    }
 
-    await loadDiscussions();
-
-    socket.emit(
-      'brainstorm_update',
-      { projectId }
-    );
-
-  } catch (error) {
-
-    console.error(
-      'Error adding discussion:',
-      error
-    );
-
-  }
-
-};
+  };
 
   const handleDeleteDiscussion = async (id) => {
 
-  const previousDiscussions =
-    discussions;
+    const previousDiscussions =
+      discussions;
 
-  setDiscussions((prev) =>
-    prev.filter(
-      (discussion) =>
-        discussion.id !== id
-    )
-  );
+    setDiscussions((prev) =>
+      prev.filter(
+        (discussion) =>
+          discussion.id !== id
+      )
+    );
 
-  try {
+    try {
 
-    await apiClient
-      .brainstorm
-      .deleteDiscussion(
-        id
+      await apiClient
+        .brainstorm
+        .deleteDiscussion(
+          id
+        );
+
+      // Emit real-time update
+      if (onDiscussionDeleted) {
+        onDiscussionDeleted(id);
+      } else {
+        emitDiscussionDeleted(projectId, id);
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      setDiscussions(
+        previousDiscussions
       );
 
-    socket.emit(
-      'brainstorm_update',
-      { projectId }
-    );
+    }
 
-  } catch (error) {
-
-    console.error(error);
-
-    setDiscussions(
-      previousDiscussions
-    );
-
-  }
-
-};
+  };
 
   return (
     <div className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">

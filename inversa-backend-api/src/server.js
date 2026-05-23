@@ -15,9 +15,16 @@ export const io =
 
     cors: {
       origin: '*',
+      credentials: true,
     },
 
+    transports: ['websocket', 'polling'],
+
   });
+
+// ============ BRAINSTORM ROOMS ============
+
+const brainstormRooms = new Map();
 
 io.on(
   'connection',
@@ -26,6 +33,281 @@ io.on(
     console.log(
       '⚡ User connected:',
       socket.id
+    );
+
+    /*
+    =========================
+    JOIN BRAINSTORM ROOM
+    =========================
+    */
+
+    socket.on(
+      'join_brainstorm',
+      ({ projectId, userId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.join(roomName);
+
+        if (!brainstormRooms.has(roomName)) {
+          brainstormRooms.set(roomName, new Set());
+        }
+
+        brainstormRooms.get(roomName).add({
+          socketId: socket.id,
+          userId,
+        });
+
+        console.log(
+          `👥 User ${userId} joined brainstorm room: ${roomName}`
+        );
+
+        // Notify others
+        socket.to(roomName).emit(
+          'user_joined_brainstorm',
+          { userId, socketId: socket.id }
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    LEAVE BRAINSTORM ROOM
+    =========================
+    */
+
+    socket.on(
+      'leave_brainstorm',
+      ({ projectId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.leave(roomName);
+
+        if (brainstormRooms.has(roomName)) {
+          const room = brainstormRooms.get(roomName);
+          room.forEach(user => {
+            if (user.socketId === socket.id) {
+              room.delete(user);
+            }
+          });
+        }
+
+        console.log(
+          `👋 User left brainstorm room: ${roomName}`
+        );
+
+        socket.to(roomName).emit(
+          'user_left_brainstorm',
+          { socketId: socket.id }
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    IDEA EVENTS
+    =========================
+    */
+
+    socket.on(
+      'idea_added',
+      ({ projectId, idea }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'idea_added',
+          { idea }
+        );
+
+        console.log(
+          `💡 Idea added in ${roomName}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'idea_deleted',
+      ({ projectId, ideaId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'idea_deleted',
+          { ideaId }
+        );
+
+        console.log(
+          `🗑️ Idea deleted in ${roomName}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'idea_voted',
+      ({ projectId, ideaId, userId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'idea_voted',
+          { ideaId, userId }
+        );
+
+        console.log(
+          `👍 Idea voted in ${roomName}`
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    DISCUSSION EVENTS
+    =========================
+    */
+
+    socket.on(
+      'discussion_added',
+      ({ projectId, discussion }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'discussion_added',
+          { discussion }
+        );
+
+        console.log(
+          `💬 Discussion added in ${roomName}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'discussion_deleted',
+      ({ projectId, discussionId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'discussion_deleted',
+          { discussionId }
+        );
+
+        console.log(
+          `🗑️ Discussion deleted in ${roomName}`
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    NOTES EVENTS
+    =========================
+    */
+
+    socket.on(
+      'note_added',
+      ({ projectId, note }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'note_added',
+          { note }
+        );
+
+        console.log(
+          `📝 Note added in ${roomName}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'note_deleted',
+      ({ projectId, noteId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'note_deleted',
+          { noteId }
+        );
+
+        console.log(
+          `🗑️ Note deleted in ${roomName}`
+        );
+
+      }
+    );
+
+    /*
+    =========================
+    TASK EVENTS
+    =========================
+    */
+
+    socket.on(
+      'task_added',
+      ({ projectId, task }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'task_added',
+          { task }
+        );
+
+        console.log(
+          `✅ Task added in ${roomName}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'task_updated',
+      ({ projectId, taskId, updates }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'task_updated',
+          { taskId, updates }
+        );
+
+        console.log(
+          `🔄 Task updated in ${roomName}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'task_deleted',
+      ({ projectId, taskId }) => {
+
+        const roomName = `brainstorm_${projectId}`;
+
+        socket.to(roomName).emit(
+          'task_deleted',
+          { taskId }
+        );
+
+        console.log(
+          `🗑️ Task deleted in ${roomName}`
+        );
+
+      }
     );
 
     /*
@@ -64,25 +346,6 @@ io.on(
       }
     );
 
-
-    /*
-=========================
-BRAINSTORM UPDATE
-=========================
-*/
-
-    socket.on(
-      'brainstorm_update',
-      ({ projectId }) => {
-
-        socket.broadcast.emit(
-          'brainstorm_updated',
-          { projectId }
-        );
-
-      }
-    );
-
     /*
     =========================
     DISCONNECT
@@ -97,6 +360,19 @@ BRAINSTORM UPDATE
           '❌ User disconnected:',
           socket.id
         );
+
+        // Clean up from all brainstorm rooms
+        brainstormRooms.forEach((users, roomName) => {
+          users.forEach(user => {
+            if (user.socketId === socket.id) {
+              users.delete(user);
+              io.to(roomName).emit(
+                'user_left_brainstorm',
+                { socketId: socket.id }
+              );
+            }
+          });
+        });
 
       }
     );

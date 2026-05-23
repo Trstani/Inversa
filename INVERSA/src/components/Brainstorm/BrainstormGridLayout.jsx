@@ -1,7 +1,40 @@
 import { useState, useEffect } from 'react';
 
 import { FiZap, FiCheck } from 'react-icons/fi';
-import { socket } from '../../socket/socket';
+import {
+  joinBrainstormRoom,
+  leaveBrainstormRoom,
+  emitIdeaAdded,
+  onIdeaAdded,
+  offIdeaAdded,
+  emitIdeaDeleted,
+  onIdeaDeleted,
+  offIdeaDeleted,
+  emitIdeaVoted,
+  onIdeaVoted,
+  offIdeaVoted,
+  emitDiscussionAdded,
+  onDiscussionAdded,
+  offDiscussionAdded,
+  emitDiscussionDeleted,
+  onDiscussionDeleted,
+  offDiscussionDeleted,
+  emitNoteAdded,
+  onNoteAdded,
+  offNoteAdded,
+  emitNoteDeleted,
+  onNoteDeleted,
+  offNoteDeleted,
+  emitTaskAdded,
+  onTaskAdded,
+  offTaskAdded,
+  emitTaskUpdated,
+  onTaskUpdated,
+  offTaskUpdated,
+  emitTaskDeleted,
+  onTaskDeleted,
+  offTaskDeleted,
+} from '../../socket/socket';
 
 import DiscussionPanel from './components/DiscussionPanel';
 import NotesPanel from './components/NotesPanel';
@@ -61,6 +94,8 @@ const BrainstormGridLayout = ({
     updateTaskStatus,
     removeTask,
 
+    reloadSession,
+
   } = useBrainstorm(projectId);
 
   /*
@@ -74,30 +109,139 @@ const BrainstormGridLayout = ({
     loadTeamMembers();
   }, [projectId]);
 
+  /*
+  =========================
+  SOCKET.IO SETUP
+  =========================
+  */
+
   useEffect(() => {
-
-    socket.on(
-      'brainstorm_updated',
-      ({ projectId: updatedId }) => {
-
-        if (
-          updatedId !== projectId
-        ) return;
-
-        window.location.reload();
-
-      }
-    );
+    // Join brainstorm room
+    joinBrainstormRoom(projectId, user?.id);
 
     return () => {
+      // Leave brainstorm room on unmount
+      leaveBrainstormRoom(projectId);
+    };
+  }, [projectId, user?.id]);
 
-      socket.off(
-        'brainstorm_updated'
-      );
+  /*
+  =========================
+  REAL-TIME IDEA UPDATES
+  =========================
+  */
 
+  useEffect(() => {
+    const handleIdeaAdded = ({ idea }) => {
+      console.log('💡 Real-time idea added:', idea);
+      reloadSession();
     };
 
-  }, [projectId]);
+    const handleIdeaDeleted = ({ ideaId }) => {
+      console.log('🗑️ Real-time idea deleted:', ideaId);
+      reloadSession();
+    };
+
+    const handleIdeaVoted = ({ ideaId, userId }) => {
+      console.log('👍 Real-time idea voted:', ideaId);
+      reloadSession();
+    };
+
+    onIdeaAdded(handleIdeaAdded);
+    onIdeaDeleted(handleIdeaDeleted);
+    onIdeaVoted(handleIdeaVoted);
+
+    return () => {
+      offIdeaAdded(handleIdeaAdded);
+      offIdeaDeleted(handleIdeaDeleted);
+      offIdeaVoted(handleIdeaVoted);
+    };
+  }, [reloadSession]);
+
+  /*
+  =========================
+  REAL-TIME DISCUSSION UPDATES
+  =========================
+  */
+
+  useEffect(() => {
+    const handleDiscussionAdded = ({ discussion }) => {
+      console.log('💬 Real-time discussion added:', discussion);
+      reloadSession();
+    };
+
+    const handleDiscussionDeleted = ({ discussionId }) => {
+      console.log('🗑️ Real-time discussion deleted:', discussionId);
+      reloadSession();
+    };
+
+    onDiscussionAdded(handleDiscussionAdded);
+    onDiscussionDeleted(handleDiscussionDeleted);
+
+    return () => {
+      offDiscussionAdded(handleDiscussionAdded);
+      offDiscussionDeleted(handleDiscussionDeleted);
+    };
+  }, [reloadSession]);
+
+  /*
+  =========================
+  REAL-TIME NOTES UPDATES
+  =========================
+  */
+
+  useEffect(() => {
+    const handleNoteAdded = ({ note }) => {
+      console.log('📝 Real-time note added:', note);
+      reloadSession();
+    };
+
+    const handleNoteDeleted = ({ noteId }) => {
+      console.log('🗑️ Real-time note deleted:', noteId);
+      reloadSession();
+    };
+
+    onNoteAdded(handleNoteAdded);
+    onNoteDeleted(handleNoteDeleted);
+
+    return () => {
+      offNoteAdded(handleNoteAdded);
+      offNoteDeleted(handleNoteDeleted);
+    };
+  }, [reloadSession]);
+
+  /*
+  =========================
+  REAL-TIME TASK UPDATES
+  =========================
+  */
+
+  useEffect(() => {
+    const handleTaskAdded = ({ task }) => {
+      console.log('✅ Real-time task added:', task);
+      reloadSession();
+    };
+
+    const handleTaskUpdated = ({ taskId, updates }) => {
+      console.log('🔄 Real-time task updated:', taskId);
+      reloadSession();
+    };
+
+    const handleTaskDeleted = ({ taskId }) => {
+      console.log('🗑️ Real-time task deleted:', taskId);
+      reloadSession();
+    };
+
+    onTaskAdded(handleTaskAdded);
+    onTaskUpdated(handleTaskUpdated);
+    onTaskDeleted(handleTaskDeleted);
+
+    return () => {
+      offTaskAdded(handleTaskAdded);
+      offTaskUpdated(handleTaskUpdated);
+      offTaskDeleted(handleTaskDeleted);
+    };
+  }, [reloadSession]);
 
   /*
   =========================
@@ -170,7 +314,16 @@ const BrainstormGridLayout = ({
       selectedChapter
     );
 
-    socket.emit('brainstorm_update',{ projectId });
+    // Emit real-time update
+    const newIdea = {
+      title: newIdeaInput,
+      user_id: user?.id,
+      user_name: user?.name,
+      chapter_id: selectedChapter,
+      created_at: new Date(),
+    };
+
+    emitIdeaAdded(projectId, newIdea);
 
     setNewIdeaInput('');
     setSelectedChapter(null);
@@ -181,7 +334,9 @@ const BrainstormGridLayout = ({
   const handleDeleteIdea = async (ideaId) => {
 
     await removeIdea(ideaId);
-    socket.emit('brainstorm_update',{ projectId });
+    
+    // Emit real-time update
+    emitIdeaDeleted(projectId, ideaId);
     
   };
 
@@ -191,7 +346,9 @@ const BrainstormGridLayout = ({
     try {
 
       await vote(ideaId);
-      socket.emit('brainstorm_update',{ projectId });
+      
+      // Emit real-time update
+      emitIdeaVoted(projectId, ideaId, user?.id);
 
       
 
@@ -223,7 +380,19 @@ const BrainstormGridLayout = ({
 
       status: 'pending',
     });
-    socket.emit('brainstorm_update',{ projectId });
+
+    // Emit real-time update
+    const newTaskData = {
+      title: newTask.title,
+      description: newTask.description,
+      assigned_to: newTask.assignedTo,
+      chapter_id: newTask.chapterReference,
+      section_id: newTask.sectionReference,
+      status: 'pending',
+      created_at: new Date(),
+    };
+
+    emitTaskAdded(projectId, newTaskData);
 
     setNewTask({
       title: '',
@@ -241,14 +410,18 @@ const BrainstormGridLayout = ({
   const handleUpdateTask = async (taskId, updates) => {
 
     await updateTaskStatus(taskId, updates);
-    socket.emit('brainstorm_update',{ projectId });
+    
+    // Emit real-time update
+    emitTaskUpdated(projectId, taskId, updates);
     
   };
 
   const handleDeleteTask = async (taskId) => {
 
     await removeTask(taskId);
-    socket.emit('brainstorm_update',{ projectId });
+    
+    // Emit real-time update
+    emitTaskDeleted(projectId, taskId);
     
   };
 
@@ -472,6 +645,8 @@ const BrainstormGridLayout = ({
             brainstorm={session}
             onUpdate={onUpdate}
             user={user}
+            onDiscussionAdded={(discussion) => emitDiscussionAdded(projectId, discussion)}
+            onDiscussionDeleted={(discussionId) => emitDiscussionDeleted(projectId, discussionId)}
           />
 
           <NotesPanel
@@ -479,6 +654,14 @@ const BrainstormGridLayout = ({
             brainstorm={session}
             onUpdate={onUpdate}
             user={user}
+            onNoteAdded={(note) => {
+              console.log('📝 Note added callback:', note);
+              emitNoteAdded(projectId, note);
+            }}
+            onNoteDeleted={(noteId) => {
+              console.log('🗑️ Note deleted callback:', noteId);
+              emitNoteDeleted(projectId, noteId);
+            }}
           />
 
           <ContributionPanel

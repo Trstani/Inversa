@@ -120,6 +120,19 @@ const useBrainstorm = (
     };
 
   /*
+=========================
+RELOAD SESSION
+=========================
+*/
+
+  const reloadSession =
+    async () => {
+
+      await loadSession();
+
+    };
+
+  /*
   =========================
   IDEAS
   =========================
@@ -508,41 +521,17 @@ const useBrainstorm = (
     loading,
 
     loadSession,
-
-    /*
-    =========================
-    IDEAS
-    =========================
-    */
+    reloadSession,
 
     addNewIdea,
     removeIdea,
     vote,
 
-    /*
-    =========================
-    TASKS
-    =========================
-    */
-
     createTask,
     updateTaskStatus,
     removeTask,
 
-    /*
-    =========================
-    DISCUSSIONS
-    =========================
-    */
-
     addDiscussion,
-
-    /*
-    =========================
-    NOTES
-    =========================
-    */
-
     addNote,
   };
 };
