@@ -64,6 +64,25 @@ io.on(
       }
     );
 
+
+    /*
+=========================
+BRAINSTORM UPDATE
+=========================
+*/
+
+    socket.on(
+      'brainstorm_update',
+      ({ projectId }) => {
+
+        socket.broadcast.emit(
+          'brainstorm_updated',
+          { projectId }
+        );
+
+      }
+    );
+
     /*
     =========================
     DISCONNECT

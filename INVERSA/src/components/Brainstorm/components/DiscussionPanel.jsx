@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiSend, FiMessageCircle, FiTrash2 } from 'react-icons/fi';
 import { apiClient } from '../../../api/client';
+import { socket } from '../../../socket/socket';
 
 const DiscussionPanel = ({ projectId, onUpdate, user }) => {
   const [newDiscussion, setNewDiscussion] = useState('');
@@ -15,13 +16,78 @@ const DiscussionPanel = ({ projectId, onUpdate, user }) => {
   };
 
   const handleAddDiscussion = async () => {
-    if (!newDiscussion.trim()) return;
-    try { await apiClient.brainstorm.addDiscussion(projectId, { message: newDiscussion }); setNewDiscussion(''); await loadDiscussions(); onUpdate?.(); } catch (error) { console.error('Error adding discussion:', error); }
-  };
 
-  const handleDeleteDiscussion = async(id)=>{
-    try{await apiClient.brainstorm.deleteDiscussion(id); await loadDiscussions(); onUpdate?.();} catch(error){ console.error(error);}
-  };
+  if (!newDiscussion.trim())
+    return;
+
+  try {
+
+    await apiClient
+      .brainstorm
+      .addDiscussion(
+        projectId,
+        {
+          message:
+            newDiscussion
+        }
+      );
+
+    setNewDiscussion('');
+
+    await loadDiscussions();
+
+    socket.emit(
+      'brainstorm_update',
+      { projectId }
+    );
+
+  } catch (error) {
+
+    console.error(
+      'Error adding discussion:',
+      error
+    );
+
+  }
+
+};
+
+  const handleDeleteDiscussion = async (id) => {
+
+  const previousDiscussions =
+    discussions;
+
+  setDiscussions((prev) =>
+    prev.filter(
+      (discussion) =>
+        discussion.id !== id
+    )
+  );
+
+  try {
+
+    await apiClient
+      .brainstorm
+      .deleteDiscussion(
+        id
+      );
+
+    socket.emit(
+      'brainstorm_update',
+      { projectId }
+    );
+
+  } catch (error) {
+
+    console.error(error);
+
+    setDiscussions(
+      previousDiscussions
+    );
+
+  }
+
+};
 
   return (
     <div className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">

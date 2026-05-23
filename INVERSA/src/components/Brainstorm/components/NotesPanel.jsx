@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FiSend, FiFileText, FiTrash2 } from 'react-icons/fi';
 import { apiClient } from '../../../api/client';
+import { socket } from '../../../socket/socket';
 
 const NotesPanel = ({ projectId, onUpdate, user }) => {
   const [newNote, setNewNote] = useState('');
@@ -15,12 +16,77 @@ const NotesPanel = ({ projectId, onUpdate, user }) => {
   };
 
   const handleAddNote = async () => {
-    if (!newNote.trim()) return;
-    try { await apiClient.brainstorm.addNote(projectId, { content: newNote }); setNewNote(''); await loadNotes(); onUpdate?.(); } catch (error) { console.error('Error adding note:', error); }
+  
+    if (!newNote.trim())
+      return;
+  
+    try {
+  
+      await apiClient
+        .brainstorm
+        .addNote(
+          projectId,
+          {
+            content:
+              newNote
+          }
+        );
+  
+      setNewNote('');
+  
+      await loadNotes();
+  
+      socket.emit(
+        'brainstorm_update',
+        { projectId }
+      );
+  
+    } catch (error) {
+  
+      console.error(
+        'Error adding note:',
+        error
+      );
+  
+    }
+  
   };
-
-  const handleDeleteNote = async(id)=>{
-    try{await apiClient.brainstorm.deleteNote(id); await loadNotes(); onUpdate?.();} catch(error){ console.error(error);}
+  
+    const handleDeleteNote = async (id) => {
+  
+    const previousNotes =
+      notes;
+  
+    setNotes((prev) =>
+      prev.filter(
+        (note) =>
+          note.id !== id
+      )
+    );
+  
+    try {
+  
+      await apiClient
+        .brainstorm
+        .deleteNote(
+          id
+        );
+  
+      socket.emit(
+        'brainstorm_update',
+        { projectId }
+      );
+  
+    } catch (error) {
+  
+      console.error(error);
+  
+      setNotes(
+        previousNotes
+      );
+  
+    }
+  
   };
 
   return (

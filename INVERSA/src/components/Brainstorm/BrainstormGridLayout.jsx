@@ -1,8 +1,7 @@
-// components/Brainstorm/BrainstormGridLayout.jsx
-
 import { useState, useEffect } from 'react';
 
 import { FiZap, FiCheck } from 'react-icons/fi';
+import { socket } from '../../socket/socket';
 
 import DiscussionPanel from './components/DiscussionPanel';
 import NotesPanel from './components/NotesPanel';
@@ -73,6 +72,31 @@ const BrainstormGridLayout = ({
   useEffect(() => {
     loadChapters();
     loadTeamMembers();
+  }, [projectId]);
+
+  useEffect(() => {
+
+    socket.on(
+      'brainstorm_updated',
+      ({ projectId: updatedId }) => {
+
+        if (
+          updatedId !== projectId
+        ) return;
+
+        window.location.reload();
+
+      }
+    );
+
+    return () => {
+
+      socket.off(
+        'brainstorm_updated'
+      );
+
+    };
+
   }, [projectId]);
 
   /*
@@ -146,6 +170,8 @@ const BrainstormGridLayout = ({
       selectedChapter
     );
 
+    socket.emit('brainstorm_update',{ projectId });
+
     setNewIdeaInput('');
     setSelectedChapter(null);
 
@@ -155,7 +181,7 @@ const BrainstormGridLayout = ({
   const handleDeleteIdea = async (ideaId) => {
 
     await removeIdea(ideaId);
-
+    socket.emit('brainstorm_update',{ projectId });
     
   };
 
@@ -164,9 +190,8 @@ const BrainstormGridLayout = ({
 
     try {
 
-      await vote(
-        ideaId
-      );
+      await vote(ideaId);
+      socket.emit('brainstorm_update',{ projectId });
 
       
 
@@ -198,6 +223,7 @@ const BrainstormGridLayout = ({
 
       status: 'pending',
     });
+    socket.emit('brainstorm_update',{ projectId });
 
     setNewTask({
       title: '',
@@ -215,14 +241,14 @@ const BrainstormGridLayout = ({
   const handleUpdateTask = async (taskId, updates) => {
 
     await updateTaskStatus(taskId, updates);
-
+    socket.emit('brainstorm_update',{ projectId });
     
   };
 
   const handleDeleteTask = async (taskId) => {
 
     await removeTask(taskId);
-
+    socket.emit('brainstorm_update',{ projectId });
     
   };
 
