@@ -208,6 +208,7 @@ export const createTaskService =
     description,
     assigned_to,
     chapter_id,
+    section_id,
     status,
   }) => {
 
@@ -234,7 +235,8 @@ export const createTaskService =
           $3,
           $4,
           $5,
-          $6
+          $6,
+          $7
         )
 
         RETURNING *
@@ -245,6 +247,7 @@ export const createTaskService =
           description,
           assigned_to,
           chapter_id,
+          section_id,
           status,
         ]
       );
@@ -338,7 +341,7 @@ export const createDiscussionService =
         projectId
       );
 
-    const result =
+    const inserted =
       await pool.query(
         `
         INSERT INTO discussions (
@@ -358,7 +361,30 @@ export const createDiscussionService =
         ]
       );
 
+    const discussionId =
+      inserted.rows[0].id;
+
+    const result =
+      await pool.query(
+        `
+            SELECT
+            d.*,
+            u.name
+
+            FROM discussions d
+
+            LEFT JOIN users u
+            ON d.user_id=u.id
+
+            WHERE d.id=$1
+            `,
+        [
+          discussionId
+        ]
+      );
+
     return result.rows[0];
+
   };
 
 /*
@@ -407,7 +433,7 @@ export const createNoteService =
         projectId
       );
 
-    const result =
+    const inserted =
       await pool.query(
         `
         INSERT INTO notes (
@@ -427,7 +453,30 @@ export const createNoteService =
         ]
       );
 
+    const noteId =
+      inserted.rows[0].id;
+
+    const result =
+      await pool.query(
+        `
+          SELECT
+          n.*,
+          u.name
+
+          FROM notes n
+
+          LEFT JOIN users u
+          ON n.user_id=u.id
+
+          WHERE n.id=$1
+          `,
+        [
+          noteId
+        ]
+      );
+
     return result.rows[0];
+
   };
 
 /*

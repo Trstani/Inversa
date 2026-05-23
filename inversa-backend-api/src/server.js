@@ -118,7 +118,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'idea_added',
           { idea }
         );
@@ -136,7 +136,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'idea_deleted',
           { ideaId }
         );
@@ -154,7 +154,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'idea_voted',
           { ideaId, userId }
         );
@@ -178,7 +178,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'discussion_added',
           { discussion }
         );
@@ -196,7 +196,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'discussion_deleted',
           { discussionId }
         );
@@ -220,7 +220,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'note_added',
           { note }
         );
@@ -238,7 +238,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'note_deleted',
           { noteId }
         );
@@ -262,7 +262,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'task_added',
           { task }
         );
@@ -280,7 +280,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'task_updated',
           { taskId, updates }
         );
@@ -298,7 +298,7 @@ io.on(
 
         const roomName = `brainstorm_${projectId}`;
 
-        socket.to(roomName).emit(
+        io.to(roomName).emit(
           'task_deleted',
           { taskId }
         );
@@ -363,10 +363,13 @@ io.on(
 
         // Clean up from all brainstorm rooms
         brainstormRooms.forEach((users, roomName) => {
-          users.forEach(user => {
+          const remainingUsers = [...users];
+
+          remainingUsers.forEach(user => {
             if (user.socketId === socket.id) {
               users.delete(user);
-              io.to(roomName).emit(
+
+              socket.to(roomName).emit(
                 'user_left_brainstorm',
                 { socketId: socket.id }
               );

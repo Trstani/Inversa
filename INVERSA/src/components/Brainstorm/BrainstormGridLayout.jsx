@@ -84,6 +84,7 @@ const BrainstormGridLayout = ({
 
   const {
     session,
+    setSession,
     loading,
 
     addNewIdea,
@@ -94,7 +95,6 @@ const BrainstormGridLayout = ({
     updateTaskStatus,
     removeTask,
 
-    reloadSession,
 
   } = useBrainstorm(projectId);
 
@@ -109,139 +109,344 @@ const BrainstormGridLayout = ({
     loadTeamMembers();
   }, [projectId]);
 
-  /*
-  =========================
-  SOCKET.IO SETUP
-  =========================
-  */
+  useEffect(()=>{
 
-  useEffect(() => {
-    // Join brainstorm room
-    joinBrainstormRoom(projectId, user?.id);
+const chapterId=
+newTask.chapterReference;
+
+if(!chapterId){
+
+setSections([]);
+return;
+
+}
+
+loadSections(
+chapterId
+);
+
+},[
+newTask.chapterReference
+]);
+
+const loadSections=
+async(
+chapterId
+)=>{
+
+try{
+
+const response=
+await apiClient
+.sections
+.getByChapter(
+chapterId
+);
+
+setSections(
+response.data||[]
+);
+
+}
+catch(error){
+
+console.error(error);
+
+}
+
+};
+  /*
+=========================
+SOCKET.IO SETUP
+=========================
+*/
+
+  useEffect(() => { 
+    if(
+    !projectId ||
+    !user?.id
+  ) return;
+
+    joinBrainstormRoom(
+      projectId,
+      user?.id
+    );
+
+    const append = (
+      key,
+      data
+    ) => {
+
+      setSession(prev => ({
+
+        ...prev,
+
+        [key]: [
+
+          data,
+
+          ...(prev?.[key] || [])
+            .filter(
+              item =>
+                item.id !== data.id
+            )
+
+        ]
+
+      }));
+
+    };
+
+    const ideaAdded =
+      ({ idea }) =>
+        append(
+          'ideas',
+          idea
+        );
+
+    const discussionAdded =
+      ({ discussion }) =>
+        append(
+          'discussions',
+          discussion
+        );
+
+    const noteAdded =
+      ({ note }) =>
+        append(
+          'notes',
+          note
+        );
+
+    const taskAdded =
+      ({ task }) =>
+        append(
+          'tasks',
+          task
+        );
+
+    const ideaDeleted =
+      ({ ideaId }) => {
+
+        setSession(prev => ({
+
+          ...prev,
+
+          ideas:
+            prev?.ideas?.filter(
+              i =>
+                i.id !==
+                ideaId
+            ) || []
+
+        }));
+
+      };
+
+    const discussionDeleted =
+      ({ discussionId }) => {
+
+        setSession(prev => ({
+
+          ...prev,
+
+          discussions:
+            prev?.discussions?.filter(
+              d =>
+                d.id !==
+                discussionId
+            ) || []
+
+        }));
+
+      };
+
+    const noteDeleted =
+      ({ noteId }) => {
+
+        setSession(prev => ({
+
+          ...prev,
+
+          notes:
+            prev?.notes?.filter(
+              n =>
+                n.id !==
+                noteId
+            ) || []
+
+        }));
+
+      };
+
+    const taskDeleted =
+      ({ taskId }) => {
+
+        setSession(prev => ({
+
+          ...prev,
+
+          tasks:
+            prev?.tasks?.filter(
+              t =>
+                t.id !==
+                taskId
+            ) || []
+
+        }));
+
+      };
+
+     const ideaVoted =
+({
+  ideaId,
+  userId
+}) => {
+
+  setSession(prev => ({
+
+    ...prev,
+
+    ideas:
+      prev?.ideas?.map(
+
+        idea => {
+
+          if (
+            idea.id !== ideaId
+          ) return idea;
+
+          const voters =
+            idea.voters || [];
+
+          if (
+            voters.includes(
+              userId
+            )
+          ) {
+            return idea;
+          }
+
+          return {
+
+            ...idea,
+
+            voters: [
+              ...voters,
+              userId
+            ],
+
+            votes:
+              (idea.votes || 0) + 1
+
+          };
+
+        }
+
+      ) || []
+
+  }));
+
+};
+
+    const taskUpdated =
+      ({
+        taskId,
+        updates
+      }) => {
+
+        setSession(prev => ({
+
+          ...prev,
+
+          tasks:
+            prev?.tasks?.map(
+
+              task =>
+
+                task.id === taskId
+                  ? {
+                    ...task,
+                    ...updates
+                  }
+                  : task
+
+            ) || []
+
+        }));
+
+      };
+
+    onIdeaAdded(ideaAdded);
+
+    onDiscussionAdded(discussionAdded);
+
+    onNoteAdded(noteAdded);
+
+    onTaskAdded(taskAdded);
+
+    onIdeaDeleted(ideaDeleted);
+
+    onDiscussionDeleted(discussionDeleted);
+
+    onNoteDeleted(noteDeleted);
+
+    onTaskDeleted(taskDeleted);
+
+    onIdeaVoted(ideaVoted);
+
+    onTaskUpdated(taskUpdated);
 
     return () => {
-      // Leave brainstorm room on unmount
-      leaveBrainstormRoom(projectId);
-    };
-  }, [projectId, user?.id]);
 
-  /*
-  =========================
-  REAL-TIME IDEA UPDATES
-  =========================
-  */
+      offIdeaAdded(
+        ideaAdded
+      );
 
-  useEffect(() => {
-    const handleIdeaAdded = ({ idea }) => {
-      console.log('💡 Real-time idea added:', idea);
-      reloadSession();
-    };
+      offDiscussionAdded(
+        discussionAdded
+      );
 
-    const handleIdeaDeleted = ({ ideaId }) => {
-      console.log('🗑️ Real-time idea deleted:', ideaId);
-      reloadSession();
-    };
+      offNoteAdded(
+        noteAdded
+      );
 
-    const handleIdeaVoted = ({ ideaId, userId }) => {
-      console.log('👍 Real-time idea voted:', ideaId);
-      reloadSession();
-    };
+      offTaskAdded(
+        taskAdded
+      );
 
-    onIdeaAdded(handleIdeaAdded);
-    onIdeaDeleted(handleIdeaDeleted);
-    onIdeaVoted(handleIdeaVoted);
+      offIdeaDeleted(
+        ideaDeleted
+      );
 
-    return () => {
-      offIdeaAdded(handleIdeaAdded);
-      offIdeaDeleted(handleIdeaDeleted);
-      offIdeaVoted(handleIdeaVoted);
-    };
-  }, [reloadSession]);
+      offDiscussionDeleted(
+        discussionDeleted
+      );
 
-  /*
-  =========================
-  REAL-TIME DISCUSSION UPDATES
-  =========================
-  */
+      offNoteDeleted(
+        noteDeleted
+      );
 
-  useEffect(() => {
-    const handleDiscussionAdded = ({ discussion }) => {
-      console.log('💬 Real-time discussion added:', discussion);
-      reloadSession();
+      offTaskDeleted(
+        taskDeleted
+      );
+
+      offTaskUpdated(
+        taskUpdated
+      );
+
+      offIdeaVoted(ideaVoted);
+
+      leaveBrainstormRoom(
+        projectId
+      );
+
     };
 
-    const handleDiscussionDeleted = ({ discussionId }) => {
-      console.log('🗑️ Real-time discussion deleted:', discussionId);
-      reloadSession();
-    };
-
-    onDiscussionAdded(handleDiscussionAdded);
-    onDiscussionDeleted(handleDiscussionDeleted);
-
-    return () => {
-      offDiscussionAdded(handleDiscussionAdded);
-      offDiscussionDeleted(handleDiscussionDeleted);
-    };
-  }, [reloadSession]);
-
-  /*
-  =========================
-  REAL-TIME NOTES UPDATES
-  =========================
-  */
-
-  useEffect(() => {
-    const handleNoteAdded = ({ note }) => {
-      console.log('📝 Real-time note added:', note);
-      reloadSession();
-    };
-
-    const handleNoteDeleted = ({ noteId }) => {
-      console.log('🗑️ Real-time note deleted:', noteId);
-      reloadSession();
-    };
-
-    onNoteAdded(handleNoteAdded);
-    onNoteDeleted(handleNoteDeleted);
-
-    return () => {
-      offNoteAdded(handleNoteAdded);
-      offNoteDeleted(handleNoteDeleted);
-    };
-  }, [reloadSession]);
-
-  /*
-  =========================
-  REAL-TIME TASK UPDATES
-  =========================
-  */
-
-  useEffect(() => {
-    const handleTaskAdded = ({ task }) => {
-      console.log('✅ Real-time task added:', task);
-      reloadSession();
-    };
-
-    const handleTaskUpdated = ({ taskId, updates }) => {
-      console.log('🔄 Real-time task updated:', taskId);
-      reloadSession();
-    };
-
-    const handleTaskDeleted = ({ taskId }) => {
-      console.log('🗑️ Real-time task deleted:', taskId);
-      reloadSession();
-    };
-
-    onTaskAdded(handleTaskAdded);
-    onTaskUpdated(handleTaskUpdated);
-    onTaskDeleted(handleTaskDeleted);
-
-    return () => {
-      offTaskAdded(handleTaskAdded);
-      offTaskUpdated(handleTaskUpdated);
-      offTaskDeleted(handleTaskDeleted);
-    };
-  }, [reloadSession]);
+  }, [
+    projectId,
+    user?.id
+  ]);
 
   /*
   =========================
@@ -280,7 +485,7 @@ const BrainstormGridLayout = ({
       const project =
         projectResponse.data;
 
-        setProject(project);
+      setProject(project);
 
       if (!project?.team_id) return;
 
@@ -303,60 +508,70 @@ const BrainstormGridLayout = ({
   =========================
   */
 
-  const handleAddIdea = async () => {
+  const handleAddIdea =
+    async () => {
 
-    if (!newIdeaInput.trim()) return;
+      if (!newIdeaInput.trim())
+        return;
 
-    await addNewIdea(
-      user?.id,
-      user?.name,
-      newIdeaInput,
-      selectedChapter
-    );
+      try {
 
-    // Emit real-time update
-    const newIdea = {
-      title: newIdeaInput,
-      user_id: user?.id,
-      user_name: user?.name,
-      chapter_id: selectedChapter,
-      created_at: new Date(),
+        const savedIdea =
+          await addNewIdea(
+
+            user?.id,
+            user?.name,
+            newIdeaInput,
+            selectedChapter
+
+          );
+
+        emitIdeaAdded(
+          projectId,
+          savedIdea
+        );
+
+        setNewIdeaInput('');
+
+        setSelectedChapter(
+          null
+        );
+
+      }
+      catch (error) {
+
+        console.error(
+          error
+        );
+
+      }
+
     };
-
-    emitIdeaAdded(projectId, newIdea);
-
-    setNewIdeaInput('');
-    setSelectedChapter(null);
-
-    
-  };
 
   const handleDeleteIdea = async (ideaId) => {
 
     await removeIdea(ideaId);
-    
-    // Emit real-time update
+
     emitIdeaDeleted(projectId, ideaId);
-    
+
   };
 
   const handleVoteIdea =
-  async (ideaId) => {
+    async (ideaId) => {
 
-    try {
+      try {
 
-      await vote(ideaId);
-      
-      // Emit real-time update
-      emitIdeaVoted(projectId, ideaId, user?.id);
+        await vote(ideaId);
 
-      
+        emitIdeaVoted(projectId, ideaId, user?.id);
 
-    } catch (error) {
 
-      console.error(error);
-    }
-  };
+
+      } catch (error) {
+
+        console.error(error);
+      }
+    };
 
   /*
   =========================
@@ -364,65 +579,84 @@ const BrainstormGridLayout = ({
   =========================
   */
 
-  const handleAddTask = async () => {
+  const handleAddTask =
+    async () => {
 
-    if (!newTask.title.trim()) return;
+      if (
+        !newTask.title.trim()
+      )
+        return;
 
-    await createTask({
-      title: newTask.title,
-      description: newTask.description,
+      try {
 
-      assigned_to: newTask.assignedTo,
+        const savedTask =
+          await createTask({
 
-      chapter_id: newTask.chapterReference,
+            title:
+              newTask.title,
 
-      section_id: newTask.sectionReference,
+            description:
+              newTask.description,
 
-      status: 'pending',
-    });
+            assigned_to:
+              newTask.assignedTo,
 
-    // Emit real-time update
-    const newTaskData = {
-      title: newTask.title,
-      description: newTask.description,
-      assigned_to: newTask.assignedTo,
-      chapter_id: newTask.chapterReference,
-      section_id: newTask.sectionReference,
-      status: 'pending',
-      created_at: new Date(),
+            chapter_id:
+              newTask.chapterReference,
+
+            section_id:
+              newTask.sectionReference,
+
+            status:
+              'pending'
+
+          });
+
+        emitTaskAdded(
+          projectId,
+          savedTask
+        );
+
+        setNewTask({
+
+          title: '',
+          description: '',
+
+          chapterReference: null,
+          sectionReference: null,
+
+          assignedTo: null
+
+        });
+
+        setSections([]);
+
+      }
+      catch (error) {
+
+        console.error(
+          error
+        );
+
+      }
+
     };
-
-    emitTaskAdded(projectId, newTaskData);
-
-    setNewTask({
-      title: '',
-      description: '',
-      chapterReference: null,
-      sectionReference: null,
-      assignedTo: null,
-    });
-
-    setSections([]);
-
-    
-  };
 
   const handleUpdateTask = async (taskId, updates) => {
 
     await updateTaskStatus(taskId, updates);
+
     
-    // Emit real-time update
     emitTaskUpdated(projectId, taskId, updates);
-    
+
   };
 
   const handleDeleteTask = async (taskId) => {
 
     await removeTask(taskId);
-    
-    // Emit real-time update
+
     emitTaskDeleted(projectId, taskId);
-    
+
   };
 
   /*
@@ -469,11 +703,10 @@ const BrainstormGridLayout = ({
 
     if (!chapter) return 'Unknown Chapter';
 
-    return `Chapter ${
-      chapter.chapter_number ||
+    return `Chapter ${chapter.chapter_number ||
       chapter.chapterNumber ||
       chapter.id
-    }: ${chapter.title}`;
+      }: ${chapter.title}`;
   };
 
   /*
@@ -513,11 +746,10 @@ const BrainstormGridLayout = ({
 
             <button
               onClick={() => setActiveView('brainstorm')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${
-                activeView === 'brainstorm'
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${activeView === 'brainstorm'
                   ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
                   : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
-              }`}
+                }`}
             >
               <FiZap className="w-4 h-4" />
               Vote Idea
@@ -525,11 +757,10 @@ const BrainstormGridLayout = ({
 
             <button
               onClick={() => setActiveView('tasks')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${
-                activeView === 'tasks'
+              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${activeView === 'tasks'
                   ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
                   : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
-              }`}
+                }`}
             >
               <FiCheck className="w-4 h-4" />
               Task Manager
@@ -606,6 +837,7 @@ const BrainstormGridLayout = ({
                 setNewTask({
                   ...newTask,
                   chapterReference: value,
+                  sectionReference: null,
                 })
               }
 
@@ -643,7 +875,6 @@ const BrainstormGridLayout = ({
           <DiscussionPanel
             projectId={projectId}
             brainstorm={session}
-            onUpdate={onUpdate}
             user={user}
             onDiscussionAdded={(discussion) => emitDiscussionAdded(projectId, discussion)}
             onDiscussionDeleted={(discussionId) => emitDiscussionDeleted(projectId, discussionId)}
@@ -652,7 +883,6 @@ const BrainstormGridLayout = ({
           <NotesPanel
             projectId={projectId}
             brainstorm={session}
-            onUpdate={onUpdate}
             user={user}
             onNoteAdded={(note) => {
               console.log('📝 Note added callback:', note);

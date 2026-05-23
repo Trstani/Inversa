@@ -1,121 +1,83 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FiSend, FiFileText, FiTrash2 } from 'react-icons/fi';
 import { apiClient } from '../../../api/client';
-import { emitNoteAdded, emitNoteDeleted } from '../../../socket/socket';
 
 const NotesPanel = ({ 
   projectId, 
-  onUpdate, 
+  brainstorm,
   user,
   onNoteAdded,
   onNoteDeleted,
 }) => {
   const [newNote, setNewNote] = useState('');
-  const [notes, setNotes] = useState([]);
-  const [loading, setLoading] = useState(false);
+  
+  const notes =
+  brainstorm?.notes || [];
+ 
 
-  useEffect(() => { if (!projectId) return; loadNotes(); }, [projectId]);
+  const handleAddNote =
+async()=>{
 
-  const loadNotes = async () => {
-    setLoading(true);
-    try { 
-      const response = await apiClient.brainstorm.getNotes(projectId); 
-      setNotes(response.data || []); 
-    } catch (error) { 
-      console.error('Error loading notes:', error); 
-    } finally { 
-      setLoading(false); 
-    }
-  };
+if(
+!newNote.trim()
+)return;
 
-  const handleAddNote = async () => {
+try{
 
-    if (!newNote.trim())
-      return;
+const response=
+await apiClient
+.brainstorm
+.addNote(
+projectId,
+{
+content:newNote
+}
+);
 
-    try {
+setNewNote('');
 
-      const response = await apiClient
-        .brainstorm
-        .addNote(
-          projectId,
-          {
-            content:
-              newNote
-          }
-        );
+onNoteAdded?.(
+response.data
+);
 
-      const newNoteData = response.data;
+}
+catch(error){
 
-      setNewNote('');
+console.error(error);
 
-      // Add to local state immediately
-      setNotes(prev => [...prev, newNoteData]);
+}
 
-      // Emit real-time update
-      if (onNoteAdded) {
-        onNoteAdded(newNoteData);
-      } else {
-        emitNoteAdded(projectId, newNoteData);
-      }
+};
 
-    } catch (error) {
+ const handleDeleteNote=
+async(id)=>{
 
-      console.error(
-        'Error adding note:',
-        error
-      );
+try{
 
-    }
+await apiClient
+.brainstorm
+.deleteNote(id);
 
-  };
+onNoteDeleted?.(
+id
+);
 
-  const handleDeleteNote = async (id) => {
+}
+catch(error){
 
-    const previousNotes =
-      notes;
+console.error(
+error
+);
 
-    setNotes((prev) =>
-      prev.filter(
-        (note) =>
-          note.id !== id
-      )
-    );
+}
 
-    try {
-
-      await apiClient
-        .brainstorm
-        .deleteNote(
-          id
-        );
-
-      // Emit real-time update
-      if (onNoteDeleted) {
-        onNoteDeleted(id);
-      } else {
-        emitNoteDeleted(projectId, id);
-      }
-
-    } catch (error) {
-
-      console.error(error);
-
-      setNotes(
-        previousNotes
-      );
-
-    }
-
-  };
+};
 
   return (
     <div className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">
       <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4 flex items-center gap-2"><FiFileText className="w-4 h-4" />Notes</h3>
       <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-0">
-        {loading ? (
-          <div className="text-center py-4 text-light-secondary dark:text-dark-secondary text-sm">Loading...</div>
-        ) : notes.length === 0 ? (
+        {notes.length === 0 ? (
           <div className="text-center py-8 text-light-secondary dark:text-dark-secondary text-sm"><p>No notes yet</p></div>
         ) : (
           notes.map((note) => (

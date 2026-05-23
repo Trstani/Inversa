@@ -27,6 +27,13 @@ export const initSocket = () => {
     console.error('Socket error:', error);
   });
 
+  socket.on('connect_error', (error) => {
+    console.error(
+      'Socket connect error:',
+      error
+    );
+  });
+
   return socket;
 };
 

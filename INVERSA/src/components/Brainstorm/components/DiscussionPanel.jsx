@@ -1,121 +1,82 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { FiSend, FiMessageCircle, FiTrash2 } from 'react-icons/fi';
 import { apiClient } from '../../../api/client';
-import { emitDiscussionAdded, emitDiscussionDeleted } from '../../../socket/socket';
 
 const DiscussionPanel = ({ 
   projectId, 
-  onUpdate, 
+  brainstorm, 
   user,
   onDiscussionAdded,
   onDiscussionDeleted,
 }) => {
   const [newDiscussion, setNewDiscussion] = useState('');
-  const [discussions, setDiscussions] = useState([]);
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => { if (!projectId) return; loadDiscussions(); }, [projectId]);
+  const discussions=
+  brainstorm?.discussions||[];
 
-  const loadDiscussions = async () => {
-    setLoading(true);
-    try { 
-      const response = await apiClient.brainstorm.getDiscussions(projectId); 
-      setDiscussions(response.data || []); 
-    } catch (error) { 
-      console.error('Error loading discussions:', error); 
-    } finally { 
-      setLoading(false); 
-    }
+    const handleAddDiscussion =
+  async()=>{
+  
+  if(
+  !newDiscussion.trim()
+  )return;
+  
+  try{
+  
+  const response=
+  await apiClient
+  .brainstorm
+  .addDiscussion(
+  projectId,
+  {
+  message:newDiscussion
+  }
+  );
+  
+  setNewDiscussion('');
+  
+  onDiscussionAdded?.(
+  response.data
+  );
+  
+  }
+  catch(error){
+  
+  console.error(error);
+  
+  }
+  
   };
-
-  const handleAddDiscussion = async () => {
-
-    if (!newDiscussion.trim())
-      return;
-
-    try {
-
-      const response = await apiClient
-        .brainstorm
-        .addDiscussion(
-          projectId,
-          {
-            message:
-              newDiscussion
-          }
-        );
-
-      const newDiscussionData = response.data;
-
-      setNewDiscussion('');
-
-      // Add to local state immediately
-      setDiscussions(prev => [...prev, newDiscussionData]);
-
-      // Emit real-time update
-      if (onDiscussionAdded) {
-        onDiscussionAdded(newDiscussionData);
-      } else {
-        emitDiscussionAdded(projectId, newDiscussionData);
-      }
-
-    } catch (error) {
-
-      console.error(
-        'Error adding discussion:',
-        error
-      );
-
-    }
-
-  };
-
-  const handleDeleteDiscussion = async (id) => {
-
-    const previousDiscussions =
-      discussions;
-
-    setDiscussions((prev) =>
-      prev.filter(
-        (discussion) =>
-          discussion.id !== id
-      )
-    );
-
-    try {
-
-      await apiClient
-        .brainstorm
-        .deleteDiscussion(
-          id
-        );
-
-      // Emit real-time update
-      if (onDiscussionDeleted) {
-        onDiscussionDeleted(id);
-      } else {
-        emitDiscussionDeleted(projectId, id);
-      }
-
-    } catch (error) {
-
-      console.error(error);
-
-      setDiscussions(
-        previousDiscussions
-      );
-
-    }
-
+  
+   const handleDeleteDiscussion=
+  async(id)=>{
+  
+  try{
+  
+  await apiClient
+  .brainstorm
+  .deleteDiscussion(id);
+  
+  onDiscussionDeleted?.(
+  id
+  );
+  
+  }
+  catch(error){
+  
+  console.error(
+  error
+  );
+  
+  }
+  
   };
 
   return (
     <div className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">
       <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4 flex items-center gap-2"><FiMessageCircle className="w-4 h-4" />Discussion</h3>
       <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-0">
-        {loading ? (
-          <div className="text-center py-4 text-light-secondary dark:text-dark-secondary text-sm">Loading...</div>
-        ) : discussions.length === 0 ? (
+        {discussions.length === 0 ? (
           <div className="text-center py-8 text-light-secondary dark:text-dark-secondary text-sm"><p>No discussions yet</p></div>
         ) : (
           discussions.map((discussion) => (

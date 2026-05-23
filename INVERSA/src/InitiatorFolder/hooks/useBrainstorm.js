@@ -1,539 +1,204 @@
-import {
-  useState,
-  useEffect,
-} from 'react';
+import { useState,useEffect } from 'react';
+import { apiClient } from '../../api/client';
 
-import {
-  apiClient,
-} from '../../api/client';
+const useBrainstorm=(projectId)=>{
 
-const useBrainstorm = (
-  projectId
-) => {
+const [session,setSession]=useState({
+  ideas:[],
+  tasks:[],
+  discussions:[],
+  notes:[]
+});
 
-  /*
-  =========================
-  STATES
-  =========================
-  */
+const [loading,setLoading]=useState(true);
+
+useEffect(()=>{
+
+ if(!projectId)return;
+
+ loadSession();
+
+},[projectId]);
+
+const loadSession=async()=>{
+
+ try{
+
+  setLoading(true);
 
   const [
-    session,
-    setSession,
-  ] = useState(null);
+    sessionRes,
+    ideasRes,
+    tasksRes,
+    discussionsRes,
+    notesRes
+  ]=await Promise.all([
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(true);
+    apiClient.brainstorm.getSession(projectId),
+    apiClient.brainstorm.getIdeas(projectId),
+    apiClient.brainstorm.getTasks(projectId),
+    apiClient.brainstorm.getDiscussions(projectId),
+    apiClient.brainstorm.getNotes(projectId)
 
-  /*
-  =========================
-  LOAD SESSION
-  =========================
-  */
+  ]);
 
-  useEffect(() => {
+  setSession({
 
-    if (!projectId) {
-      return;
-    }
+    ...sessionRes.data,
 
-    loadSession();
+    ideas:ideasRes.data||[],
+    tasks:tasksRes.data||[],
+    discussions:discussionsRes.data||[],
+    notes:notesRes.data||[]
 
-  }, [projectId]);
+  });
 
-  const loadSession =
-    async () => {
-
-      try {
-
-        setLoading(true);
+ }
+ catch(err){
 
-        const [
-          sessionResponse,
-          ideasResponse,
-          tasksResponse,
-          discussionsResponse,
-          notesResponse,
-        ] = await Promise.all([
-
-          apiClient
-            .brainstorm
-            .getSession(
-              projectId
-            ),
-
-          apiClient
-            .brainstorm
-            .getIdeas(
-              projectId
-            ),
-
-          apiClient
-            .brainstorm
-            .getTasks(
-              projectId
-            ),
-
-          apiClient
-            .brainstorm
-            .getDiscussions(
-              projectId
-            ),
+   console.error(err);
 
-          apiClient
-            .brainstorm
-            .getNotes(
-              projectId
-            ),
-        ]);
+ }
+ finally{
 
-        setSession({
+   setLoading(false);
 
-          ...sessionResponse.data,
+ }
 
-          ideas:
-            ideasResponse.data || [],
+};
 
-          tasks:
-            tasksResponse.data || [],
+const addNewIdea=async(
+userId,
+userName,
+title,
+chapter_id=null
+)=>{
 
-          discussions:
-            discussionsResponse.data || [],
+ const res=
+ await apiClient.brainstorm.addIdea(
+   projectId,
+   {
+     user_id:userId,
+     user_name:userName,
+     title,
+     chapter_id
+   }
+ );
 
-          notes:
-            notesResponse.data || [],
-        });
+ return res.data;
 
-      } catch (error) {
+};
 
-        console.error(
-          'Error loading brainstorm:',
-          error
-        );
+const removeIdea=
+async(id)=>{
 
-      } finally {
+ await apiClient
+ .brainstorm
+ .deleteIdea(projectId,id);
 
-        setLoading(false);
-      }
-    };
+};
 
-  /*
-=========================
-RELOAD SESSION
-=========================
-*/
+const vote=
+async(id)=>{
 
-  const reloadSession =
-    async () => {
+ await apiClient
+ .brainstorm
+ .voteIdea(projectId,id);
 
-      await loadSession();
+};
 
-    };
+const createTask=
+async(data)=>{
 
-  /*
-  =========================
-  IDEAS
-  =========================
-  */
+ const res=
+ await apiClient
+ .brainstorm
+ .addTask(
+   projectId,
+   data
+ );
 
-  const addNewIdea =
-    async (
-      userId,
-      userName,
-      content,
-      chapterReference = null
-    ) => {
+ return res.data;
 
-      try {
+};
 
-        const response =
-          await apiClient
-            .brainstorm
-            .addIdea(
-              projectId,
-              {
-                user_id:
-                  userId,
+const updateTaskStatus=
+async(id,updates)=>{
 
-                user_name:
-                  userName,
+ const res=
+ await apiClient
+ .brainstorm
+ .updateTask(
+   projectId,
+   id,
+   updates
+ );
 
-                title:
-                  content,
+ return res.data;
 
-                chapter_id:
-                  chapterReference,
-              }
-            );
+};
 
-        setSession(prev => ({
+const removeTask=
+async(id)=>{
 
-          ...prev,
+ await apiClient
+ .brainstorm
+ .deleteTask(
+   projectId,
+   id
+ );
 
-          ideas: [
-            response.data,
-            ...(prev?.ideas || []),
-          ],
+};
 
-        }));
+const addDiscussion=
+async(message)=>{
 
-        return response.data;
+ const res=
+ await apiClient
+ .brainstorm
+ .addDiscussion(
+   projectId,
+   {message}
+ );
 
-      } catch (error) {
+ return res.data;
 
-        console.error(
-          'Error adding idea:',
-          error
-        );
+};
 
-        throw error;
-      }
-    };
+const addNote=
+async(content)=>{
 
-  const removeIdea =
-    async (ideaId) => {
+ const res=
+ await apiClient
+ .brainstorm
+ .addNote(
+   projectId,
+   {content}
+ );
 
-      try {
+ return res.data;
 
-        await apiClient
-          .brainstorm
-          .deleteIdea(
-            projectId,
-            ideaId
-          );
+};
 
-        setSession(prev => ({
+return{
 
-          ...prev,
+ session,
+ setSession,
+ loading,
 
-          ideas:
-            prev.ideas.filter(
-              idea =>
-                idea.id !== ideaId
-            ),
+ addNewIdea,
+ removeIdea,
+ vote,
 
-        }));
+ createTask,
+ updateTaskStatus,
+ removeTask,
 
-      } catch (error) {
+ addDiscussion,
+ addNote
 
-        console.error(
-          'Error deleting idea:',
-          error
-        );
+};
 
-        throw error;
-      }
-    };
-
-  const vote =
-  async (ideaId) => {
-
-    try {
-
-      setSession(prev => ({
-
-        ...prev,
-
-        ideas:
-          prev.ideas.map(idea =>
-
-            idea.id === ideaId
-
-              ? {
-                  ...idea,
-
-                  has_voted:
-                    !idea.has_voted,
-
-                  votes:
-                    idea.has_voted
-                      ? Math.max(
-                          0,
-                          idea.votes - 1
-                        )
-                      : idea.votes + 1,
-                }
-
-              : idea
-          ),
-
-      }));
-
-      await apiClient
-        .brainstorm
-        .voteIdea(
-          projectId,
-          ideaId
-        );
-
-    } catch (error) {
-
-      console.error(
-        'Error voting:',
-        error
-      );
-
-      throw error;
-    }
-  };
-  /*
-  =========================
-  TASKS
-  =========================
-  */
-
-  const createTask =
-    async (taskData) => {
-
-      try {
-
-        const response =
-          await apiClient
-            .brainstorm
-            .addTask(
-              projectId,
-              {
-                title:
-                  taskData.title,
-
-                description:
-                  taskData.description,
-
-                assigned_to:
-                  taskData.assigned_to,
-
-                chapter_id:
-                  taskData.chapter_id,
-
-                section_id:
-                  taskData.section_id,
-
-                status:
-                  taskData.status ||
-                  'pending',
-              }
-            );
-
-        setSession(prev => ({
-
-          ...prev,
-
-          tasks: [
-            response.data,
-            ...(prev?.tasks || []),
-          ],
-
-        }));
-
-        return response.data;
-
-      } catch (error) {
-
-        console.error(
-          'Error creating task:',
-          error
-        );
-
-        throw error;
-      }
-    };
-
-  const updateTaskStatus =
-    async (
-      taskId,
-      updates
-    ) => {
-
-      try {
-
-        const response =
-          await apiClient
-            .brainstorm
-            .updateTask(
-              projectId,
-              taskId,
-              {
-                status:
-                  updates.status,
-              }
-            );
-
-        setSession(prev => ({
-
-          ...prev,
-
-          tasks:
-            prev.tasks.map(task =>
-
-              task.id === taskId
-                ? response.data
-                : task
-            ),
-
-        }));
-
-        return response.data;
-
-      } catch (error) {
-
-        console.error(
-          'Error updating task:',
-          error
-        );
-
-        throw error;
-      }
-    };
-
-  const removeTask =
-    async (taskId) => {
-
-      try {
-
-        await apiClient
-          .brainstorm
-          .deleteTask(
-            projectId,
-            taskId
-          );
-
-        setSession(prev => ({
-
-          ...prev,
-
-          tasks:
-            prev.tasks.filter(
-              task =>
-                task.id !== taskId
-            ),
-
-        }));
-
-      } catch (error) {
-
-        console.error(
-          'Error deleting task:',
-          error
-        );
-
-        throw error;
-      }
-    };
-
-  /*
-  =========================
-  DISCUSSIONS
-  =========================
-  */
-
-  const addDiscussion =
-    async (message) => {
-
-      try {
-
-        const response =
-          await apiClient
-            .brainstorm
-            .addDiscussion(
-              projectId,
-              { message }
-            );
-
-        setSession(prev => ({
-
-          ...prev,
-
-          discussions: [
-            response.data,
-            ...(prev?.discussions || []),
-          ],
-
-        }));
-
-        return response.data;
-
-      } catch (error) {
-
-        console.error(
-          'Error adding discussion:',
-          error
-        );
-
-        throw error;
-      }
-    };
-
-  /*
-  =========================
-  NOTES
-  =========================
-  */
-
-  const addNote =
-    async (content) => {
-
-      try {
-
-        const response =
-          await apiClient
-            .brainstorm
-            .addNote(
-              projectId,
-              { content }
-            );
-
-        setSession(prev => ({
-
-          ...prev,
-
-          notes: [
-            response.data,
-            ...(prev?.notes || []),
-          ],
-
-        }));
-
-        return response.data;
-
-      } catch (error) {
-
-        console.error(
-          'Error adding note:',
-          error
-        );
-
-        throw error;
-      }
-    };
-
-  /*
-  =========================
-  RETURN
-  =========================
-  */
-
-  return {
-
-    session,
-
-    loading,
-
-    loadSession,
-    reloadSession,
-
-    addNewIdea,
-    removeIdea,
-    vote,
-
-    createTask,
-    updateTaskStatus,
-    removeTask,
-
-    addDiscussion,
-    addNote,
-  };
 };
 
 export default useBrainstorm;
