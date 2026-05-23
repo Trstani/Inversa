@@ -669,3 +669,37 @@ export const deleteIdeaCommentService =
       [commentId]
     );
   };
+
+ export const deleteDiscussionService = async (
+  id,
+  userId
+) => {
+
+  await pool.query(
+    `
+    DELETE FROM discussions
+    WHERE
+      id = $1
+      AND user_id = $2
+    `,
+    [id, userId]
+  );
+
+};
+
+export const deleteNoteService = async (
+  id,
+  userId
+) => {
+
+  await pool.query(
+    `
+    DELETE FROM notes
+    WHERE
+      id = $1
+      AND user_id = $2
+    `,
+    [id, userId]
+  );
+
+};

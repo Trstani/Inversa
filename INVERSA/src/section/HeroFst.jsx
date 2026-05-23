@@ -40,7 +40,7 @@ const HeroFst = () => {
 
           {/* LOGO IMAGE */}
           <h1 className="text-4xl md:text-6xl font-bold font-logo leading-tight">
-            <span className="block text-dark-accent">I</span>NVERSA
+            <span className="text-dark-accent">I</span>NVERSA
           </h1>
 
           <h1 className="text-4xl md:text-6xl font-bold font-logo leading-tight">

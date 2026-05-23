@@ -19,9 +19,11 @@ import {
 
   getDiscussions,
   createDiscussion,
+  deleteDiscussion,
 
   getNotes,
   createNote,
+  deleteNote,
 
   getIdeaComments,
   createIdeaComment,
@@ -168,6 +170,18 @@ router.delete(
   authMiddleware,
 
   deleteIdeaComment
+);
+
+router.delete(
+  '/discussions/:id',
+  authMiddleware,
+  deleteDiscussion
+);
+
+router.delete(
+  '/notes/:id',
+  authMiddleware,
+  deleteNote
 );
 
 export default router;

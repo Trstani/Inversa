@@ -37,6 +37,7 @@ const ContributionPanel = ({
 
           const userKey =
             idea.user_id ||
+            idea.user_name ||
             idea.name ||
             'unknown';
 
@@ -47,6 +48,7 @@ const ContributionPanel = ({
             stats[userKey] = {
 
               name:
+                idea.user_name ||
                 idea.name ||
                 'Unknown',
 
@@ -54,8 +56,8 @@ const ContributionPanel = ({
               tasks: 0,
               notes: 0,
             };
-          }
 
+          }
           stats[userKey]
             .ideas += 1;
         }
@@ -106,6 +108,7 @@ const ContributionPanel = ({
 
           const userKey =
             note.user_id ||
+            note.user_name ||
             note.name ||
             'unknown';
 
@@ -116,15 +119,17 @@ const ContributionPanel = ({
             stats[userKey] = {
 
               name:
+                note.user_name ||
                 note.name ||
                 'Unknown',
 
               ideas: 0,
               tasks: 0,
               notes: 0,
-            };
-          }
 
+            };
+
+          }
           stats[userKey]
             .notes += 1;
         }

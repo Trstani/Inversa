@@ -188,8 +188,11 @@ teams: {
     deleteComment: (ideaId, commentId) => makeRequest('DELETE', `/brainstorm/ideas/${ideaId}/comments/${commentId}`),
     getDiscussions: (projectId) =>makeRequest('GET', `/brainstorm/${projectId}/discussions`),
     addDiscussion: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/discussions`, data),
+    deleteDiscussion: (id) => makeRequest('DELETE',`/brainstorm/discussions/${id}`),
     getNotes: (projectId) => makeRequest('GET', `/brainstorm/${projectId}/notes`),
     addNote: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/notes`, data),
+    deleteNote: (id) => makeRequest('DELETE', `/brainstorm/notes/${id}`),
+
   },
 
   // ============ COLLABORATION ============

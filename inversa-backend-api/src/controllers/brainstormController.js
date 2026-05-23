@@ -14,9 +14,12 @@ import {
 
   getDiscussionsByProject,
   createDiscussionService,
+  deleteDiscussionService,
+
 
   getNotesByProject,
   createNoteService,
+  deleteNoteService,
 
   getIdeaCommentsService,
   getIdeaCommentByIdService,
@@ -644,3 +647,57 @@ export const deleteIdeaComment =
       });
     }
   };
+
+ export const deleteDiscussion = async (req, res) => {
+
+  try {
+
+    await deleteDiscussionService(
+      req.params.id,
+      req.user.id
+    );
+
+    res.json({
+      success: true,
+      message: 'Discussion deleted',
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+
+};
+
+export const deleteNote = async (req, res) => {
+
+  try {
+
+    await deleteNoteService(
+      req.params.id,
+      req.user.id
+    );
+
+    res.json({
+      success: true,
+      message: 'Note deleted',
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+
+  }
+
+};
