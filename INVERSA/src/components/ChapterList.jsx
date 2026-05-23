@@ -1,9 +1,22 @@
-import React, { useState } from 'react';
-import { FiTrash2, FiArrowUp, FiArrowDown, FiEdit2 } from 'react-icons/fi';
+import { useState } from 'react';
+import { FiTrash2 } from 'react-icons/fi';
+import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 
-const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId }) => {
+const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId, project }) => {
     const [deletingId, setDeletingId] = useState(null);
+    const { user } = useAuth();
+
+    /*
+    =========================
+    PERMISSIONS
+    =========================
+    */
+
+    const isInitiator = project?.initiator_id === user?.id;
+    const isCollaborator = project?.collaborators?.some(c => c.user_id === user?.id && c.status === "approved");
+    const isTeamMember = project?.is_team_project && project?.team_members?.some(m => m.user_id === user?.id);
+    const canDelete = isInitiator || isCollaborator || isTeamMember;
 
     const handleDeleteChapter = async (chapterId, e) => {
         e.stopPropagation();
@@ -58,20 +71,22 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                             </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
-                            <button
-                                onClick={(e) => handleDeleteChapter(chapter.id, e)}
-                                disabled={deletingId === chapter.id}
-                                className={`p-1.5 rounded transition-colors ${
-                                    currentChapterId === chapter.id
-                                        ? 'hover:bg-white/20'
-                                        : 'hover:bg-red-50 dark:hover:bg-red-900/20'
-                                } disabled:opacity-50`}
-                                title="Delete Chapter"
-                            >
-                                <FiTrash2 className={`w-4 h-4 ${
-                                    currentChapterId === chapter.id ? 'text-white' : 'text-red-600 dark:text-red-400'
-                                }`} />
-                            </button>
+                            {canDelete && (
+                                <button
+                                    onClick={(e) => handleDeleteChapter(chapter.id, e)}
+                                    disabled={deletingId === chapter.id}
+                                    className={`p-1.5 rounded transition-colors ${
+                                        currentChapterId === chapter.id
+                                            ? 'hover:bg-white/20'
+                                            : 'hover:bg-red-50 dark:hover:bg-red-900/20'
+                                    } disabled:opacity-50`}
+                                    title="Delete Chapter"
+                                >
+                                    <FiTrash2 className={`w-4 h-4 ${
+                                        currentChapterId === chapter.id ? 'text-white' : 'text-red-600 dark:text-red-400'
+                                    }`} />
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

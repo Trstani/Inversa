@@ -886,6 +886,7 @@ const ProjectDetail = () => {
                 }}
                 onChaptersChange={loadData}
                 projectId={projectId}
+                project={project}
               />
 
             </div>

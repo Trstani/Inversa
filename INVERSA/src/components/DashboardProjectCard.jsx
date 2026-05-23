@@ -12,6 +12,8 @@ import {
   FiTrash2,
 } from 'react-icons/fi';
 
+import { useAuth } from '../context/AuthContext';
+
 const DashboardProjectCard = ({
   project,
   onDelete,
@@ -19,6 +21,8 @@ const DashboardProjectCard = ({
 
   const navigate =
     useNavigate();
+
+  const { user } = useAuth();
 
   /*
   =========================
@@ -29,6 +33,16 @@ const DashboardProjectCard = ({
   const hasBackground =
     project.background_image &&
     project.background_image.trim() !== '';
+
+  /*
+  =========================
+  PERMISSIONS
+  =========================
+  */
+
+  const isInitiator = project.initiator_id === user?.id;
+  const isTeamMember = project.is_team_project && project.team_members?.some(m => m.user_id === user?.id);
+  const canDelete = isInitiator || isTeamMember;
 
   /*
   =========================
@@ -352,32 +366,34 @@ const DashboardProjectCard = ({
 
           {/* DELETE */}
 
-          <button
-            onClick={() =>
-              onDelete?.(project.id)
-            }
-            className="
-              flex items-center
-              justify-center
+          {canDelete && (
+            <button
+              onClick={() =>
+                onDelete?.(project.id)
+              }
+              className="
+                flex items-center
+                justify-center
 
-              rounded-lg
+                rounded-lg
 
-              bg-red-500/10
+                bg-red-500/10
 
-              px-3 sm:px-4 py-2.5 sm:py-3
+                px-3 sm:px-4 py-2.5 sm:py-3
 
-              text-red-500
+                text-red-500
 
-              transition-all duration-300
+                transition-all duration-300
 
-              hover:bg-red-500/20
-            "
-            title="Delete project"
-          >
+                hover:bg-red-500/20
+              "
+              title="Delete project"
+            >
 
-            <FiTrash2 className="w-4 h-4" />
+              <FiTrash2 className="w-4 h-4" />
 
-          </button>
+            </button>
+          )}
 
         </div>
 

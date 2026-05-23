@@ -4,7 +4,7 @@ import EditorActions from "./EditorActions";
 import TextEditorSection from "./TextEditorSection";
 import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
-import { socket } from "../../socket/socket";
+import { getSocket } from "../../socket/socket";
 import { apiClient } from "../../api/client";
 
 const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBack, isInitiator, isTeamMember }) => {
@@ -18,6 +18,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
   const MAX_TOTAL = 20, MAX_TEXT = 15, MAX_IMAGE = 5;
 
   useEffect(() => {
+    const socket = getSocket();
     const lock = ({ sectionId, userId }) => setSections(prev => prev.map(sec => sec.id === sectionId ? { ...sec, locked_by: userId } : sec));
     const unlock = ({ sectionId }) => setSections(prev => prev.map(sec => sec.id === sectionId ? { ...sec, locked_by: null } : sec));
     socket.on("section_locked", lock);
