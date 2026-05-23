@@ -292,6 +292,8 @@ LOAD TEAMS
     approveTeamRequest,
 
     rejectTeamRequest,
+
+    loadData,
   };
 };
 

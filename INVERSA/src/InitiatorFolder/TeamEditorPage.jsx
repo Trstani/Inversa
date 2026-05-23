@@ -384,6 +384,27 @@ const TeamEditorPage = () => {
 
         /*
         =========================
+        REFRESH PROJECT DATA IF PUBLISHED
+        =========================
+        */
+
+        if (publishNow) {
+          try {
+            const projectResponse =
+              await apiClient.projects.getById(
+                projectId
+              );
+            setProject(projectResponse.data);
+          } catch (error) {
+            console.error(
+              "Failed to refresh project data:",
+              error
+            );
+          }
+        }
+
+        /*
+        =========================
         UPDATE CURRENT
         =========================
         */

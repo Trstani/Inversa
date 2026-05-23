@@ -113,7 +113,24 @@ const UserDashboard = () => {
 
     removeProject,
 
+    loadData: refreshDashboard,
+
   } = useUserDashboard(user);
+
+  /*
+  =========================
+  REFRESH ON FOCUS
+  =========================
+  */
+
+  useEffect(() => {
+    const handleFocus = () => {
+      refreshDashboard();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, [refreshDashboard]);
 
   /*
   =========================
