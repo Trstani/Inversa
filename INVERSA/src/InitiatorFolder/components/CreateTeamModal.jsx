@@ -283,67 +283,23 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
           {/* Cover Image */}
 
           <div>
-
             <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
-
-              Team Cover Image (Optional)
-
+              Team Background image (optional)
             </label>
 
-            <div
-              className="
-      flex flex-col
-      items-center
-      justify-center
-
-      w-full
-      h-32
-
-      border-2
-      border-dashed
-
-      border-light-accent/30
-      dark:border-dark-accent/30
-
-      rounded-lg
-
-      hover:border-light-accent
-      dark:hover:border-dark-accent
-
-      transition-colors
-
-      bg-light-background
-      dark:bg-dark-background
-    "
-            >
-
-              <FiImage className="w-6 h-6 mb-2" />
-
-              <span className="font-medium text-sm">
-
-                {
-                  formData.backgroundImage
-                    ? 'Image selected'
-                    : 'Click to upload'
-                }
-
-              </span>
-
-              <span className="text-xs mt-1">
-
-                PNG, JPG up to 5MB
-
-              </span>
+            <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-light-accent/30 dark:border-dark-accent/30 rounded-xl cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-accent/5 dark:bg-dark-accent/5">
+              <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
+                <span className="font-medium">Click to upload</span>
+                <span className="text-xs mt-1">PNG, JPG up to 5MB</span>
+              </div>
 
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
-                className="mt-3 text-xs"
+                className="hidden"
               />
-
-            </div>
-
+            </label>
           </div>
 
           {/* Image Preview */}

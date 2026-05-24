@@ -1,15 +1,18 @@
 import express from 'express';
 
-import authMiddleware from '../middleware/authMiddleware.js';
+import authMiddleware
+from '../middleware/authMiddleware.js';
 
 import {
   create,
   getByProject,
   publish,
   update,
+  remove
 } from '../controllers/chapterController.js';
 
-const router = express.Router();
+const router =
+  express.Router();
 
 router.get(
   '/project/:projectId',
@@ -32,6 +35,12 @@ router.put(
   '/:id',
   authMiddleware,
   update
+);
+
+router.delete(
+  '/:id',
+  authMiddleware,
+  remove
 );
 
 export default router;

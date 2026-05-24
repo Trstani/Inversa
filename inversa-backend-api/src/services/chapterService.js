@@ -204,3 +204,17 @@ export const updateChapter =
 
     return result.rows[0];
 };
+
+export const deleteChapterService =
+async(id)=>{
+
+  await pool.query(
+    `
+    DELETE
+    FROM chapters
+    WHERE id=$1
+    `,
+    [id]
+  );
+
+};

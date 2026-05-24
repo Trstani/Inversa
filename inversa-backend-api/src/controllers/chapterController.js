@@ -3,6 +3,7 @@ import {
   getChaptersByProject,
   publishChapter,
   updateChapter,
+  deleteChapterService,
 } from '../services/chapterService.js';
 
 export const create = async (
@@ -144,4 +145,32 @@ export const update =
           error.message,
       });
     }
+};
+
+export const remove =
+async(req,res)=>{
+
+  try{
+
+    await deleteChapterService(
+      req.params.id
+    );
+
+    res.json({
+      success:true,
+      message:'Chapter deleted'
+    });
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    res.status(500).json({
+      success:false,
+      message:error.message
+    });
+
+  }
+
 };
