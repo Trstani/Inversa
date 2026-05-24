@@ -536,20 +536,79 @@ const UserProfile = () => {
 
               {/* BIO */}
 
-              {profileData.bio && (
+              {isEditing ? (
 
-                <div className="p-4 rounded-xl bg-light-accent/5 dark:bg-dark-accent/5 border border-light-accent/10 dark:border-dark-accent/10">
+                <div className="space-y-4">
 
-                  <p className="text-sm leading-relaxed text-light-primary dark:text-dark-primary">
+                  <input
+                    type="text"
+                    value={editData.name || ''}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        name: e.target.value
+                      })
+                    }
+                    placeholder="Name"
+                    className="
+        w-full p-3 rounded-xl
+        bg-light-background
+        dark:bg-dark-background
+        border border-light-border
+        dark:border-dark-border
+      "
+                  />
 
-                    {profileData.bio}
+                  <textarea
+                    value={editData.bio || ''}
+                    onChange={(e) =>
+                      setEditData({
+                        ...editData,
+                        bio: e.target.value
+                      })
+                    }
+                    placeholder="Write your bio..."
+                    rows={4}
+                    className="
+        w-full p-3 rounded-xl
+        bg-light-background
+        dark:bg-dark-background
+        border border-light-border
+        dark:border-dark-border
+        resize-none
+      "
+                  />
 
-                  </p>
+                  <button
+                    onClick={handleSave}
+                    className="
+        px-4 py-2 rounded-lg
+        bg-green-500
+        text-white
+      "
+                  >
+                    Save
+                  </button>
 
                 </div>
 
-              )}
+              ) : (
 
+                profileData.bio && (
+
+                  <div className="p-4 rounded-xl bg-light-accent/5 dark:bg-dark-accent/5 border border-light-accent/10 dark:border-dark-accent/10">
+
+                    <p className="text-sm leading-relaxed text-light-primary dark:text-dark-primary">
+
+                      {profileData.bio}
+
+                    </p>
+
+                  </div>
+
+                )
+
+              )}
             </div>
 
           </div>

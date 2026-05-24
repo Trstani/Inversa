@@ -17,7 +17,7 @@ export const createJoinRequest =
 
     /*
     =========================
-    CHECK EXISTING REQUEST
+    CHECK EXISTING ACTIVE
     =========================
     */
 
@@ -30,6 +30,10 @@ export const createJoinRequest =
         WHERE
           team_id = $1
           AND user_id = $2
+          AND status IN (
+            'pending',
+            'approved'
+          )
 
         LIMIT 1
         `,
@@ -46,6 +50,70 @@ export const createJoinRequest =
       throw new Error(
         'You already requested to join this team'
       );
+
+    }
+
+    /*
+    =========================
+    CHECK REJECTED
+    =========================
+    */
+
+    const rejected =
+      await pool.query(
+        `
+        SELECT *
+        FROM team_join_requests
+
+        WHERE
+          team_id = $1
+          AND user_id = $2
+          AND status='rejected'
+
+        LIMIT 1
+        `,
+        [
+          team_id,
+          user_id,
+        ]
+      );
+
+    /*
+    =========================
+    REUSE REJECTED REQUEST
+    =========================
+    */
+
+    if(
+      rejected.rows.length>0
+    ){
+
+      const updated=
+        await pool.query(
+          `
+          UPDATE team_join_requests
+
+          SET
+            status='pending',
+            role=$3,
+            reason=$4,
+            updated_at=NOW()
+
+          WHERE id=$5
+
+          RETURNING *
+          `,
+          [
+            team_id,
+            user_id,
+            role,
+            reason,
+            rejected.rows[0].id
+          ]
+        );
+
+      return updated.rows[0];
+
     }
 
     /*
@@ -84,6 +152,7 @@ export const createJoinRequest =
       );
 
     return result.rows[0];
+
 };
 
 /*

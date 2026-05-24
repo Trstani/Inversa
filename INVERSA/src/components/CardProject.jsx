@@ -195,7 +195,7 @@ const CardProject = ({
                 <span className="text-xs sm:text-sm">{project.views || 0}</span>
               </span>
 
-              <button onClick={handleLike} className="flex items-center gap-1.5 transition-colors hover:text-red-500 whitespace-nowrap">
+              <button className="flex items-center gap-1.5 transition-colors whitespace-nowrap">
 
                 <FiHeart className={`h-4 w-4 shrink-0 ${isLiked ? "fill-red-500 text-red-500" : ""}`} />
 
