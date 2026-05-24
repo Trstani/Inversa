@@ -71,6 +71,7 @@ const addNewIdea=async(
 userId,
 userName,
 title,
+description='',
 chapter_id=null
 )=>{
 
@@ -81,6 +82,7 @@ chapter_id=null
      user_id:userId,
      user_name:userName,
      title,
+     description,
      chapter_id
    }
  );
@@ -101,6 +103,7 @@ async(id)=>{
 const vote=
 async(id)=>{
 
+  const res =
  await apiClient
  .brainstorm
  .voteIdea(projectId,id);

@@ -280,7 +280,9 @@ export const createTask =
 
           due_date,
 
-          status
+          status,
+
+          created_by: req.user.id
 
         });
 

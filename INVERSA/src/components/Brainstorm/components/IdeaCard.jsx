@@ -46,6 +46,9 @@ const IdeaCard = ({
     !isOwner;
 
   const hasVoted =
+    idea.voters?.includes(
+      user?.id
+    ) ||
     idea.has_voted || false;
 
   const displayName =
@@ -59,10 +62,12 @@ const IdeaCard = ({
     idea.chapterReference ||
     null;
 
-  const ideaContent =
+  const ideaTitle =
+    idea.title || '';
+
+  const ideaDescription =
     idea.description ||
     idea.content ||
-    idea.title ||
     '';
 
   const votes =
@@ -188,11 +193,11 @@ const IdeaCard = ({
 
       {/* TITLE */}
 
-      {idea.title && (
+      {ideaTitle && (
 
         <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-2">
 
-          {idea.title}
+          {ideaTitle}
 
         </h3>
 
@@ -200,11 +205,16 @@ const IdeaCard = ({
 
       {/* CONTENT */}
 
-      <p className="text-sm text-light-secondary dark:text-dark-secondary mb-4 whitespace-pre-wrap">
+      {ideaDescription && (
 
-        {ideaContent}
 
-      </p>
+        <p className="text-sm text-light-secondary dark:text-dark-secondary mb-4 whitespace-pre-wrap">
+
+          {ideaDescription}
+
+        </p>
+
+      )}
 
       {/* FOOTER */}
 

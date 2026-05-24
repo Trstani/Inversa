@@ -67,7 +67,12 @@ const BrainstormGridLayout = ({
   const [selectedChapter, setSelectedChapter] = useState(null);
   const [filterChapter, setFilterChapter] = useState(null);
 
-  const [newIdeaInput, setNewIdeaInput] = useState('');
+  const [newIdeaInput, setNewIdeaInput] = useState({
+
+    title:'',
+    description:''
+
+    });
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -298,78 +303,61 @@ SOCKET.IO SETUP
 
       };
 
-    const ideaVoted =
-      ({
-        ideaId,
-        userId,
-        voted
-      }) => {
+ const ideaVoted =
+({
+  ideaId,
+  userId,
+  voted
+}) => {
 
-        setSession(prev => ({
+  // abaikan event dari diri sendiri
+  if(
+    Number(userId) ===
+    Number(user?.id)
+  ){
+    return;
+  }
 
-          ...prev,
+  setSession(prev => ({
 
-          ideas:
-            prev?.ideas?.map(
+    ...prev,
 
-              idea => {
+    ideas:
+      prev?.ideas?.map(
 
-                if (
-                  idea.id !== ideaId
-                ) {
-                  return idea;
-                }
+        idea => {
 
-                const voters =
-                  idea.voters || [];
+          if(
+            idea.id !== ideaId
+          ){
+            return idea;
+          }
 
-                if (voted) {
+          return {
 
-                  return {
+            ...idea,
 
-                    ...idea,
+            votes:
+              voted
+              ? (
+                  idea.votes || 0
+                ) + 1
+              : Math.max(
+                  (
+                    idea.votes || 0
+                  ) - 1,
+                  0
+                )
 
-                    voters:
-                      voters.includes(userId)
-                        ? voters
-                        : [...voters, userId],
+          };
 
-                    votes:
-                      (idea.votes || 0) +
-                      (
-                        voters.includes(userId)
-                          ? 0
-                          : 1
-                      )
+        }
 
-                  };
+      ) || []
 
-                }
+  }));
 
-                return {
-
-                  ...idea,
-
-                  voters:
-                    voters.filter(
-                      id => id !== userId
-                    ),
-
-                  votes:
-                    Math.max(
-                      (idea.votes || 0) - 1,
-                      0
-                    )
-
-                };
-
-              }
-
-            ) || []
-
-        }));
-
-      };
+};
 
     const taskUpdated =
       ({
@@ -499,31 +487,35 @@ SOCKET.IO SETUP
 
   const loadTeamMembers = async () => {
 
-    try {
+  try {
 
-      const projectResponse =
-        await apiClient.projects.getById(projectId);
+    const projectResponse =
+      await apiClient.projects.getById(projectId);
 
-      const project =
-        projectResponse.data;
+    const project =
+      projectResponse.data;
 
-      setProject(project);
+    console.log(
+      'PROJECT DATA:',
+      project
+    );
 
-      if (!project?.team_id) return;
+    setProject(project);
 
-      const teamResponse =
-        await apiClient.teams.getById(project.team_id);
+    if (!project?.team_id) return;
 
-      setTeamMembers(
-        teamResponse.data?.members || []
-      );
+    const teamResponse =
+      await apiClient.teams.getById(project.team_id);
 
-    } catch (error) {
+    setTeamMembers(
+      teamResponse.data?.members || []
+    );
 
-      console.error(error);
-    }
-  };
+  } catch (error) {
 
+    console.error(error);
+  }
+};
   /*
   =========================
   IDEA ACTIONS
@@ -533,7 +525,7 @@ SOCKET.IO SETUP
   const handleAddIdea =
     async () => {
 
-      if (!newIdeaInput.trim())
+      if (!newIdeaInput.title?.trim())
         return;
 
       try {
@@ -543,7 +535,8 @@ SOCKET.IO SETUP
 
             user?.id,
             user?.name,
-            newIdeaInput,
+            newIdeaInput.title,
+            newIdeaInput.description,
             selectedChapter
 
           );
@@ -553,7 +546,10 @@ SOCKET.IO SETUP
           savedIdea
         );
 
-        setNewIdeaInput('');
+        setNewIdeaInput({
+          title:'',
+          description:''
+        });
 
         setSelectedChapter(
           null
@@ -578,22 +574,69 @@ SOCKET.IO SETUP
 
   };
 
-  const handleVoteIdea =
-    async (ideaId) => {
+ const handleVoteIdea =
+async (ideaId) => {
 
-      try {
-        const result = await vote(ideaId);
+  try {
 
-        emitIdeaVoted(projectId, ideaId, user?.id, result.voted);
+    const result =
+      await vote(
+        ideaId
+      );
+
+    // update UI user sendiri sekali
+    setSession(prev => ({
+
+      ...prev,
+
+      ideas:
+        prev?.ideas?.map(
+
+          idea => {
+
+            if(
+              idea.id !== ideaId
+            ){
+              return idea;
+            }
+
+            return {
+
+              ...idea,
+
+              has_voted:
+                result.voted,
+
+              votes:
+                result.idea.votes
+
+            };
+
+          }
+
+        ) || []
+
+    }));
 
 
+    // kirim ke user lain
+    emitIdeaVoted(
+      projectId,
+      ideaId,
+      user?.id,
+      result.voted
+    );
 
-      } catch (error) {
+  }
+  catch(error){
 
-        console.error(error);
-      }
-    };
+    console.error(
+      error
+    );
 
+  }
+
+};
   /*
   =========================
   TASK ACTIONS
@@ -839,7 +882,16 @@ SOCKET.IO SETUP
 
               newTask={newTask}
               tasksByStatus={tasksByStatus}
-              isInitiator={Number(user?.id) === Number(project?.initiator_id)}
+              isInitiator={
+                Number(user?.id) ===
+                Number(
+                  project?.initiator_id ||
+                  project?.initiatorId ||
+                  project?.creator_id ||
+                  project?.owner_id ||
+                  project?.user_id
+                )
+              }
               user={user}
 
               onFilterChapter={setFilterChapter}
@@ -937,7 +989,9 @@ SOCKET.IO SETUP
       </div>
 
     </div>
+    
   );
+  
 };
 
 export default BrainstormGridLayout;

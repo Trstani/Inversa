@@ -153,6 +153,7 @@ export const createTaskService = async ({
   section_id,
   due_date,
   status,
+  created_by
 }) => {
   const brainstorm = await getOrCreateSession(projectId);
 
@@ -166,10 +167,11 @@ export const createTaskService = async ({
       chapter_id,
       section_id,
       due_date,
-      status
+      status,
+      created_by
     )
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-    RETURNING id
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    RETURNING *
     `,
     [
       brainstorm.id,
@@ -180,6 +182,7 @@ export const createTaskService = async ({
       section_id,
       due_date,
       status,
+      created_by
     ]
   );
 

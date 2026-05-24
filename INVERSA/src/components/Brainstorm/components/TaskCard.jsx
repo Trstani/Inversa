@@ -79,22 +79,49 @@ DUE DATE
 
     null;  
 
-  /*
-  =========================
-  PERMISSIONS
-  =========================
-  */
+ /*
+=========================
+PERMISSIONS
+=========================
+*/
+
+  const isCreator =
+    Number(user?.id) ===
+    Number(task.created_by);
 
   const isAssignedUser =
-
     Number(user?.id) ===
     Number(assignedUserId);
 
   const canManageTask =
+    Boolean(
 
-    isAssignedUser ||
-    isInitiator;
+      isAssignedUser ||
 
+      isCreator ||
+
+      isInitiator
+
+    );
+
+  console.log({
+
+    userId: user?.id,
+
+    assignedUserId,
+
+    createdBy:
+      task.created_by,
+
+    isAssignedUser,
+
+    isCreator,
+
+    isInitiator,
+
+    canManageTask
+
+  });
   /*
   =========================
   STATUS
