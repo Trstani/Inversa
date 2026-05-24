@@ -345,6 +345,23 @@ io.on(
 
       }
     );
+          /*
+      =========================
+      SECTION UPDATED
+      =========================
+      */
+
+    socket.on(
+      'section_updated',
+      (data) => {
+
+        socket.broadcast.emit(
+          'section_updated',
+          data
+        );
+
+      }
+    );
 
     /*
     =========================

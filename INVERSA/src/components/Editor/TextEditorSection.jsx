@@ -116,7 +116,7 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
               <button onClick={onMoveUp} disabled={isFirst} className={buttonClass}><FiArrowUp /></button>
               <button onClick={onMoveDown} disabled={isLast} className={buttonClass}><FiArrowDown /></button>
             </div>
-            <button onClick={() => onDelete(section.id)} className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 rounded-lg text-sm px-4 py-2.5 mt-4">✕</button>
+            <button onClick={() => onDelete(section.id)} title="Delete Section" className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 rounded-lg text-sm px-4 py-2.5 mt-4">✕</button>
           </div>
         )}
       </div>
