@@ -21,79 +21,149 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload =
-    (e) => {
+  const handleImageUpload = (e) => {
 
-      const file =
-        e.target.files[0];
+    const file = e.target.files?.[0];
 
-      if (!file) return;
+    if (!file) return;
 
-      const reader =
-        new FileReader();
+    // batasi ukuran
+    if (file.size > 5 * 1024 * 1024) {
 
-      reader.onload = (
-        event
-      ) => {
+      alert(
+        'Image max size 5MB'
+      );
 
-        const img =
-          new Image();
+      return;
+    }
 
-        img.onload = () => {
+    const reader =
+      new FileReader();
+
+    reader.onload = (
+      event
+    ) => {
+
+      const img =
+        new Image();
+
+      img.onload = () => {
+
+        try {
 
           const canvas =
             document.createElement(
-              "canvas"
+              'canvas'
             );
 
           const ctx =
             canvas.getContext(
-              "2d"
+              '2d'
             );
+
+          if (!ctx) {
+
+            throw new Error(
+              'Canvas failed'
+            );
+
+          }
 
           const MAX_WIDTH = 1200;
 
-          const scale =
-            MAX_WIDTH /
+          let width =
             img.width;
 
+          let height =
+            img.height;
+
+          if (
+            width >
+            MAX_WIDTH
+          ) {
+
+            const scale =
+              MAX_WIDTH /
+              width;
+
+            width =
+              MAX_WIDTH;
+
+            height =
+              height *
+              scale;
+
+          }
+
           canvas.width =
-            MAX_WIDTH;
+            width;
 
           canvas.height =
-            img.height * scale;
+            height;
 
           ctx.drawImage(
             img,
             0,
             0,
-            canvas.width,
-            canvas.height
+            width,
+            height
           );
 
           const compressed =
             canvas.toDataURL(
-              "image/jpeg",
+              'image/jpeg',
               0.7
             );
 
           setFormData(
-            (prev) => ({
+            prev => ({
               ...prev,
               backgroundImage:
-                compressed,
+                compressed
             })
           );
-        };
 
-        img.src =
-          event.target.result;
+        } catch (error) {
+
+          console.error(
+            'Image processing error:',
+            error
+          );
+
+          alert(
+            'Failed processing image'
+          );
+
+        }
+
       };
 
-      reader.readAsDataURL(
-        file
-      );
+      img.onerror = () => {
+
+        alert(
+          'Invalid image'
+        );
+
+      };
+
+      img.src =
+        event.target.result;
+
     };
+
+    reader.onerror = () => {
+
+      alert(
+        'Failed reading image'
+      );
+
+    };
+
+    reader.readAsDataURL(
+      file
+    );
+
+  };
 
   const handleSubmit =
     async (e) => {
@@ -211,23 +281,69 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
           </div>
 
           {/* Cover Image */}
+
           <div>
+
             <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
+
               Team Cover Image (Optional)
+
             </label>
-            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-light-accent/30 dark:border-dark-accent/30 rounded-lg cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-background dark:bg-dark-background">
-              <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
-                <FiImage className="w-6 h-6 mb-2" />
-                <span className="font-medium">Click to upload</span>
-                <span className="text-xs mt-1">PNG, JPG up to 5MB</span>
-              </div>
+
+            <div
+              className="
+      flex flex-col
+      items-center
+      justify-center
+
+      w-full
+      h-32
+
+      border-2
+      border-dashed
+
+      border-light-accent/30
+      dark:border-dark-accent/30
+
+      rounded-lg
+
+      hover:border-light-accent
+      dark:hover:border-dark-accent
+
+      transition-colors
+
+      bg-light-background
+      dark:bg-dark-background
+    "
+            >
+
+              <FiImage className="w-6 h-6 mb-2" />
+
+              <span className="font-medium text-sm">
+
+                {
+                  formData.backgroundImage
+                    ? 'Image selected'
+                    : 'Click to upload'
+                }
+
+              </span>
+
+              <span className="text-xs mt-1">
+
+                PNG, JPG up to 5MB
+
+              </span>
+
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleImageUpload}
-                className="hidden"
+                className="mt-3 text-xs"
               />
-            </label>
+
+            </div>
+
           </div>
 
           {/* Image Preview */}

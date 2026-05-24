@@ -122,6 +122,7 @@ const UserDashboard = () => {
   REFRESH ON FOCUS
   =========================
   */
+ /*
 
   useEffect(() => {
     const handleFocus = () => {
@@ -131,6 +132,8 @@ const UserDashboard = () => {
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
   }, [refreshDashboard]);
+
+  */
 
   /*
   =========================
