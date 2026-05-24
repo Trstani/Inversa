@@ -45,11 +45,13 @@ const IdeaCard = ({
   const canVote =
     !isOwner;
 
-  const hasVoted =
-    idea.voters?.includes(
-      user?.id
-    ) ||
-    idea.has_voted || false;
+ const voters=
+  idea.voters||[];
+
+const hasVoted=
+  voters.includes(
+    user?.id
+  );
 
   const displayName =
     idea.user_name ||

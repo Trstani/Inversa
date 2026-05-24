@@ -18,13 +18,120 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
   const MAX_TOTAL = 20, MAX_TEXT = 15, MAX_IMAGE = 5;
 
   useEffect(() => {
-    const socket = getSocket();
-    const lock = ({ sectionId, userId }) => setSections(prev => prev.map(sec => sec.id === sectionId ? { ...sec, locked_by: userId } : sec));
-    const unlock = ({ sectionId }) => setSections(prev => prev.map(sec => sec.id === sectionId ? { ...sec, locked_by: null } : sec));
-    socket.on("section_locked", lock);
-    socket.on("section_unlocked", unlock);
-    return () => { socket.off("section_locked", lock); socket.off("section_unlocked", unlock); };
-  }, []);
+
+  const socket = getSocket();
+
+  const lock = ({
+    sectionId,
+    userId
+  }) => {
+
+    setSections(prev =>
+      prev.map(sec =>
+        sec.id === sectionId
+        ? {
+            ...sec,
+            locked_by:userId
+          }
+        : sec
+      )
+    );
+
+  };
+
+
+  const unlock = ({
+    sectionId
+  }) => {
+
+    setSections(prev =>
+      prev.map(sec =>
+        sec.id === sectionId
+        ? {
+            ...sec,
+            locked_by:null
+          }
+        : sec
+      )
+    );
+
+  };
+
+
+  const updated = ({
+    sectionId,
+    image_url,
+    caption,
+    content
+  }) => {
+
+    setSections(prev =>
+      prev.map(sec => {
+
+        if(
+          sec.id !== sectionId
+        ) return sec;
+
+        return {
+
+          ...sec,
+
+          image_url:
+            image_url ??
+            sec.image_url,
+
+          caption:
+            caption ??
+            sec.caption,
+
+          content:
+            content ??
+            sec.content
+
+        };
+
+      })
+    );
+
+  };
+
+
+  socket.on(
+    "section_locked",
+    lock
+  );
+
+  socket.on(
+    "section_unlocked",
+    unlock
+  );
+
+  socket.on(
+    "section_updated",
+    updated
+  );
+
+
+  return()=>{
+
+    socket.off(
+      "section_locked",
+      lock
+    );
+
+    socket.off(
+      "section_unlocked",
+      unlock
+    );
+
+    socket.off(
+      "section_updated",
+      updated
+    );
+
+  };
+
+},[]);
 
   const hasActiveLocks = chapter?.is_team_project && sections.some(sec => sec.locked_by && sec.locked_by !== user?.id);
 
@@ -34,16 +141,74 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
 
   useEffect(() => { if (!chapter) return; setTitle(chapter.title || ""); loadSections(); }, [chapter]);
 
-  useEffect(() => {
-    if (!chapter?.id) return;
-    const interval = setInterval(async () => {
-      try {
-        const { data } = await apiClient.sections.getByChapter(chapter.id);
-        setSections(prev => (data || []).map(incoming => incoming.id === editingSectionId ? prev.find(p => p.id === incoming.id) || incoming : incoming));
-      } catch (e) { console.error("Polling failed:", e); }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [chapter?.id]);
+  useEffect(()=>{
+
+  if(
+    !chapter?.id
+  ) return;
+
+  const interval=
+  setInterval(async()=>{
+
+    try{
+
+      const {data}=
+      await apiClient.sections.getByChapter(
+        chapter.id
+      );
+
+      setSections(prev=>
+        prev.map(sec=>{
+
+          const incoming=
+          data?.find(
+            d=>d.id===sec.id
+          );
+
+          if(
+            !incoming
+          ) return sec;
+
+          // jangan overwrite section
+          // yang sedang diedit user sendiri
+          if(
+            sec.id===
+            editingSectionId
+          ){
+            return sec;
+          }
+
+          return {
+
+            ...sec,
+            ...incoming
+
+          };
+
+        })
+      );
+
+    }catch(e){
+
+      console.error(
+        "Polling failed:",
+        e
+      );
+
+    }
+
+  },3000);
+
+  return()=>{
+    clearInterval(
+      interval
+    );
+  };
+
+},[
+  chapter?.id,
+  editingSectionId
+]);
 
   if (!chapter) return <div>Loading...</div>;
 

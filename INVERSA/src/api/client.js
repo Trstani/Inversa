@@ -192,7 +192,6 @@ teams: {
     getNotes: (projectId) => makeRequest('GET', `/brainstorm/${projectId}/notes`),
     addNote: (projectId, data) => makeRequest('POST', `/brainstorm/${projectId}/notes`, data),
     deleteNote: (id) => makeRequest('DELETE', `/brainstorm/notes/${id}`),
-
   },
 
   // ============ COLLABORATION ============

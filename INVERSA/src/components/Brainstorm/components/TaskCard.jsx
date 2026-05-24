@@ -104,24 +104,6 @@ PERMISSIONS
 
     );
 
-  console.log({
-
-    userId: user?.id,
-
-    assignedUserId,
-
-    createdBy:
-      task.created_by,
-
-    isAssignedUser,
-
-    isCreator,
-
-    isInitiator,
-
-    canManageTask
-
-  });
   /*
   =========================
   STATUS

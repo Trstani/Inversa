@@ -68,9 +68,19 @@ const TeamEditorLayout = ({
   const [
     activeSection,
     setActiveSection,
-  ] = useState(
-    'editor'
-  );
+  ] = useState(() => {
+
+    if (!project?.id) {
+      return 'editor';
+    }
+
+    return (
+      localStorage.getItem(
+        `project_section_${project.id}`
+      ) || 'editor'
+    );
+
+  });
 
   const [
     brainstorm,
@@ -240,6 +250,28 @@ const TeamEditorLayout = ({
     };
 
   /*
+=========================
+SAVE ACTIVE SECTION
+=========================
+*/
+
+  useEffect(() => {
+
+    if (project?.id) {
+
+      localStorage.setItem(
+        `project_section_${project.id}`,
+        activeSection
+      );
+
+    }
+
+  }, [
+    activeSection,
+    project?.id
+  ]);
+
+  /*
   =========================
   UPDATE BRAINSTORM
   =========================
@@ -338,50 +370,51 @@ const TeamEditorLayout = ({
 
                   <button
                     key={section.id}
+                    onClick={() => {
 
-                    onClick={() =>
                       setActiveSection(
                         section.id
-                      )
-                    }
+                      );
 
+                      localStorage.setItem(
+                        `project_section_${project.id}`,
+                        section.id
+                      );
+
+                    }}
                     className={`
-                      flex items-center gap-2
+    flex items-center gap-2
 
-                      px-5 py-2
+    px-5 py-2
 
-                      rounded-xl
+    rounded-xl
 
-                      text-sm font-medium
+    text-sm font-medium
 
-                      transition-all duration-200
+    transition-all duration-200
 
-                      whitespace-nowrap
+    whitespace-nowrap
 
-                      ${
-                        isActive
+    ${isActive
+                        ? `
+        bg-light-surface
+        dark:bg-dark-surface
 
-                          ? `
-                            bg-light-surface
-                            dark:bg-dark-surface
+        shadow-md
 
-                            shadow-md
+        text-light-accent
+        dark:text-dark-accent
+      `
+                        : `
+        text-light-secondary
+        dark:text-dark-secondary
 
-                            text-light-accent
-                            dark:text-dark-accent
-                          `
-
-                          : `
-                            text-light-secondary
-                            dark:text-dark-secondary
-
-                            hover:text-light-primary
-                            dark:hover:text-dark-primary
-                          `
+        hover:text-light-primary
+        dark:hover:text-dark-primary
+      `
                       }
-                    `}
+  `}
                   >
-
                     <Icon className="w-4 h-4" />
 
                     {section.label}
@@ -407,8 +440,8 @@ const TeamEditorLayout = ({
         {activeSection ===
           'editor' && (
 
-          <div
-            className="
+            <div
+              className="
               max-w-6xl
               mx-auto
 
@@ -420,133 +453,133 @@ const TeamEditorLayout = ({
 
               px-4
             "
-          >
+            >
 
-            {/* SIDEBAR */}
+              {/* SIDEBAR */}
 
-            <ChapterSidebar
-              chapters={chapters}
-              currentChapter={currentChapter}
-              onSelectChapter={onSelectChapter}
-              onCreateChapter={() =>
-                setShowCreateModal(
-                  true
-                )
-              }
-              onDeleteChapter={handleDeleteChapter}
-              isInitiator={isInitiator}
-              isTeamMember={isTeamMember}
-            />
-
-            {/* MAIN */}
-
-            <div className="col-span-1 md:col-span-3">
-
-              <EditorHeader
-                project={project}
-                chapter={currentChapter}
-              />
-
-              <EditorBody
-                chapter={currentChapter}
+              <ChapterSidebar
                 chapters={chapters}
+                currentChapter={currentChapter}
                 onSelectChapter={onSelectChapter}
-                onSave={onSave}
-                loading={loading}
-                onBack={onBack}
+                onCreateChapter={() =>
+                  setShowCreateModal(
+                    true
+                  )
+                }
+                onDeleteChapter={handleDeleteChapter}
                 isInitiator={isInitiator}
                 isTeamMember={isTeamMember}
               />
 
+              {/* MAIN */}
+
+              <div className="col-span-1 md:col-span-3">
+
+                <EditorHeader
+                  project={project}
+                  chapter={currentChapter}
+                />
+
+                <EditorBody
+                  chapter={currentChapter}
+                  chapters={chapters}
+                  onSelectChapter={onSelectChapter}
+                  onSave={onSave}
+                  loading={loading}
+                  onBack={onBack}
+                  isInitiator={isInitiator}
+                  isTeamMember={isTeamMember}
+                />
+
+              </div>
+
+              {/* CREATE MODAL */}
+
+              {showCreateModal && 
+
+                (isInitiator ||
+                isTeamMember
+
+              ) && (
+
+                  <CreateChapterModal
+                    onSubmit={handleCreateChapter}
+                    onClose={() =>
+                      setShowCreateModal(
+                        false
+                      )
+                    }
+                  />
+
+                )}
+
             </div>
 
-            {/* CREATE MODAL */}
-
-            {showCreateModal && (
-
-              isInitiator ||
-              isTeamMember
-
-            ) && (
-
-              <CreateChapterModal
-                onSubmit={handleCreateChapter}
-                onClose={() =>
-                  setShowCreateModal(
-                    false
-                  )
-                }
-              />
-
-            )}
-
-          </div>
-
-        )}
+          )}
 
         {/* BRAINSTORM */}
 
         {activeSection ===
           'brainstorm' && (
 
-          <div
-            className="
+            <div
+              className="
               max-w-7xl
               mx-auto
 
               px-4
             "
-          >
+            >
 
-            {brainstormLoading ? (
+              {brainstormLoading ? (
 
-              <div
-                className="
+                <div
+                  className="
                   flex items-center
                   justify-center
 
                   py-12
                 "
-              >
+                >
 
-                <p
-                  className="
+                  <p
+                    className="
                     text-light-secondary
                     dark:text-dark-secondary
                   "
-                >
-                  Loading brainstorm...
-                </p>
+                  >
+                    Loading brainstorm...
+                  </p>
 
-              </div>
+                </div>
 
-            ) : (
+              ) : (
 
-              <BrainstormGridLayout
-                projectId={project?.id}
+                <BrainstormGridLayout
+                  projectId={project?.id}
 
-                brainstorm={
-                  brainstorm || {
+                  brainstorm={
+                    brainstorm || {
 
-                    ideas: [],
-                    tasks: [],
-                    discussions: [],
-                    notes: [],
+                      ideas: [],
+                      tasks: [],
+                      discussions: [],
+                      notes: [],
+                    }
                   }
-                }
 
-                onUpdate={
-                  handleBrainstormUpdate
-                }
+                  onUpdate={
+                    handleBrainstormUpdate
+                  }
 
-                user={user}
-              />
+                  user={user}
+                />
 
-            )}
+              )}
 
-          </div>
+            </div>
 
-        )}
+          )}
 
       </div>
 

@@ -1,128 +1,257 @@
-import React, { useState } from 'react';
-import { FiSend, FiFileText, FiTrash2 } from 'react-icons/fi';
-import { apiClient } from '../../../api/client';
+import React,{
+  useState,
+  useRef
+} from 'react';
 
-const NotesPanel = ({ 
-  projectId, 
+import {
+  FiSend,
+  FiFileText,
+  FiTrash2
+} from 'react-icons/fi';
+
+import {
+  apiClient
+} from '../../../api/client';
+
+const NotesPanel=({
+  projectId,
   brainstorm,
   user,
   onNoteAdded,
   onNoteDeleted,
-}) => {
-  const [newNote, setNewNote] = useState('');
-  
-  const notes =
-  brainstorm?.notes || [];
- 
+})=>{
 
-  const handleAddNote =
-async()=>{
+  const [
+    newNote,
+    setNewNote
+  ]=useState('');
 
-if(
-!newNote.trim()
-)return;
+  const [
+    isSending,
+    setIsSending
+  ]=useState(false);
 
-try{
+  const sendingRef=
+    useRef(false);
 
-const response=
-await apiClient
-.brainstorm
-.addNote(
-projectId,
-{
-content:newNote
-}
-);
+  const notes=
+    brainstorm?.notes || [];
 
-setNewNote('');
+  const handleAddNote=
+  async()=>{
 
-onNoteAdded?.(
-response.data
-);
+    if(
+      !newNote.trim() ||
+      sendingRef.current
+    ){
+      return;
+    }
 
-}
-catch(error){
+    try{
 
-console.error(error);
+      sendingRef.current=true;
 
-}
+      setIsSending(
+        true
+      );
 
-};
+      await onNoteAdded(
+        newNote.trim()
+      );
 
- const handleDeleteNote=
-async(id)=>{
+      setNewNote('');
 
-try{
+    }
+    catch(error){
 
-await apiClient
-.brainstorm
-.deleteNote(id);
+      console.error(
+        error
+      );
 
-onNoteDeleted?.(
-id
-);
+    }
+    finally{
 
-}
-catch(error){
+      setTimeout(()=>{
 
-console.error(
-error
-);
+        sendingRef.current=false;
 
-}
+        setIsSending(
+          false
+        );
 
-};
+      },800);
 
-  return (
+    }
+
+  };
+
+  const handleDeleteNote=
+  async(id)=>{
+
+    try{
+
+      await apiClient
+      .brainstorm
+      .deleteNote(id);
+
+      onNoteDeleted?.(
+        id
+      );
+
+    }
+    catch(error){
+
+      console.error(
+        error
+      );
+
+    }
+
+  };
+
+  return(
+
     <div className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">
-      <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4 flex items-center gap-2"><FiFileText className="w-4 h-4" />Notes</h3>
+
+      <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4 flex items-center gap-2">
+
+        <FiFileText className="w-4 h-4"/>
+        Notes
+
+      </h3>
+
       <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-0">
-        {notes.length === 0 ? (
-          <div className="text-center py-8 text-light-secondary dark:text-dark-secondary text-sm"><p>No notes yet</p></div>
+
+        {notes.length===0 ? (
+
+          <div className="text-center py-8 text-light-secondary dark:text-dark-secondary text-sm">
+
+            No notes yet
+
+          </div>
+
         ) : (
-          notes.map((note) => (
-            <div key={note.id} className="bg-light-background dark:bg-dark-background p-3 rounded-xl">
-              <div className="flex justify-between items-start gap-3">
-                {/* LEFT */}
-                <div className="flex-1">
-                  <p className="font-medium text-xs text-light-primary dark:text-dark-primary">
-                    {note.name || "Unknown"}
-                  </p>
-                  <p className="text-xs text-light-secondary dark:text-dark-secondary mt-1 whitespace-pre-wrap">
-                    {note.content}
-                  </p>
-                  <p className="text-xs text-light-secondary/50 dark:text-dark-secondary/50 mt-2">
-                    {new Date(note.created_at).toLocaleTimeString()}
-                  </p>
+
+          notes.map(
+            note=>(
+
+              <div
+                key={note.id}
+                className="bg-light-background dark:bg-dark-background p-3 rounded-xl"
+              >
+
+                <div className="flex justify-between items-start gap-3">
+
+                  <div className="flex-1">
+
+                    <p className="font-medium text-xs">
+
+                      {note.name || "Unknown"}
+
+                    </p>
+
+                    <p className="text-xs mt-1 whitespace-pre-wrap">
+
+                      {note.content}
+
+                    </p>
+
+                    <p className="text-xs opacity-50 mt-2">
+
+                      {
+                        note.created_at
+                        ? new Date(
+                            note.created_at
+                          ).toLocaleTimeString()
+                        : ""
+                      }
+
+                    </p>
+
+                  </div>
+
+                  {note.user_id===user?.id && (
+
+                    <button
+                      onClick={()=>
+                        handleDeleteNote(
+                          note.id
+                        )
+                      }
+                      className="text-red-500 hover:text-red-600 transition shrink-0"
+                    >
+
+                      <FiTrash2 className="w-4 h-4"/>
+
+                    </button>
+
+                  )}
+
                 </div>
-                {/* DELETE */}
-                {note.user_id === user?.id && (
-                  <button
-                    onClick={() => handleDeleteNote(note.id)}
-                    className="text-red-500 hover:text-red-600 transition shrink-0"
-                  >
-                    <FiTrash2 className="w-4 h-4" />
-                  </button>
-                )}
+
               </div>
-            </div>
-          ))
+
+            )
+          )
+
         )}
+
       </div>
+
       <div className="flex gap-2">
+
         <textarea
           value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
+
+          onChange={(e)=>
+            setNewNote(
+              e.target.value
+            )
+          }
+
           placeholder="Add Note..."
+
           className="flex-1 px-3 py-2 text-sm rounded resize-none min-h-[40px] max-h-[120px] bg-white border-black dark:bg-dark-background dark:border-dark-primary"
-          onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddNote(); } }}
+
+          onKeyDown={(e)=>{
+
+            if(
+              e.key==="Enter" &&
+              !e.shiftKey
+            ){
+
+              e.preventDefault();
+
+              handleAddNote();
+
+            }
+
+          }}
         />
-        <button onClick={handleAddNote} disabled={!newNote.trim()} className="px-3 py-2 bg-light-accent dark:bg-dark-accent text-white rounded hover:opacity-90 disabled:opacity-50 transition">
-          <FiSend className="w-4 h-4" />
+
+        <button
+          onClick={
+            handleAddNote
+          }
+
+          disabled={
+            !newNote.trim() ||
+            isSending
+          }
+
+          className="px-3 py-2 bg-light-accent dark:bg-dark-accent text-white rounded hover:opacity-90 disabled:opacity-50 transition"
+        >
+
+          <FiSend className="w-4 h-4"/>
+
         </button>
+
       </div>
+
     </div>
+
   );
+
 };
 
 export default NotesPanel;

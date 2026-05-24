@@ -58,7 +58,18 @@ const BrainstormGridLayout = ({
   =========================
   */
 
-  const [activeView, setActiveView] = useState('brainstorm');
+  const [
+    activeView,
+    setActiveView
+  ] = useState(() => {
+
+    return (
+      localStorage.getItem(
+        `brainstorm_view_${projectId}`
+      ) || 'brainstorm'
+    );
+
+  });
 
   const [chapters, setChapters] = useState([]);
   const [sections, setSections] = useState([]);
@@ -69,18 +80,34 @@ const BrainstormGridLayout = ({
 
   const [newIdeaInput, setNewIdeaInput] = useState({
 
-    title:'',
-    description:''
+    title: '',
+    description: ''
 
-    });
+  });
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
     chapterReference: null,
     sectionReference: null,
     assignedTo: null,
-    dueDate:'',
+    dueDate: '',
   });
+
+  useEffect(() => {
+
+    if (!projectId) {
+      return;
+    }
+
+    localStorage.setItem(
+      `brainstorm_view_${projectId}`,
+      activeView
+    );
+
+  }, [
+    activeView,
+    projectId
+  ]);
 
   /*
   =========================
@@ -115,63 +142,63 @@ const BrainstormGridLayout = ({
     loadTeamMembers();
   }, [projectId]);
 
-  useEffect(()=>{
+  useEffect(() => {
 
-const chapterId=
-newTask.chapterReference;
+    const chapterId =
+      newTask.chapterReference;
 
-if(!chapterId){
+    if (!chapterId) {
 
-setSections([]);
-return;
+      setSections([]);
+      return;
 
-}
+    }
 
-loadSections(
-chapterId
-);
+    loadSections(
+      chapterId
+    );
 
-},[
-newTask.chapterReference
-]);
+  }, [
+    newTask.chapterReference
+  ]);
 
-const loadSections=
-async(
-chapterId
-)=>{
+  const loadSections =
+    async (
+      chapterId
+    ) => {
 
-try{
+      try {
 
-const response=
-await apiClient
-.sections
-.getByChapter(
-chapterId
-);
+        const response =
+          await apiClient
+            .sections
+            .getByChapter(
+              chapterId
+            );
 
-setSections(
-response.data||[]
-);
+        setSections(
+          response.data || []
+        );
 
-}
-catch(error){
+      }
+      catch (error) {
 
-console.error(error);
+        console.error(error);
 
-}
+      }
 
-};
+    };
   /*
 =========================
 SOCKET.IO SETUP
 =========================
 */
 
-  useEffect(() => { 
-    if(
-    !projectId ||
-    !user?.id
-  ) return;
+  useEffect(() => {
+    if (
+      !projectId ||
+      !user?.id
+    ) return;
 
     joinBrainstormRoom(
       projectId,
@@ -211,11 +238,13 @@ SOCKET.IO SETUP
         );
 
     const discussionAdded =
-      ({ discussion }) =>
+      ({ discussion }) => 
         append(
           'discussions',
           discussion
         );
+
+
 
     const noteAdded =
       ({ note }) =>
@@ -303,57 +332,60 @@ SOCKET.IO SETUP
 
       };
 
- const ideaVoted =
-({
+    const ideaVoted=({
   ideaId,
   userId,
   voted
-}) => {
+})=>{
 
-  // abaikan event dari diri sendiri
-  if(
-    Number(userId) ===
-    Number(user?.id)
-  ){
-    return;
-  }
-
-  setSession(prev => ({
+  setSession(prev=>({
 
     ...prev,
 
     ideas:
       prev?.ideas?.map(
-
-        idea => {
+        idea=>{
 
           if(
-            idea.id !== ideaId
+            idea.id!==ideaId
           ){
             return idea;
           }
 
-          return {
+          const currentVoters=
+            idea.voters||[];
+
+          const updatedVoters=
+            voted
+            ?[
+              ...currentVoters,
+              userId
+            ]
+            :currentVoters.filter(
+              id=>
+              Number(id)!==
+              Number(userId)
+            );
+
+          return{
 
             ...idea,
 
+            voters:
+              updatedVoters,
+
+            has_voted:
+              updatedVoters.includes(
+                user?.id
+              ),
+
             votes:
-              voted
-              ? (
-                  idea.votes || 0
-                ) + 1
-              : Math.max(
-                  (
-                    idea.votes || 0
-                  ) - 1,
-                  0
-                )
+              updatedVoters.length
 
           };
 
         }
-
-      ) || []
+      )||[]
 
   }));
 
@@ -487,35 +519,100 @@ SOCKET.IO SETUP
 
   const loadTeamMembers = async () => {
 
-  try {
+    try {
 
-    const projectResponse =
-      await apiClient.projects.getById(projectId);
+      const projectResponse =
+        await apiClient.projects.getById(projectId);
 
-    const project =
-      projectResponse.data;
+      const project =
+        projectResponse.data;
 
-    console.log(
-      'PROJECT DATA:',
-      project
-    );
+      setProject(project);
 
-    setProject(project);
+      if (!project?.team_id) return;
 
-    if (!project?.team_id) return;
+      const teamResponse =
+        await apiClient.teams.getById(project.team_id);
 
-    const teamResponse =
-      await apiClient.teams.getById(project.team_id);
+      setTeamMembers(
+        teamResponse.data?.members || []
+      );
 
-    setTeamMembers(
-      teamResponse.data?.members || []
-    );
+    } catch (error) {
 
-  } catch (error) {
+      console.error(error);
+    }
+  };
 
-    console.error(error);
-  }
-};
+  /*
+  =========================
+  DISCUSSION ACTIONS
+  =========================
+  */
+  const handleAddDiscussion =
+    async (message) => {
+
+      try {
+
+        const response =
+          await apiClient
+            .brainstorm
+            .addDiscussion(
+              projectId,
+              { message }
+            );
+
+        const savedDiscussion =
+          response.data;
+
+        emitDiscussionAdded(
+          projectId,
+          savedDiscussion
+        );
+
+      }
+      catch (error) {
+
+        console.error(error);
+
+      }
+
+    };
+  /*
+  =========================
+  NOTE ACTIONS
+  =========================
+  */
+
+  const handleAddNote =
+    async (content) => {
+
+      try {
+
+        const response =
+          await apiClient
+            .brainstorm
+            .addNote(
+              projectId,
+              { content }
+            );
+
+        const savedNote =
+          response.data;
+
+        emitNoteAdded(
+          projectId,
+          savedNote
+        );
+
+      }
+      catch (error) {
+
+        console.error(error);
+
+      }
+
+    };
   /*
   =========================
   IDEA ACTIONS
@@ -547,8 +644,8 @@ SOCKET.IO SETUP
         );
 
         setNewIdeaInput({
-          title:'',
-          description:''
+          title: '',
+          description: ''
         });
 
         setSelectedChapter(
@@ -574,69 +671,34 @@ SOCKET.IO SETUP
 
   };
 
- const handleVoteIdea =
-async (ideaId) => {
+  const handleVoteIdea =
+    async (ideaId) => {
 
-  try {
+      try {
 
-    const result =
-      await vote(
-        ideaId
-      );
+        const result =
+          await vote(
+            ideaId
+          );
 
-    // update UI user sendiri sekali
-    setSession(prev => ({
+        // kirim ke user lain
+        emitIdeaVoted(
+          projectId,
+          ideaId,
+          user?.id,
+          result.voted
+        );
 
-      ...prev,
+      }
+      catch (error) {
 
-      ideas:
-        prev?.ideas?.map(
+        console.error(
+          error
+        );
 
-          idea => {
+      }
 
-            if(
-              idea.id !== ideaId
-            ){
-              return idea;
-            }
-
-            return {
-
-              ...idea,
-
-              has_voted:
-                result.voted,
-
-              votes:
-                result.idea.votes
-
-            };
-
-          }
-
-        ) || []
-
-    }));
-
-
-    // kirim ke user lain
-    emitIdeaVoted(
-      projectId,
-      ideaId,
-      user?.id,
-      result.voted
-    );
-
-  }
-  catch(error){
-
-    console.error(
-      error
-    );
-
-  }
-
-};
+    };
   /*
   =========================
   TASK ACTIONS
@@ -714,7 +776,7 @@ async (ideaId) => {
 
     await updateTaskStatus(taskId, updates);
 
-    
+
     emitTaskUpdated(projectId, taskId, updates);
 
   };
@@ -813,10 +875,21 @@ async (ideaId) => {
           <div className="flex gap-1 p-1 rounded-2xl bg-white/20 dark:bg-black/20 backdrop-blur-md border border-white/20">
 
             <button
-              onClick={() => setActiveView('brainstorm')}
+              onClick={() => {
+
+                setActiveView(
+                  'brainstorm'
+                );
+
+                localStorage.setItem(
+                  `brainstorm_view_${projectId}`,
+                  'brainstorm'
+                );
+
+              }}
               className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${activeView === 'brainstorm'
-                  ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
-                  : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
+                ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
+                : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
                 }`}
             >
               <FiZap className="w-4 h-4" />
@@ -824,10 +897,21 @@ async (ideaId) => {
             </button>
 
             <button
-              onClick={() => setActiveView('tasks')}
+              onClick={() => {
+
+                setActiveView(
+                  'tasks'
+                );
+
+                localStorage.setItem(
+                  `brainstorm_view_${projectId}`,
+                  'tasks'
+                );
+
+              }}
               className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-medium transition ${activeView === 'tasks'
-                  ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
-                  : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
+                ? 'bg-white/60 dark:bg-dark-surface/80 text-light-primary dark:text-dark-primary shadow-md'
+                : 'text-light-text/70 dark:text-dark-text/70 hover:bg-white/30'
                 }`}
             >
               <FiCheck className="w-4 h-4" />
@@ -932,12 +1016,12 @@ async (ideaId) => {
                 })
               }
 
-                onTaskDueDateChange={(value) =>
-                  setNewTask({
-                    ...newTask,
-                    dueDate: value,
-                  })
-                }
+              onTaskDueDateChange={(value) =>
+                setNewTask({
+                  ...newTask,
+                  dueDate: value,
+                })
+              }
 
               onAddTask={handleAddTask}
 
@@ -960,22 +1044,26 @@ async (ideaId) => {
             projectId={projectId}
             brainstorm={session}
             user={user}
-            onDiscussionAdded={(discussion) => emitDiscussionAdded(projectId, discussion)}
-            onDiscussionDeleted={(discussionId) => emitDiscussionDeleted(projectId, discussionId)}
+            onDiscussionAdded={handleAddDiscussion}
+            onDiscussionDeleted={(discussionId) =>
+              emitDiscussionDeleted(
+                projectId,
+                discussionId
+              )
+            }
           />
 
           <NotesPanel
             projectId={projectId}
             brainstorm={session}
             user={user}
-            onNoteAdded={(note) => {
-              console.log('📝 Note added callback:', note);
-              emitNoteAdded(projectId, note);
-            }}
-            onNoteDeleted={(noteId) => {
-              console.log('🗑️ Note deleted callback:', noteId);
-              emitNoteDeleted(projectId, noteId);
-            }}
+            onNoteAdded={handleAddNote}
+            onNoteDeleted={(noteId) =>
+              emitNoteDeleted(
+                projectId,
+                noteId
+              )
+            }
           />
 
           <ContributionPanel
@@ -989,9 +1077,9 @@ async (ideaId) => {
       </div>
 
     </div>
-    
+
   );
-  
+
 };
 
 export default BrainstormGridLayout;

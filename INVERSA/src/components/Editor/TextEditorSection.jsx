@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import TextAlign from "@tiptap/extension-text-align";
 import Placeholder from "@tiptap/extension-placeholder";
-import { FiBold, FiItalic, FiList, FiAlignLeft, FiAlignCenter, FiAlignRight, FiType, FiArrowUp, FiArrowDown, FiSave } from "react-icons/fi";
+import { FiBold, FiItalic, FiList, FiType, FiArrowUp, FiArrowDown, FiSave } from "react-icons/fi";
 import { apiClient } from "../../api/client";
 import { socket } from "../../socket/socket";
 import { useAuth } from "../../context/AuthContext";
@@ -22,8 +21,7 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
     try {
       await apiClient.sections.lock(section.id);
       socket.emit("lock_section", { sectionId: section.id, userId: user.id });
-      setIsLocked(false);
-    } catch (error) { console.error(error); setIsLocked(true); } finally { setLocking(false); }
+    } catch (error) { console.error(error); } finally { setLocking(false); }
   };
 
   const handleUnlock = async () => {
@@ -32,12 +30,19 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
 
   const editor = useEditor({
     extensions: [
+
       StarterKit,
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
+
       Placeholder.configure({
-        placeholder: ({ node }) => node.type.name === "heading" ? "Title" : "Write something...",
-        emptyEditorClass: "before:content-[attr(data-placeholder)] before:text-gray-400 before:float-left before:h-0 before:pointer-events-none",
-      }),
+
+        placeholder: () =>
+          "Write something...",
+
+        emptyEditorClass:
+          "before:content-[attr(data-placeholder)] before:text-gray-400 before:float-left before:h-0 before:pointer-events-none"
+
+      })
+
     ],
     content: section.content ?? "",
     editable: canEdit && !isLocked,
@@ -97,17 +102,62 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
         {canEdit && !isLocked && (
           <div className="w-56 flex flex-col">
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => editor.chain().focus().toggleBold().run()} className={buttonClass}><FiBold /></button>
-              <button onClick={() => editor.chain().focus().toggleItalic().run()} className={buttonClass}><FiItalic /></button>
-              <button onClick={() => editor.chain().focus().setParagraph().run()} className={buttonClass}><FiType /></button>
-              <button onClick={() => editor.chain().focus().toggleBulletList().run()} className={buttonClass}><FiList /></button>
-              <button onClick={() => editor.chain().focus().toggleOrderedList().run()} className={buttonClass}>1.</button>
-              <button onClick={() => editor.chain().focus().setTextAlign("left").run()} className={buttonClass}><FiAlignLeft /></button>
-              <button onClick={() => editor.chain().focus().setTextAlign("center").run()} className={buttonClass}><FiAlignCenter /></button>
-              <button onClick={() => editor.chain().focus().setTextAlign("right").run()} className={buttonClass}><FiAlignRight /></button>
-              <button onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} className={buttonClass}>H1</button>
-              <button onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} className={buttonClass}>H2</button>
-              <button onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} className={buttonClass}>H3</button>
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  editor
+                    .chain()
+                    .focus()
+                    .toggleBold()
+                    .run();
+                }}
+                className={buttonClass}
+              >
+                <FiBold />
+              </button>
+
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  editor
+                    .chain()
+                    .focus()
+                    .toggleItalic()
+                    .run();
+                }}
+                className={buttonClass}
+              >
+                <FiItalic />
+              </button>
+
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  editor
+                    .chain()
+                    .focus()
+                    .setParagraph()
+                    .run();
+                }}
+                className={buttonClass}
+              >
+                <FiType />
+              </button>
+
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  editor
+                    .chain()
+                    .focus()
+                    .toggleBulletList()
+                    .run();
+                }}
+                className={buttonClass}
+              >
+                <FiList />
+              </button>
+
             </div>
             <button onClick={handleSave} disabled={!hasChanges || isSaving} className={`flex items-center justify-center gap-2 font-medium rounded-lg text-sm px-4 py-2.5 mt-4 ${hasChanges && !isSaving ? "bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/50" : "bg-gray-400 cursor-not-allowed text-gray-600"}`}>
               <FiSave />{isSaving ? "Saving..." : "Save"}
