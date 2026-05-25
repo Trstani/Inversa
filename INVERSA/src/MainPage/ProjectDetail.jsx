@@ -38,6 +38,9 @@ from "../components/ReportsModal";
 import ChapterList
 from "../components/ChapterList";
 
+import BadgeGenre from "../components/BadgeGenre";
+import BadgeCategories from "../components/BadgeCategories";
+
 const ProjectDetail = () => {
 
   const { projectId } =
@@ -604,17 +607,9 @@ const ProjectDetail = () => {
 
             <div className="flex gap-2 flex-wrap">
 
-              {project.category_id && (
-                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-sm">
-                  {project.category_id}
-                </span>
-              )}
+              {project.category_id && <BadgeCategories categoryId={project.category_id} size="md" />}
 
-              {project.genre_id && (
-                <span className="px-3 py-1 rounded-full bg-white/20 backdrop-blur text-sm">
-                  {project.genre_id}
-                </span>
-              )}
+              {project.genre_id && <BadgeGenre genreId={project.genre_id} size="md" />}
 
             </div>
 

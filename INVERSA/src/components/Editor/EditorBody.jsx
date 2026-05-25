@@ -210,7 +210,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
   editingSectionId
 ]);
 
-  if (!chapter) return <div>Loading...</div>;
+  if (!chapter?.id) return null;
 
   const isDraft = chapter.status === "draft";
   const canEdit = isInitiator || isTeamMember;
