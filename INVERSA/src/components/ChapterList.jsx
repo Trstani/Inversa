@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
+import { cleanupChapterImages } from "../utils/chapterCleanup";
 
 const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId, project }) => {
     const [deletingId, setDeletingId] = useState(null);
@@ -18,24 +19,70 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
     const isTeamMember = project?.is_team_project && project?.team_members?.some(m => m.user_id === user?.id);
     const canDelete = isInitiator || isCollaborator || isTeamMember;
 
-    const handleDeleteChapter = async (chapterId, e) => {
-        e.stopPropagation();
+    const handleDeleteChapter =
+        async (
+            chapterId,
+            e
+        ) => {
 
-        if (!window.confirm('Are you sure you want to delete this chapter? This action cannot be undone.')) {
-            return;
-        }
+            e.stopPropagation();
 
-        setDeletingId(chapterId);
-        try {
-            await apiClient.chapters.delete(chapterId);
-             onChaptersChange();
-        } catch (error) {
-            console.error('Failed to delete chapter:', error);
-            alert('Failed to delete chapter');
-        } finally {
-            setDeletingId(null);
-        }
-    };
+            if (
+                !window.confirm(
+                    'Are you sure you want to delete this chapter? This action cannot be undone.'
+                )
+            ) {
+                return;
+            }
+
+            setDeletingId(
+                chapterId
+            );
+
+            try {
+
+                console.log(
+                    "CALL CLEANUP:",
+                    chapterId
+                );
+
+                await cleanupChapterImages(
+                    chapterId
+                );
+
+                console.log(
+                    "DELETE CHAPTER:",
+                    chapterId
+                );
+
+                await apiClient
+                    .chapters
+                    .delete(
+                        chapterId
+                    );
+
+                onChaptersChange();
+
+            } catch (error) {
+
+                console.error(
+                    'Failed to delete chapter:',
+                    error
+                );
+
+                alert(
+                    'Failed to delete chapter'
+                );
+
+            } finally {
+
+                setDeletingId(
+                    null
+                );
+
+            }
+
+        };
 
     if (chapters.length === 0) {
         return (
@@ -51,22 +98,20 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                 <div
                     key={chapter.id}
                     onClick={() => onSelectChapter(chapter.id)}
-                    className={`p-3 rounded-lg border cursor-pointer transition-all ${
-                        currentChapterId === chapter.id
-                            ? 'bg-light-accent dark:bg-dark-accent text-white border-light-accent dark:border-dark-accent'
-                            : 'bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border hover:border-light-accent dark:hover:border-dark-accent'
-                    }`}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all ${currentChapterId === chapter.id
+                        ? 'bg-light-accent dark:bg-dark-accent text-white border-light-accent dark:border-dark-accent'
+                        : 'bg-light-surface dark:bg-dark-surface border-light-border dark:border-dark-border hover:border-light-accent dark:hover:border-dark-accent'
+                        }`}
                 >
                     <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                             <p className="text-sm font-medium truncate">
                                 Chapter {index + 1}: {chapter.title}
                             </p>
-                            <p className={`text-xs mt-1 ${
-                                currentChapterId === chapter.id
-                                    ? 'text-white/70'
-                                    : 'text-light-secondary dark:text-dark-secondary'
-                            }`}>
+                            <p className={`text-xs mt-1 ${currentChapterId === chapter.id
+                                ? 'text-white/70'
+                                : 'text-light-secondary dark:text-dark-secondary'
+                                }`}>
                                 {chapter.status === 'published' ? '✓ Published' : '○ Draft'}
                             </p>
                         </div>
@@ -75,16 +120,14 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                                 <button
                                     onClick={(e) => handleDeleteChapter(chapter.id, e)}
                                     disabled={deletingId === chapter.id}
-                                    className={`p-1.5 rounded transition-colors ${
-                                        currentChapterId === chapter.id
-                                            ? 'hover:bg-white/20'
-                                            : 'hover:bg-red-50 dark:hover:bg-red-900/20'
-                                    } disabled:opacity-50`}
+                                    className={`p-1.5 rounded transition-colors ${currentChapterId === chapter.id
+                                        ? 'hover:bg-white/20'
+                                        : 'hover:bg-red-50 dark:hover:bg-red-900/20'
+                                        } disabled:opacity-50`}
                                     title="Delete Chapter"
                                 >
-                                    <FiTrash2 className={`w-4 h-4 ${
-                                        currentChapterId === chapter.id ? 'text-white' : 'text-red-600 dark:text-red-400'
-                                    }`} />
+                                    <FiTrash2 className={`w-4 h-4 ${currentChapterId === chapter.id ? 'text-white' : 'text-red-600 dark:text-red-400'
+                                        }`} />
                                 </button>
                             )}
                         </div>

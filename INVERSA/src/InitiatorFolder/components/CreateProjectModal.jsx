@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FiX } from "react-icons/fi";
 import categories from "../../Datajson/categories.json";
 import genres from "../../Datajson/genres.json";
+import { supabase } from "../../lib/supabase";
 
 const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
   const initialState = {
@@ -22,76 +23,187 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (
-    e
-  ) => {
+  const handleImageUpload = async (e) => {
 
     const file =
-      e.target.files[0];
+      e.target.files?.[0];
 
     if (!file) return;
 
-    const reader =
-      new FileReader();
+    try {
 
-    reader.onload = (
-      event
-    ) => {
+      const reader =
+        new FileReader();
 
-      const img =
-        new Image();
+      reader.onload = (
+        event
+      ) => {
 
-      img.onload = () => {
+        const img =
+          new Image();
 
-        const canvas =
-          document.createElement(
-            "canvas"
-          );
+        img.onload =
+          async () => {
 
-        const ctx =
-          canvas.getContext("2d");
+            try {
 
-        const MAX_WIDTH = 1200;
+              const canvas =
+                document.createElement(
+                  "canvas"
+                );
 
-        const scale =
-          MAX_WIDTH / img.width;
+              const ctx =
+                canvas.getContext(
+                  "2d"
+                );
 
-        canvas.width =
-          MAX_WIDTH;
+              const MAX_WIDTH =
+                1200;
 
-        canvas.height =
-          img.height * scale;
+              const scale =
+                Math.min(
+                  1,
+                  MAX_WIDTH /
+                  img.width
+                );
 
-        ctx.drawImage(
-          img,
-          0,
-          0,
-          canvas.width,
-          canvas.height
-        );
+              canvas.width =
+                img.width *
+                scale;
 
-        const compressed =
-          canvas.toDataURL(
-            "image/jpeg",
-            0.7
-          );
+              canvas.height =
+                img.height *
+                scale;
 
-        setFormData((prev) => ({
-          ...prev,
-          backgroundImage:
-            compressed,
-        }));
+              ctx.drawImage(
+                img,
+                0,
+                0,
+                canvas.width,
+                canvas.height
+              );
 
-        setImagePreview(
-          compressed
-        );
+              canvas.toBlob(
+
+                async (
+                  blob
+                ) => {
+
+                  if (
+                    !blob
+                  ) return;
+
+                  const fileName =
+                    `${Date.now()}-${file.name}`;
+
+                  const {
+
+                    error
+
+                  } =
+                    await supabase
+                      .storage
+                      .from(
+                        "images"
+                      )
+                      .upload(
+                        fileName,
+                        blob
+                      );
+
+                  if (
+                    error
+                  ) {
+
+                    console.error(
+                      error
+                    );
+
+                    alert(
+                      "Upload failed"
+                    );
+
+                    return;
+                  }
+
+                  const {
+
+                    data
+
+                  } =
+                    supabase
+                      .storage
+                      .from(
+                        "images"
+                      )
+                      .getPublicUrl(
+                        fileName
+                      );
+
+                  const imageUrl =
+                    data.publicUrl;
+
+                  setFormData(
+                    prev => ({
+
+                      ...prev,
+
+                      backgroundImage:
+                        imageUrl
+
+                    })
+                  );
+
+                  setImagePreview(
+                    imageUrl
+                  );
+
+                },
+
+                "image/jpeg",
+                0.7
+
+              );
+
+            }
+
+            catch (
+            error
+            ) {
+
+              console.error(
+                error
+              );
+
+            }
+
+          };
+
+        img.src =
+          event.target.result;
+
       };
 
-      img.src =
-        event.target.result;
-    };
+      reader.readAsDataURL(
+        file
+      );
 
-    reader.readAsDataURL(file);
+    }
+
+    catch (
+    error
+    ) {
+
+      console.error(
+        error
+      );
+
+      alert(
+        "Image upload failed"
+      );
+
+    }
+
   };
 
   const handleSubmit = (e) => {

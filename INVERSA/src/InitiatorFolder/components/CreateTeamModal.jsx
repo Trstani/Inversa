@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FiX, FiImage } from 'react-icons/fi';
 import Button from '../../components/Button';
 import { apiClient } from '../../api/client';
+import { supabase } from "../../lib/supabase";
 
 const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -21,147 +22,206 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
 
-    const file = e.target.files?.[0];
+    const file =
+      e.target.files?.[0];
 
     if (!file) return;
 
-    // batasi ukuran
-    if (file.size > 5 * 1024 * 1024) {
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
 
       alert(
-        'Image max size 5MB'
+        "Image max size 5MB"
       );
 
       return;
+
     }
 
-    const reader =
-      new FileReader();
+    try {
 
-    reader.onload = (
-      event
-    ) => {
+      const reader =
+        new FileReader();
 
-      const img =
-        new Image();
+      reader.onload =
+        (event) => {
 
-      img.onload = () => {
+          const img =
+            new Image();
 
-        try {
+          img.onload =
+            async () => {
 
-          const canvas =
-            document.createElement(
-              'canvas'
-            );
+              try {
 
-          const ctx =
-            canvas.getContext(
-              '2d'
-            );
+                const canvas =
+                  document.createElement(
+                    "canvas"
+                  );
 
-          if (!ctx) {
+                const ctx =
+                  canvas.getContext(
+                    "2d"
+                  );
 
-            throw new Error(
-              'Canvas failed'
-            );
+                const MAX_WIDTH =
+                  1200;
 
-          }
+                let width =
+                  img.width;
 
-          const MAX_WIDTH = 1200;
+                let height =
+                  img.height;
 
-          let width =
-            img.width;
+                if (
+                  width >
+                  MAX_WIDTH
+                ) {
 
-          let height =
-            img.height;
+                  const scale =
+                    MAX_WIDTH /
+                    width;
 
-          if (
-            width >
-            MAX_WIDTH
-          ) {
+                  width =
+                    MAX_WIDTH;
 
-            const scale =
-              MAX_WIDTH /
-              width;
+                  height =
+                    height *
+                    scale;
 
-            width =
-              MAX_WIDTH;
+                }
 
-            height =
-              height *
-              scale;
+                canvas.width =
+                  width;
 
-          }
+                canvas.height =
+                  height;
 
-          canvas.width =
-            width;
+                ctx.drawImage(
+                  img,
+                  0,
+                  0,
+                  width,
+                  height
+                );
 
-          canvas.height =
-            height;
+                canvas.toBlob(
 
-          ctx.drawImage(
-            img,
-            0,
-            0,
-            width,
-            height
-          );
+                  async (
+                    blob
+                  ) => {
 
-          const compressed =
-            canvas.toDataURL(
-              'image/jpeg',
-              0.7
-            );
+                    if (
+                      !blob
+                    ) return;
 
-          setFormData(
-            prev => ({
-              ...prev,
-              backgroundImage:
-                compressed
-            })
-          );
+                    const fileName =
+                      `${Date.now()}-${file.name}`;
 
-        } catch (error) {
+                    const {
+                      error
+                    } =
+                      await supabase
+                        .storage
+                        .from(
+                          "images"
+                        )
+                        .upload(
+                          fileName,
+                          blob
+                        );
 
-          console.error(
-            'Image processing error:',
-            error
-          );
+                    if (
+                      error
+                    ) {
 
-          alert(
-            'Failed processing image'
-          );
+                      console.error(
+                        error
+                      );
 
-        }
+                      alert(
+                        "Upload failed"
+                      );
 
-      };
+                      return;
 
-      img.onerror = () => {
+                    }
 
-        alert(
-          'Invalid image'
-        );
+                    const {
+                      data
+                    } =
+                      supabase
+                        .storage
+                        .from(
+                          "images"
+                        )
+                        .getPublicUrl(
+                          fileName
+                        );
 
-      };
+                    const imageUrl =
+                      data.publicUrl;
 
-      img.src =
-        event.target.result;
+                    setFormData(
+                      prev => ({
 
-    };
+                        ...prev,
 
-    reader.onerror = () => {
+                        backgroundImage:
+                          imageUrl
 
-      alert(
-        'Failed reading image'
+                      })
+                    );
+
+                  },
+
+                  "image/jpeg",
+                  0.7
+
+                );
+
+              }
+
+              catch (
+              error
+              ) {
+
+                console.error(
+                  error
+                );
+
+              }
+
+            };
+
+          img.src =
+            event.target.result;
+
+        };
+
+      reader.readAsDataURL(
+        file
       );
 
-    };
+    }
 
-    reader.readAsDataURL(
-      file
-    );
+    catch (
+    error
+    ) {
+
+      console.error(
+        error
+      );
+
+      alert(
+        "Image upload failed"
+      );
+
+    }
 
   };
 

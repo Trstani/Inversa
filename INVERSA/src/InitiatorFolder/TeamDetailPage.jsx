@@ -6,6 +6,8 @@ import { apiClient } from '../api/client';
 import DashboardProjectCard from '../components/DashboardProjectCard';
 import CreateTeamProjectModal from './components/CreateTeamProjectModal';
 import TeamJoinRequestModal from './components/TeamJoinRequestModal';
+import { deleteStorageFile } from "../utils/storage";
+import { cleanupProjectImages } from "../utils/projectCleanup";
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
@@ -36,27 +38,135 @@ const TeamDetailPage = () => {
     }
   };
 
-  const handleDeleteTeam = async () => {
-    if (!window.confirm('Delete this team permanently?')) return;
-    try {
-      await apiClient.teams.delete(teamId);
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error deleting team:', error);
-      alert('Failed to delete team');
-    }
-  };
+  const handleDeleteTeam =
+    async () => {
 
-  const handleDeleteProject = async (projectId) => {
-    if (!window.confirm('Delete this project?')) return;
-    try {
-      await apiClient.projects.delete(projectId);
-      await loadTeamData();
-    } catch (error) {
-      console.error('Error deleting project:', error);
-      alert('Failed to delete project');
-    }
-  };
+      if (
+        !window.confirm(
+          'Delete this team permanently?'
+        )
+      ) return;
+
+      try {
+
+        // hapus background team
+        if (
+          team.background_image
+        ) {
+
+          await deleteStorageFile(
+            team.background_image
+          );
+
+        }
+
+        // loop semua project team
+        for (
+          const project
+          of projects
+        ) {
+
+          // cover project
+          if (
+            project.background_image
+          ) {
+
+            await deleteStorageFile(
+              project.background_image
+            );
+
+          }
+
+          // section images
+          await cleanupProjectImages(
+            project.id
+          );
+
+        }
+
+        // delete team
+        await apiClient
+          .teams
+          .delete(
+            teamId
+          );
+
+        navigate(
+          '/dashboard'
+        );
+
+      } catch (error) {
+
+        console.error(
+          'Error deleting team:',
+          error
+        );
+
+        alert(
+          'Failed to delete team'
+        );
+
+      }
+
+    };
+
+  const handleDeleteProject =
+    async (projectId) => {
+
+      if (
+        !window.confirm(
+          'Delete this project?'
+        )
+      ) return;
+
+      try {
+
+        const projectToDelete =
+          projects.find(
+            p => p.id === projectId
+          );
+
+        // hapus cover project
+        if (
+          projectToDelete
+            ?.background_image
+        ) {
+
+          await deleteStorageFile(
+            projectToDelete
+              .background_image
+          );
+
+        }
+
+        // hapus semua image section
+        await cleanupProjectImages(
+          projectId
+        );
+
+        // baru delete project
+        await apiClient
+          .projects
+          .delete(
+            projectId
+          );
+
+        await loadTeamData();
+
+      } catch (error) {
+
+        console.error(
+          'Error deleting project:',
+          error
+        );
+
+        alert(
+          'Failed to delete project'
+        );
+
+      }
+
+    };
 
   if (loading) return (
     <div className="flex items-center justify-center min-h-screen bg-light-background dark:bg-dark-background">
@@ -82,10 +192,10 @@ const TeamDetailPage = () => {
   return (
     <div className="min-h-screen bg-light-background dark:bg-dark-background py-6 sm:py-8 md:py-12">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
-        
+
         {/* BACK BUTTON */}
-        <button 
-          onClick={() => navigate('/dashboard')} 
+        <button
+          onClick={() => navigate('/dashboard')}
           className="flex items-center gap-2 mb-6 sm:mb-8 text-light-accent dark:text-dark-accent hover:opacity-80 transition-all font-medium"
         >
           <FiArrowLeft className="w-5 h-5" /> Back to Dashboard
@@ -99,7 +209,7 @@ const TeamDetailPage = () => {
               <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/85 to-white/95 dark:from-black/20 dark:via-slate-950/70 dark:to-slate-950/95" />
             </div>
           )}
-          
+
           <div className="relative z-10">
             <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6 md:gap-8">
               <div className="flex-1">
@@ -113,11 +223,11 @@ const TeamDetailPage = () => {
                   {team.description}
                 </p>
               </div>
-              
+
               <div className="flex gap-3 flex-shrink-0">
                 {!isOwner && !isMember && (
-                  <button 
-                    onClick={() => setShowJoinModal(true)} 
+                  <button
+                    onClick={() => setShowJoinModal(true)}
                     disabled={hasPendingRequest}
                     className="rounded-xl bg-light-accent dark:bg-dark-accent px-5 py-3 text-sm font-medium text-white hover:opacity-90 transition-all disabled:opacity-50 whitespace-nowrap"
                   >
@@ -125,8 +235,8 @@ const TeamDetailPage = () => {
                   </button>
                 )}
                 {isOwner && (
-                  <button 
-                    onClick={handleDeleteTeam} 
+                  <button
+                    onClick={handleDeleteTeam}
                     className="flex items-center justify-center rounded-xl bg-red-500/10 hover:bg-red-500/20 px-4 py-3 text-red-500 transition-all"
                     title="Delete team"
                   >
@@ -135,14 +245,14 @@ const TeamDetailPage = () => {
                 )}
               </div>
             </div>
-            
+
             <div className="mt-8 flex flex-wrap items-center gap-6 sm:gap-8 text-sm text-light-secondary dark:text-dark-secondary pt-6 sm:pt-8 border-t border-light-border dark:border-dark-border">
               <div className="flex items-center gap-2">
-                <FiUsers className="w-4 h-4" /> 
+                <FiUsers className="w-4 h-4" />
                 <span className="font-medium">{memberCount} {memberCount === 1 ? 'member' : 'members'}</span>
               </div>
               <div className="flex items-center gap-2">
-                <FiFolder className="w-4 h-4" /> 
+                <FiFolder className="w-4 h-4" />
                 <span className="font-medium">{projects.length} {projects.length === 1 ? 'project' : 'projects'}</span>
               </div>
             </div>
@@ -151,7 +261,7 @@ const TeamDetailPage = () => {
 
         {/* CONTENT GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 md:gap-10">
-          
+
           {/* MEMBERS SECTION */}
           <div className="lg:col-span-4">
             <div className="rounded-2xl border border-light-border dark:border-dark-border bg-light-surface dark:bg-dark-surface p-6 sm:p-8">
@@ -186,15 +296,15 @@ const TeamDetailPage = () => {
               <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <h2 className="text-xl font-semibold text-light-primary dark:text-dark-primary">Team Projects</h2>
                 {isMember && (
-                  <button 
-                    onClick={() => setShowCreateProjectModal(true)} 
+                  <button
+                    onClick={() => setShowCreateProjectModal(true)}
                     className="flex items-center gap-2 rounded-xl bg-light-accent dark:bg-dark-accent px-4 py-2.5 text-sm font-medium text-white hover:opacity-90 transition-all whitespace-nowrap"
                   >
                     <FiPlus className="w-4 h-4" /> New Project
                   </button>
                 )}
               </div>
-              
+
               {projects.length === 0 ? (
                 <div className="py-12 sm:py-16 text-center">
                   <FiFolder className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 text-light-secondary dark:text-dark-secondary opacity-40" />

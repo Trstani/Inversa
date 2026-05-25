@@ -40,6 +40,8 @@ from "../components/ChapterList";
 
 import BadgeGenre from "../components/BadgeGenre";
 import BadgeCategories from "../components/BadgeCategories";
+import {deleteStorageFile} from "../utils/storage";
+import { cleanupProjectImages } from "../utils/projectCleanup";
 
 const ProjectDetail = () => {
 
@@ -501,17 +503,37 @@ const ProjectDetail = () => {
 
       try {
 
-        const response =
-          await apiClient.projects
-            .delete(project.id);
+        if (project.background_image) {
 
-        if (response.success) {
+          await deleteStorageFile(
+            project.background_image
+          );
+
+        }
+
+        await cleanupProjectImages(
+          project.id
+        );
+
+        const response =
+          await apiClient
+            .projects
+            .delete(
+              project.id
+            );
+
+        if (
+          response.success
+        ) {
 
           alert(
             "Project deleted successfully"
           );
 
-          navigate("/dashboard");
+          navigate(
+            "/dashboard"
+          );
+
         }
 
       } catch (error) {
@@ -524,7 +546,9 @@ const ProjectDetail = () => {
         alert(
           "Failed to delete project"
         );
+
       }
+
     };
 
   /*

@@ -6,6 +6,8 @@ import ImageSection from "./ImageSection";
 import { useAuth } from "../../context/AuthContext";
 import { getSocket } from "../../socket/socket";
 import { apiClient } from "../../api/client";
+import { supabase } from "../../lib/supabase";
+import { deleteStorageFile } from "../../utils/storage";
 
 const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBack, isInitiator, isTeamMember }) => {
   const { user } = useAuth();
@@ -19,119 +21,119 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
 
   useEffect(() => {
 
-  const socket = getSocket();
+    const socket = getSocket();
 
-  const lock = ({
-    sectionId,
-    userId
-  }) => {
+    const lock = ({
+      sectionId,
+      userId
+    }) => {
 
-    setSections(prev =>
-      prev.map(sec =>
-        sec.id === sectionId
-        ? {
+      setSections(prev =>
+        prev.map(sec =>
+          sec.id === sectionId
+            ? {
+              ...sec,
+              locked_by: userId
+            }
+            : sec
+        )
+      );
+
+    };
+
+
+    const unlock = ({
+      sectionId
+    }) => {
+
+      setSections(prev =>
+        prev.map(sec =>
+          sec.id === sectionId
+            ? {
+              ...sec,
+              locked_by: null
+            }
+            : sec
+        )
+      );
+
+    };
+
+
+    const updated = ({
+      sectionId,
+      image_url,
+      caption,
+      content
+    }) => {
+
+      setSections(prev =>
+        prev.map(sec => {
+
+          if (
+            sec.id !== sectionId
+          ) return sec;
+
+          return {
+
             ...sec,
-            locked_by:userId
-          }
-        : sec
-      )
-    );
 
-  };
+            image_url:
+              image_url ??
+              sec.image_url,
 
+            caption:
+              caption ??
+              sec.caption,
 
-  const unlock = ({
-    sectionId
-  }) => {
+            content:
+              content ??
+              sec.content
 
-    setSections(prev =>
-      prev.map(sec =>
-        sec.id === sectionId
-        ? {
-            ...sec,
-            locked_by:null
-          }
-        : sec
-      )
-    );
+          };
 
-  };
+        })
+      );
+
+    };
 
 
-  const updated = ({
-    sectionId,
-    image_url,
-    caption,
-    content
-  }) => {
-
-    setSections(prev =>
-      prev.map(sec => {
-
-        if(
-          sec.id !== sectionId
-        ) return sec;
-
-        return {
-
-          ...sec,
-
-          image_url:
-            image_url ??
-            sec.image_url,
-
-          caption:
-            caption ??
-            sec.caption,
-
-          content:
-            content ??
-            sec.content
-
-        };
-
-      })
-    );
-
-  };
-
-
-  socket.on(
-    "section_locked",
-    lock
-  );
-
-  socket.on(
-    "section_unlocked",
-    unlock
-  );
-
-  socket.on(
-    "section_updated",
-    updated
-  );
-
-
-  return()=>{
-
-    socket.off(
+    socket.on(
       "section_locked",
       lock
     );
 
-    socket.off(
+    socket.on(
       "section_unlocked",
       unlock
     );
 
-    socket.off(
+    socket.on(
       "section_updated",
       updated
     );
 
-  };
 
-},[]);
+    return () => {
+
+      socket.off(
+        "section_locked",
+        lock
+      );
+
+      socket.off(
+        "section_unlocked",
+        unlock
+      );
+
+      socket.off(
+        "section_updated",
+        updated
+      );
+
+    };
+
+  }, []);
 
   const hasActiveLocks = chapter?.is_team_project && sections.some(sec => sec.locked_by && sec.locked_by !== user?.id);
 
@@ -141,74 +143,74 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
 
   useEffect(() => { if (!chapter) return; setTitle(chapter.title || ""); loadSections(); }, [chapter]);
 
-  useEffect(()=>{
+  useEffect(() => {
 
-  if(
-    !chapter?.id
-  ) return;
+    if (
+      !chapter?.id
+    ) return;
 
-  const interval=
-  setInterval(async()=>{
+    const interval =
+      setInterval(async () => {
 
-    try{
+        try {
 
-      const {data}=
-      await apiClient.sections.getByChapter(
-        chapter.id
-      );
+          const { data } =
+            await apiClient.sections.getByChapter(
+              chapter.id
+            );
 
-      setSections(prev=>
-        prev.map(sec=>{
+          setSections(prev =>
+            prev.map(sec => {
 
-          const incoming=
-          data?.find(
-            d=>d.id===sec.id
+              const incoming =
+                data?.find(
+                  d => d.id === sec.id
+                );
+
+              if (
+                !incoming
+              ) return sec;
+
+              // jangan overwrite section
+              // yang sedang diedit user sendiri
+              if (
+                sec.id ===
+                editingSectionId
+              ) {
+                return sec;
+              }
+
+              return {
+
+                ...sec,
+                ...incoming
+
+              };
+
+            })
           );
 
-          if(
-            !incoming
-          ) return sec;
+        } catch (e) {
 
-          // jangan overwrite section
-          // yang sedang diedit user sendiri
-          if(
-            sec.id===
-            editingSectionId
-          ){
-            return sec;
-          }
+          console.error(
+            "Polling failed:",
+            e
+          );
 
-          return {
+        }
 
-            ...sec,
-            ...incoming
+      }, 15000);
 
-          };
-
-        })
+    return () => {
+      clearInterval(
+        interval
       );
+    };
 
-    }catch(e){
-
-      console.error(
-        "Polling failed:",
-        e
-      );
-
-    }
-
-  },3000);
-
-  return()=>{
-    clearInterval(
-      interval
-    );
-  };
-
-},[
-  chapter?.id,
-  editingSectionId
-]);
+  }, [
+    chapter?.id,
+    editingSectionId
+  ]);
 
   if (!chapter?.id) return null;
 
@@ -261,17 +263,126 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
     } catch (e) { console.error("Reorder failed:", e); alert("Failed to reorder sections"); } finally { setIsReordering(false); }
   };
 
-  const deleteSection = (id) => {
-    if (!canEdit) return;
-    setSections(prev => prev.filter(sec => sec.id !== id));
-    apiClient.sections.delete(id).catch(e => console.error("Delete failed:", e));
-  };
+  const deleteSection =
+    async (id) => {
 
-  const handleImageUpload = (id, file) => {
-    if (!file || !canEdit) return;
-    const reader = new FileReader();
-    reader.onloadend = () => updateSection(id, { image_url: reader.result });
-    reader.readAsDataURL(file);
+      if (!canEdit)
+        return;
+
+      try {
+
+        const targetSection =
+          sections.find(
+            sec =>
+              sec.id === id
+          );
+
+        console.log(
+          "TARGET:",
+          targetSection
+        );
+
+        if (
+          targetSection?.type === "image"
+          &&
+          targetSection?.image_url
+        ) {
+
+          console.log(
+            "DELETE IMAGE:",
+            targetSection.image_url
+          );
+
+          await deleteStorageFile(
+            targetSection.image_url
+          );
+
+        }
+
+        await apiClient
+          .sections
+          .delete(
+            id
+          );
+
+        setSections(
+          prev =>
+            prev.filter(
+              sec =>
+                sec.id !== id
+            )
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Delete failed:",
+          error
+        );
+
+      }
+
+    };
+
+  const handleImageUpload = async (
+    id,
+    file
+  ) => {
+
+    if (
+      !file ||
+      !canEdit
+    ) return;
+
+    try {
+
+      const fileName =
+        `${Date.now()}-${file.name}`;
+
+      const { error } =
+        await supabase
+          .storage
+          .from("images")
+          .upload(
+            fileName,
+            file
+          );
+
+      if (error) {
+        throw error;
+      }
+
+      const {
+        data: { publicUrl }
+      } =
+        supabase
+          .storage
+          .from("images")
+          .getPublicUrl(
+            fileName
+          );
+
+      updateSection(
+        id,
+        {
+          image_url:
+            publicUrl
+        }
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Upload failed:",
+        error
+      );
+
+      alert(
+        "Failed upload image"
+      );
+
+    }
+
   };
 
   const handleSave = (publish = false) => {
@@ -298,7 +409,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
           section.type === "text" ? (
             <TextEditorSection key={section.id} section={section} canEdit={canEdit} setEditingSectionId={setEditingSectionId} onDelete={deleteSection} onUpdate={updateSection} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
           ) : section.type === "image" ? (
-            <ImageSection key={section.id} section={section} canEdit={canEdit} onDelete={deleteSection} onUpdate={updateSection} onUpload={handleImageUpload} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
+            <ImageSection key={section.id} section={section} canEdit={canEdit} onDelete={deleteSection} onUpdate={updateSection} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
           ) : null
         )}
       </div>

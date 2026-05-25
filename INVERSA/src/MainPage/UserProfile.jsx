@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { uploadImage } from "../utils/uploadImage";
+import { deleteStorageFile } from "../utils/storage";
 
 import {
   useNavigate,
@@ -256,10 +258,10 @@ const UserProfile = () => {
     };
 
   /*
-  =========================
-  IMAGE CHANGE
-  =========================
-  */
+=========================
+IMAGE CHANGE
+=========================
+*/
 
   const handleImageChange =
     async (e) => {
@@ -267,60 +269,86 @@ const UserProfile = () => {
       const file =
         e.target.files?.[0];
 
-      if (!file) return;
+      if (!file)
+        return;
 
-      const reader =
-        new FileReader();
+      try {
 
-      reader.onloadend =
-        async () => {
+        // simpan url lama
+        const oldImage =
+          profileData?.profile_image;
 
-          try {
 
-            const imageData =
-              reader.result;
+        // upload gambar baru
+        const imageUrl =
+          await uploadImage(
+            file
+          );
 
-            const response =
-              await apiClient.users.update(
-                user.id,
-                {
-                  ...profileData,
 
-                  profile_image:
-                    imageData,
-                }
-              );
-
-            if (response.success) {
-
-              setProfileData({
-
+        // update DB
+        const response =
+          await apiClient
+            .users
+            .update(
+              user.id,
+              {
                 ...profileData,
 
                 profile_image:
-                  imageData,
-              });
-
-              setEditData({
-
-                ...editData,
-
-                profile_image:
-                  imageData,
-              });
-            }
-
-          } catch (error) {
-
-            console.error(error);
-
-            alert(
-              'Failed to update profile image'
+                  imageUrl,
+              }
             );
-          }
-        };
 
-      reader.readAsDataURL(file);
+
+        if (
+          response.success
+        ) {
+
+          // hapus file lama
+          if (
+            oldImage
+          ) {
+
+            await deleteStorageFile(
+              oldImage
+            );
+
+          }
+
+          setProfileData({
+
+            ...profileData,
+
+            profile_image:
+              imageUrl
+
+          });
+
+
+          setEditData({
+
+            ...editData,
+
+            profile_image:
+              imageUrl
+
+          });
+
+        }
+
+      } catch (error) {
+
+        console.error(
+          error
+        );
+
+        alert(
+          "Failed to update profile image"
+        );
+
+      }
+
     };
 
   /*
