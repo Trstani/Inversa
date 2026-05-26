@@ -145,9 +145,8 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
 
   useEffect(() => {
 
-    if (
-      !chapter?.id
-    ) return;
+    if (!chapter?.id)
+      return;
 
     const interval =
       setInterval(async () => {
@@ -155,40 +154,45 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
         try {
 
           const { data } =
-            await apiClient.sections.getByChapter(
-              chapter.id
-            );
+            await apiClient
+              .sections
+              .getByChapter(
+                chapter.id
+              );
 
-          setSections(prev =>
-            prev.map(sec => {
+          setSections(prev => {
 
-              const incoming =
-                data?.find(
-                  d => d.id === sec.id
+            return (
+              data || []
+            ).map(incoming => {
+
+              const current =
+                prev.find(
+                  sec =>
+                    sec.id === incoming.id
                 );
 
+              // jangan overwrite
+              // section yang sedang diedit user sendiri
               if (
-                !incoming
-              ) return sec;
-
-              // jangan overwrite section
-              // yang sedang diedit user sendiri
-              if (
-                sec.id ===
+                current?.id ===
                 editingSectionId
               ) {
-                return sec;
+
+                return current;
+
               }
 
               return {
 
-                ...sec,
+                ...current,
                 ...incoming
 
               };
 
-            })
-          );
+            });
+
+          });
 
         } catch (e) {
 
@@ -199,12 +203,14 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
 
         }
 
-      }, 15000);
+      }, 8000);
 
     return () => {
+
       clearInterval(
         interval
       );
+
     };
 
   }, [
