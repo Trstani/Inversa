@@ -7,11 +7,11 @@ const RecommendationSidebar = ({ projects = [] }) => {
 
     const trending = [...safeProjects]
         .sort((a, b) => (b.views || 0) - (a.views || 0))
-        .slice(0, 3);
+        .slice(0, 6);
 
     const mostLiked = [...safeProjects]
         .sort((a, b) => (b.likes || 0) - (a.likes || 0))
-        .slice(0, 3);
+        .slice(0, 6);
 
     return (
         <div className="space-y-8 sm:space-y-10">

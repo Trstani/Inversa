@@ -115,7 +115,7 @@ const AppRoutes = () => {
         <Route
           path="/team/:teamId"
           element={
-            <ProtectedRoute>
+           <ProtectedRoute>
               <TeamDetailPage />
             </ProtectedRoute>
           }
@@ -133,18 +133,18 @@ const AppRoutes = () => {
         <Route
           path="/project/:projectId"
           element={
-            <ProtectedRoute>
+            
               <ProjectDetail />
-            </ProtectedRoute>
+            
           }
         />
 
         <Route
           path="/read/:projectId/:chapterId?"
           element={
-            <ProtectedRoute>
+            
               <ChapterReader />
-            </ProtectedRoute>
+            
           }
         />
 

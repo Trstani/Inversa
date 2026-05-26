@@ -292,12 +292,64 @@ const ProjectDetail = () => {
 
         const chaptersResponse =
           await apiClient.chapters
-            .getByProject(
-              projectId
+            .getByProject(projectId);
+
+        const allChapters =
+          chaptersResponse.data || [];
+
+        let canSeeAllChapters =
+          user?.id ===
+          projectData?.initiator_id;
+
+        if (
+          user?.id &&
+          !canSeeAllChapters &&
+          projectData?.is_team_project &&
+          projectData?.team_id
+        ) {
+
+          try {
+
+            const teamResponse =
+              await apiClient
+                .teams
+                .getById(
+                  projectData.team_id
+                );
+
+            if (
+              teamResponse.success &&
+              teamResponse.data
+            ) {
+
+              canSeeAllChapters =
+                teamResponse.data
+                  ?.members?.some(
+                    member =>
+                      member.user_id === user?.id &&
+                      member.status === "approved"
+                  );
+
+            }
+
+          } catch (e) {
+
+            console.error(e);
+
+          }
+
+        }
+
+        const visibleChapters =
+          canSeeAllChapters
+            ? allChapters
+            : allChapters.filter(
+              chapter =>
+                chapter.status === "published"
             );
 
         setChapters(
-          chaptersResponse.data || []
+          visibleChapters
         );
 
         /*
@@ -320,51 +372,65 @@ const ProjectDetail = () => {
           projectData.initiator_id ===
           user?.id;
 
-        /*
-        =========================
-        TEAM MEMBERS
-        =========================
-        */
+                  /*
+          =========================
+          TEAM MEMBERS
+          =========================
+          */
 
         let userIsTeamMember =
           false;
 
         if (
+          user?.id &&
           projectData.is_team_project &&
           projectData.team_id
         ) {
 
-          const teamResponse =
-            await apiClient.teams
-              .getById(
-                projectData.team_id
-              );
+          try {
 
-          if (
-            teamResponse.success &&
-            teamResponse.data
-          ) {
+            const teamResponse =
+              await apiClient.teams
+                .getById(
+                  projectData.team_id
+                );
 
-            const team =
-              teamResponse.data;
+            if (
+              teamResponse.success &&
+              teamResponse.data
+            ) {
 
-            userIsTeamMember =
-              team.members?.some(
-                (member) =>
-                  member.user_id ===
+              const team =
+                teamResponse.data;
+
+              userIsTeamMember =
+                team.members?.some(
+                  (member) =>
+                    member.user_id ===
                     user?.id &&
-                  member.status ===
+                    member.status ===
                     "approved"
+                );
+
+              setTeamMembers(
+                team.members?.filter(
+                  (member) =>
+                    member.status ===
+                    "approved"
+                ) || []
               );
 
-            setTeamMembers(
-              team.members?.filter(
-                (member) =>
-                  member.status ===
-                  "approved"
-              ) || []
+            }
+
+          } catch (error) {
+
+            console.error(
+              "Team loading failed:",
+              error
             );
+
           }
+
         }
 
         setIsTeamMember(
@@ -637,12 +703,12 @@ const ProjectDetail = () => {
 
             </div>
 
-            {!isInitiator && (
+            {user && !isInitiator && (
               <button
                 onClick={() =>
                   setShowReportModal(true)
                 }
-                className="p-2 rounded-full bg-white/10 hover:bg-white/20"
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-red-200"
               >
                 <FiFlag />
               </button>

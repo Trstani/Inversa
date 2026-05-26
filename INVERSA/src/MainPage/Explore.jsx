@@ -1,198 +1,143 @@
 import { useEffect, useState } from "react";
-import { apiClient } from '../api/client';
+import { useAuth } from "../context/AuthContext";
+import { apiClient } from "../api/client";
 import RecommendationSidebar from "../section/RecommendationSidebar";
 import ProjectsExplorer from "../section/ProjectsExplorer";
-import TeamsExplorer from '../section/TeamsExplorer';
-import {
-  FiBook,
-  FiUsers,
-} from 'react-icons/fi';
+import TeamsExplorer from "../section/TeamsExplorer";
+import { FiBook, FiUsers } from "react-icons/fi";
 
 const Explore = () => {
-    const [projects, setProjects] = useState([]);
 
-    const [activeTab, setActiveTab] = useState('projects');
+  const { user } = useAuth();
 
-    useEffect(() => {
-        const fetchProjects = async () => {
-            try {
-                const response = await apiClient.projects.getPublished();
-                const data = response.data || [];
-                setProjects(Array.isArray(data) ? data : []);
-            } catch (error) {
-                console.error('Error fetching projects:', error);
-                setProjects([]);
-            }
-        };
+  const [projects, setProjects] = useState([]);
+  const [activeTab, setActiveTab] = useState("projects");
 
-        fetchProjects();
-    }, []);
+  useEffect(() => {
 
-    return (
+    const fetchProjects = async () => {
 
-        <section
-            className="
-      max-w-7xl
-      mx-auto
+      try {
 
-      px-4 sm:px-6 lg:px-8
+        const response = await apiClient.projects.getPublished();
 
-      py-6 sm:py-8
-    "
+        const data = response.data || [];
+
+        setProjects(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Error fetching projects:",
+          error
+        );
+
+        setProjects([]);
+
+      }
+
+    };
+
+    fetchProjects();
+
+  }, []);
+
+  return (
+
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+
+      {/* TABS */}
+
+      <div className="mb-8 flex gap-3 border-b border-light-border dark:border-dark-border">
+
+        {/* PROJECTS */}
+
+        <button
+          onClick={() =>
+            setActiveTab(
+              "projects"
+            )
+          }
+          className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all border-b-2 ${
+            activeTab === "projects"
+              ? "border-light-accent dark:border-dark-accent text-light-accent dark:text-dark-accent"
+              : "border-transparent text-light-secondary dark:text-dark-secondary"
+          }`}
         >
 
-            {/* TABS */}
+          <FiBook className="w-4 h-4" />
 
-            <div
-                className="
-        mb-8
+          Projects
 
-        flex gap-3
+        </button>
 
-        border-b
+        {/* TEAMS */}
 
-        border-light-border
-        dark:border-dark-border
-      "
-            >
+        {user && (
 
-                {/* PROJECTS */}
+          <button
+            onClick={() =>
+              setActiveTab(
+                "teams"
+              )
+            }
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium transition-all border-b-2 ${
+              activeTab === "teams"
+                ? "border-light-accent dark:border-dark-accent text-light-accent dark:text-dark-accent"
+                : "border-transparent text-light-secondary dark:text-dark-secondary"
+            }`}
+          >
 
-                <button
-                    onClick={() =>
-                        setActiveTab(
-                            'projects'
-                        )
-                    }
-                    className={`
-          flex items-center gap-2
+            <FiUsers className="w-4 h-4" />
 
-          px-4 py-3
+            Teams
 
-          text-sm font-medium
+          </button>
 
-          transition-all
+        )}
 
-          border-b-2
+      </div>
 
-          ${activeTab ===
-                            'projects'
+      {/* PROJECTS */}
 
-                            ? `
-                border-light-accent
-                dark:border-dark-accent
+      {activeTab === "projects" && (
 
-                text-light-accent
-                dark:text-dark-accent
-              `
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-8">
 
-                            : `
-                border-transparent
+          <div className="md:col-span-2 lg:col-span-3">
 
-                text-light-secondary
-                dark:text-dark-secondary
-              `
-                        }
-        `}
-                >
+            <ProjectsExplorer />
 
-                    <FiBook className="w-4 h-4" />
+          </div>
 
-                    Projects
+          <div className="md:col-span-1">
 
-                </button>
+            <RecommendationSidebar
+              projects={projects}
+            />
 
-                {/* TEAMS */}
+          </div>
 
-                <button
-                    onClick={() =>
-                        setActiveTab(
-                            'teams'
-                        )
-                    }
-                    className={`
-          flex items-center gap-2
+        </div>
 
-          px-4 py-3
+      )}
 
-          text-sm font-medium
+      {/* TEAMS */}
 
-          transition-all
+      {activeTab === "teams" && user && (
 
-          border-b-2
+        <TeamsExplorer />
 
-          ${activeTab ===
-                            'teams'
+      )}
 
-                            ? `
-                border-light-accent
-                dark:border-dark-accent
+    </section>
 
-                text-light-accent
-                dark:text-dark-accent
-              `
+  );
 
-                            : `
-                border-transparent
-
-                text-light-secondary
-                dark:text-dark-secondary
-              `
-                        }
-        `}
-                >
-
-                    <FiUsers className="w-4 h-4" />
-
-                    Teams
-
-                </button>
-
-            </div>
-
-            {/* PROJECTS */}
-
-            {activeTab === 'projects' && (
-
-                <div
-                    className="
-          grid
-          grid-cols-1
-          md:grid-cols-3
-          lg:grid-cols-4
-
-          gap-4 lg:gap-8
-        "
-                >
-
-                    <div className="md:col-span-2 lg:col-span-3">
-
-                        <ProjectsExplorer />
-
-                    </div>
-
-                    <div className="md:col-span-1">
-
-                        <RecommendationSidebar
-                            projects={projects}
-                        />
-
-                    </div>
-
-                </div>
-
-            )}
-
-            {/* TEAMS */}
-
-            {activeTab === 'teams' && (
-
-                <TeamsExplorer />
-
-            )}
-
-        </section>
-    );
 };
 
-export default Explore
+export default Explore;

@@ -41,14 +41,11 @@ const ChapterReader = () => {
         const allChapters = chaptersResponse.data || [];
 
         let canSeeAllChapters = user?.id === projectData?.initiator_id;
-        if (!canSeeAllChapters && projectData?.is_team_project && projectData?.team_id) {
-          const teamResponse = await apiClient.teams.getById(projectData.team_id);
-          if (teamResponse.success && teamResponse.data) {
-            const team = teamResponse.data;
-            canSeeAllChapters = team?.members?.some(
-              (member) => member.user_id === user?.id && member.status === "approved"
-            );
-          }
+        if (user?.id && !canSeeAllChapters && projectData?.is_team_project && projectData?.team_id) {
+          try {
+            const { success, data: team } = await apiClient.teams.getById(projectData.team_id);
+            if (success && team) canSeeAllChapters = team.members?.some(m => m.user_id === user.id && m.status === "approved") ?? false;
+          } catch (e) { console.error("Team check failed:", e); }
         }
 
         const visibleChapters = canSeeAllChapters
