@@ -120,7 +120,7 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
 
   return (
     <div className="card p-6 relative">
-      <div className="flex gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1">
           <div className="relative">
             <EditorContent
@@ -136,8 +136,8 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
         </div>
 
         {canEdit && !isLocked && (
-          <div className="w-56 flex flex-col">
-            <div className="grid grid-cols-2 gap-3">
+          <div className="w-full md:w-56 flex flex-col">
+            <div className="grid grid-cols-3 md:grid-cols-2 gap-3">
               <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleBold().run(); }} className={buttonClass}><FiBold /></button>
               <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleItalic().run(); }} className={buttonClass}><FiItalic /></button>
               <button onMouseDown={(e) => { e.preventDefault(); editor.chain().focus().toggleBulletList().run(); }} className={buttonClass}><FiList /></button>
@@ -158,7 +158,7 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
               {isSaving ? "Saving..." : "Save"}
             </button>
 
-            <div className="grid grid-cols-2 gap-3 mt-4">
+            <div className="grid grid-cols-2 gap-3 mt-4 w-full">
               <button onClick={onMoveUp} disabled={isFirst} className={buttonClass}><FiArrowUp /></button>
               <button onClick={onMoveDown} disabled={isLast} className={buttonClass}><FiArrowDown /></button>
             </div>

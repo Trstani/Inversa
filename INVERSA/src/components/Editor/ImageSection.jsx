@@ -206,10 +206,10 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
 
   return (
     <div className="card p-6">
-      <div className="flex gap-6">
+      <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 relative">
           <div className="flex flex-col gap-4">
-            <label className="w-full h-[300px] rounded-xl overflow-hidden border-2 border-dashed border-light-border dark:border-dark-border cursor-pointer flex items-center justify-center">
+            <label className="w-full h-[220px] md:h-[300px] rounded-xl overflow-hidden border-2 border-dashed border-light-border dark:border-dark-border cursor-pointer flex items-center justify-center">
               {imageUrl ? (
                 <img src={imageUrl} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -242,7 +242,7 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
         </div>
 
         {canEdit && !isLocked && (
-          <div className="w-52 flex flex-col gap-4">
+          <div className="w-full md:w-52 flex flex-col gap-4">
             <input
               type="text"
               placeholder="Caption"
@@ -263,7 +263,7 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
               <FiSave />
               {isSaving ? "Saving..." : "Save"}
             </button>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 w-full">
               <button onClick={onMoveUp} disabled={isFirst} className={buttonClass}><FiArrowUp /></button>
               <button onClick={onMoveDown} disabled={isLast} className={buttonClass}><FiArrowDown /></button>
             </div>

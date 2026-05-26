@@ -26,13 +26,13 @@ const BentoGrid = ({
     <section className="py-10 md:py-14">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          
+
           {/* HERO */}
-          <div className="relative sm:col-span-2 sm:row-span-2 overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-slate-950 min-h-[420px] group">
-            
+          <div className="relative sm:col-span-2 sm:row-span-2 overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 min-h-[420px] group">
+
             {/* Background Image */}
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-30 transition-transform duration-700 group-hover:scale-105"
+              className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-20 transition-transform duration-700 group-hover:scale-105"
               style={{
                 backgroundImage:
                   "url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1600&auto=format&fit=crop')",
@@ -40,61 +40,67 @@ const BentoGrid = ({
             />
 
             {/* Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-950/40 via-slate-950/70 to-slate-950" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/30 via-white/50 to-white dark:from-slate-950/40 dark:via-slate-950/70 dark:to-slate-950" />
 
             {/* Content */}
             <div className="relative z-10 flex h-full flex-col justify-between p-6 md:p-8">
-              
+
               <div>
-                <span className="inline-flex items-center rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-slate-300 backdrop-blur-sm">
+
+                <span className="inline-flex items-center rounded-full border border-slate-300/60 dark:border-white/10 bg-white/60 dark:bg-white/5 px-3 py-1 text-xs text-slate-700 dark:text-slate-300 backdrop-blur-sm">
                   Collaborative Writing Platform
                 </span>
 
-                <h1 className="mt-5 max-w-xl text-3xl md:text-5xl font-semibold tracking-tight text-white leading-tight">
+                <h1 className="mt-5 max-w-xl text-3xl md:text-5xl font-semibold tracking-tight text-slate-900 dark:text-white leading-tight">
                   Write together,
                   <br />
                   build better stories.
                 </h1>
 
-                <p className="mt-4 max-w-md text-sm md:text-base text-slate-400 leading-relaxed">
-                  Create projects, collaborate per section, and manage writing
-                  workflows in one focused workspace.
+                <p className="mt-4 max-w-md text-sm md:text-base text-slate-600 dark:text-slate-400 leading-relaxed">
+                  Create projects, collaborate per section, and manage writing workflows in one focused workspace.
                 </p>
+
               </div>
 
               <div className="space-y-6">
-                
+
                 {/* Stats */}
                 <div className="flex flex-wrap gap-3">
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
-                    <p className="text-2xl font-semibold text-white">
+
+                  <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-3 backdrop-blur-sm">
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-white">
                       {totalProjects}+
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Active Projects
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 backdrop-blur-sm">
-                    <p className="text-2xl font-semibold text-white">
+                  <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-white/70 dark:bg-white/5 px-4 py-3 backdrop-blur-sm">
+                    <p className="text-2xl font-semibold text-slate-900 dark:text-white">
                       {totalCreators}
                     </p>
-                    <p className="text-xs text-slate-400 mt-1">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                       Creators
                     </p>
                   </div>
+
                 </div>
 
                 {/* CTA */}
                 <button
                   onClick={() => navigate("/explore")}
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-medium text-slate-900 transition-all hover:opacity-90"
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-5 py-3 text-sm font-medium text-white dark:text-slate-900 hover:opacity-90 transition-all"
                 >
                   Explore Projects
                   <FiArrowRight className="w-4 h-4" />
                 </button>
+
               </div>
+
             </div>
+
           </div>
 
           {/* CREATE / LOGIN */}

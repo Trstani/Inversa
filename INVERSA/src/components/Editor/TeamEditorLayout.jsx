@@ -1,7 +1,7 @@
 // components/editor/TeamEditorLayout.jsx
 
 import { useState, useEffect } from "react";
-import { FiEdit2, FiZap } from "react-icons/fi";
+import { FiEdit2, FiZap, FiMenu, FiX } from "react-icons/fi";
 
 import ChapterSidebar from "./ChapterSidebar";
 import EditorHeader from "./EditorHeader";
@@ -32,6 +32,7 @@ const TeamEditorLayout = ({
 
   const [brainstorm, setBrainstorm] = useState(null);
   const [brainstormLoading, setBrainstormLoading] = useState(false);
+  const [showSidebar,setShowSidebar]= useState(false);
 
   const {
     showCreateModal,
@@ -117,70 +118,179 @@ const TeamEditorLayout = ({
 
       {/* CONTENT */}
       <div className="py-6">
-        {activeSection === "editor" && (
-          <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-6 px-4">
-            <ChapterSidebar
-              chapters={chapters}
-              currentChapter={currentChapter}
-              onSelectChapter={onSelectChapter}
-              onCreateChapter={() => setShowCreateModal(true)}
-              onDeleteChapter={handleDeleteChapter}
-              isInitiator={isInitiator}
-              isTeamMember={isTeamMember}
-            />
+        {activeSection==="editor"&&(
 
-            <div className="col-span-1 md:col-span-3">
-              {loading ? (
-                <div className="card p-8 text-center">
-                  <p>Loading editor...</p>
-                </div>
-              ) : chapters?.length === 0 ? (
-                <div className="card p-8 text-center">
-                  <h2 className="text-xl font-semibold mb-3">No chapters yet</h2>
-                  <p className="text-light-secondary dark:text-dark-secondary">
-                    Create your first chapter to begin writing
-                  </p>
-                  {(isInitiator || isTeamMember) && (
-                    <button
-                      onClick={() => setShowCreateModal(true)}
-                      className="mt-5 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg"
-                    >
-                      Create Chapter
-                    </button>
-                  )}
-                </div>
-              ) : !currentChapter?.id ? (
-                <div className="card p-8 text-center">
-                  <h2 className="text-xl font-semibold mb-3">Select a chapter</h2>
-                  <p className="text-light-secondary dark:text-dark-secondary">
-                    Choose a chapter from sidebar
-                  </p>
-                </div>
-              ) : (
-                <>
-                  <EditorHeader project={project} chapter={currentChapter} />
-                  <EditorBody
-                    chapter={currentChapter}
-                    chapters={chapters}
-                    onSelectChapter={onSelectChapter}
-                    onSave={onSave}
-                    loading={loading}
-                    onBack={onBack}
-                    isInitiator={isInitiator}
-                    isTeamMember={isTeamMember}
-                  />
-                </>
-              )}
-            </div>
+<div className="max-w-6xl mx-auto px-4">
 
-            {showCreateModal && (isInitiator || isTeamMember) && (
-              <CreateChapterModal
-                onSubmit={handleCreateChapter}
-                onClose={() => setShowCreateModal(false)}
-              />
-            )}
-          </div>
-        )}
+<div className="md:hidden mb-4">
+
+<button
+onClick={()=>
+setShowSidebar(
+prev=>!prev
+)
+}
+className="w-full flex items-center justify-between px-4 py-3 rounded-lg border bg-light-surface dark:bg-dark-surface"
+>
+
+<span>
+Chapters
+</span>
+
+{
+showSidebar
+?
+<FiX/>
+:
+<FiMenu/>
+}
+
+</button>
+
+</div>
+
+
+<div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+<div className={`${showSidebar?"block":"hidden"} md:block self-start h-fit md:sticky md:top-6`}>
+
+<ChapterSidebar
+chapters={chapters}
+currentChapter={currentChapter}
+onSelectChapter={(chapter)=>{
+
+onSelectChapter(
+chapter
+);
+
+setShowSidebar(
+false
+);
+
+}}
+onCreateChapter={()=>
+setShowCreateModal(
+true
+)
+}
+onDeleteChapter={
+handleDeleteChapter
+}
+isInitiator={
+isInitiator
+}
+isTeamMember={
+isTeamMember
+}
+/>
+
+</div>
+
+
+<div className="md:col-span-3 min-w-0">
+
+{loading ? (
+
+<div className="card p-8 text-center">
+
+<p>
+Loading editor...
+</p>
+
+</div>
+
+)
+
+: chapters?.length===0 ? (
+
+<div className="card p-8 text-center">
+
+<h2 className="text-xl font-semibold mb-3">
+No chapters yet
+</h2>
+
+<p className="text-light-secondary dark:text-dark-secondary">
+Create your first chapter to begin writing
+</p>
+
+{(isInitiator||isTeamMember)&&(
+
+<button
+onClick={()=>
+setShowCreateModal(
+true
+)
+}
+className="mt-5 bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg"
+>
+
+Create Chapter
+
+</button>
+
+)}
+
+</div>
+
+)
+
+: !currentChapter?.id ? (
+
+<div className="card p-8 text-center">
+
+<h2 className="text-xl font-semibold mb-3">
+Select a chapter
+</h2>
+
+<p className="text-light-secondary dark:text-dark-secondary">
+Choose a chapter from sidebar
+</p>
+
+</div>
+
+)
+
+:(<>
+
+<EditorHeader
+project={project}
+chapter={currentChapter}
+/>
+
+<EditorBody
+chapter={currentChapter}
+chapters={chapters}
+onSelectChapter={onSelectChapter}
+onSave={onSave}
+loading={loading}
+onBack={onBack}
+isInitiator={isInitiator}
+isTeamMember={isTeamMember}
+/>
+
+</>)}
+
+</div>
+
+</div>
+
+
+{showCreateModal&&(isInitiator||isTeamMember)&&(
+
+<CreateChapterModal
+onSubmit={handleCreateChapter}
+onClose={()=>
+setShowCreateModal(
+false
+)
+}
+/>
+
+)}
+
+</div>
+
+)}
 
         {activeSection === "brainstorm" && (
           <div className="max-w-7xl mx-auto px-4">

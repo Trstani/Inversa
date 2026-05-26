@@ -23,7 +23,7 @@ const Button = ({
       "bg-transparent border-2 border-light-accent dark:border-dark-accent text-light-accent dark:text-dark-accent hover:bg-light-accent dark:hover:bg-dark-accent hover:text-white",
 
     outline:
-      "bg-transparent border border-light-border dark:border-dark-border text-light-primary dark:text-dark-primary hover:bg-light-surface dark:hover:bg-dark-surface",
+      "bg-transparent border border-light-border dark:border-dark-border text-light-accent dark:text-dark-primary hover:bg-light-surface dark:hover:bg-dark-surface",
 
     ghost:
       "bg-transparent text-light-primary dark:text-dark-primary hover:bg-light-surface dark:hover:bg-dark-surface",

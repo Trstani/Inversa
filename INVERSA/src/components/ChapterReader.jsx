@@ -79,22 +79,77 @@ const ChapterReader = () => {
   }, [projectId, chapterId, user?.id]);
 
   useEffect(() => {
-    if (!user || !currentChapter) return;
 
-    apiClient.readingHistory.save({
-      project_id: parseInt(projectId),
-      chapter_id: currentChapter.id,
-      progress: 0,
-    });
-
-    const viewedKey = `viewed_project_${projectId}_${user?.id || "guest"}`;
-    const alreadyViewed = localStorage.getItem(viewedKey);
-
-    if (!alreadyViewed && currentChapter.status === "published") {
-      apiClient.projects.incrementViews(parseInt(projectId));
-      localStorage.setItem(viewedKey, "true");
+    if (
+      !user ||
+      !currentChapter ||
+      currentChapter.status !== "published"
+    ) {
+      return;
     }
-  }, [user, projectId, currentChapter]);
+
+    const saveReadingHistory =
+      async () => {
+
+        try {
+
+          await apiClient
+            .readingHistory
+            .save({
+
+              project_id:
+                parseInt(projectId),
+
+              chapter_id:
+                currentChapter.id,
+
+              progress: 0
+
+            });
+
+        } catch (error) {
+
+          console.error(
+            "Reading history failed:",
+            error
+          );
+
+        }
+
+      };
+
+    saveReadingHistory();
+
+    const viewedKey =
+      `viewed_project_${projectId}_${user.id}`;
+
+    const alreadyViewed =
+      localStorage.getItem(
+        viewedKey
+      );
+
+    if (
+      !alreadyViewed
+    ) {
+
+      apiClient
+        .projects
+        .incrementViews(
+          parseInt(projectId)
+        );
+
+      localStorage.setItem(
+        viewedKey,
+        "true"
+      );
+
+    }
+
+  }, [
+    user?.id,
+    projectId,
+    currentChapter?.id
+  ]);
 
   const selectChapter = async (chapter, index) => {
     const chapterWithSections = await loadChapterWithSections(chapter);
