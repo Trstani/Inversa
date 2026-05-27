@@ -5,6 +5,8 @@ import { apiClient } from "../api/client";
 import { FiArrowLeft, FiChevronLeft, FiChevronRight, FiMessageCircle } from "react-icons/fi";
 import ChapterComments from './ChapterComments';
 import Button from "./Button";
+import ChapterNavigation from "./ChapterNavigation";
+import ChapterList from "./ChapterList";
 
 const ChapterReader = () => {
   const { projectId, chapterId } = useParams();
@@ -255,50 +257,30 @@ const ChapterReader = () => {
           </div>
         </div>
 
-        {/* NAVIGATION */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 mb-6 sm:mb-8">
-          <button
-            onClick={handlePreviousChapter}
-            disabled={currentIndex === 0}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm sm:text-base"
-          >
-            <FiChevronLeft />
-            Previous
-          </button>
-          <div className="text-center">
-            <p className="text-xs sm:text-sm text-light-secondary dark:text-dark-secondary">
-              Chapter {currentIndex + 1} of {chapters.length}
-            </p>
-          </div>
-          <button
-            onClick={handleNextChapter}
-            disabled={currentIndex === chapters.length - 1}
-            className="w-full sm:w-auto flex items-center justify-center gap-2 px-3 sm:px-4 py-2 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition text-sm sm:text-base"
-          >
-            Next
-            <FiChevronRight />
-          </button>
-        </div>
+        <ChapterNavigation
+          currentChapter={currentIndex + 1}
+          totalChapters={chapters.length}
+          onPrevious={handlePreviousChapter}
+          onNext={handleNextChapter}
+          className="mb-6 sm:mb-8"
+        />
 
         {/* CHAPTER LIST */}
         <div className="card p-4 sm:p-6 mb-6">
-          <h3 className="text-base sm:text-lg font-semibold mb-4">Chapters</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-            {chapters.map((chapter, index) => (
-              <button
-                key={chapter.id}
-                onClick={() => selectChapter(chapter, index)}
-                className={`p-2 sm:p-3 rounded-lg text-left transition ${
-                  currentChapter.id === chapter.id
-                    ? "bg-light-accent text-white dark:bg-dark-accent"
-                    : "bg-light-surface dark:bg-dark-surface hover:bg-light-accent/10 dark:hover:bg-dark-accent/10"
-                }`}
-              >
-                <p className="font-medium">Chapter {chapter.chapter_number}</p>
-                <p className="text-xs opacity-75 truncate">{chapter.title}</p>
-              </button>
-            ))}
-          </div>
+
+          <h3 className="text-base sm:text-lg font-semibold mb-4">
+            Chapters
+          </h3>
+
+          <ChapterList
+            chapters={chapters}
+            currentChapterId={currentChapter.id}
+            onSelectChapter={(chapterId) =>
+              navigate(`/read/${projectId}/${chapterId}`)
+            }
+            readOnly={true}
+          />
+
         </div>
 
         {/* COMMENT TOGGLE */}

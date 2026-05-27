@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 import { cleanupChapterImages } from "../utils/chapterCleanup";
 
-const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId, project }) => {
+const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId, project, readOnly=false }) => {
     const [deletingId, setDeletingId] = useState(null);
     const { user } = useAuth();
 
@@ -116,7 +116,7 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                             </p>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
-                            {canDelete && (
+                            {!readOnly && canDelete && (
                                 <button
                                     onClick={(e) => handleDeleteChapter(chapter.id, e)}
                                     disabled={deletingId === chapter.id}
