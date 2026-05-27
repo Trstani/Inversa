@@ -143,10 +143,7 @@ const UserDashboard = () => {
 
   useEffect(() => {
 
-    console.log(
-      'MY TEAMS ARRAY:',
-      myTeams
-    );
+    
 
     if (
       Array.isArray(myTeams) &&
@@ -171,7 +168,7 @@ const UserDashboard = () => {
         for (
           const team of myTeams
         ) {
-          console.log('TEAM:', team);
+          
 
           /*
           =========================
@@ -193,10 +190,7 @@ const UserDashboard = () => {
             continue;
           }
 
-          console.log(
-            'FETCH REQUEST TEAM:',
-            team.id
-          );
+         
 
           const response =
             await apiClient.teams
@@ -206,10 +200,7 @@ const UserDashboard = () => {
 
           const requests =
             response.data || [];
-          console.log(
-            'REQUESTS RESULT:',
-            requests
-          );
+
           allRequests.push(
             ...requests
           );
