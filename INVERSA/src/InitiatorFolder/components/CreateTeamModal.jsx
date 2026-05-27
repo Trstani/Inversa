@@ -4,6 +4,7 @@ import { FiX, FiImage } from 'react-icons/fi';
 import Button from '../../components/Button';
 import { apiClient } from '../../api/client';
 import { supabase } from "../../lib/supabase";
+import { validateImage } from "../../utils/imageValidation";
 
 const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -29,18 +30,20 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
 
     if (!file) return;
 
-    if (
-      file.size >
-      5 * 1024 * 1024
-    ) {
+    const validation =
+      validateImage(
+        file
+      );
 
+    if (
+      !validation.valid
+    ) {
       alert(
-        "Image max size 5MB"
+        validation.message
       );
 
       return;
-
-    }
+    } 
 
     try {
 
@@ -350,12 +353,12 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
             <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-light-accent/30 dark:border-dark-accent/30 rounded-xl cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-accent/5 dark:bg-dark-accent/5">
               <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
                 <span className="font-medium">Click to upload</span>
-                <span className="text-xs mt-1">PNG, JPG up to 5MB</span>
+                <span className="text-xs mt-1">PNG, JPG up to 2MB</span>
               </div>
 
               <input
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png"
                 onChange={handleImageUpload}
                 className="hidden"
               />

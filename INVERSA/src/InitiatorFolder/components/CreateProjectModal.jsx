@@ -3,6 +3,7 @@ import { FiX } from "react-icons/fi";
 import categories from "../../Datajson/categories.json";
 import genres from "../../Datajson/genres.json";
 import { supabase } from "../../lib/supabase";
+import { validateImage } from "../../utils/imageValidation";
 
 const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
   const initialState = {
@@ -28,7 +29,23 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
     const file =
       e.target.files?.[0];
 
-    if (!file) return;
+    if (!file)
+      return;
+
+    const validation =
+      validateImage(
+        file
+      );
+
+    if (
+      !validation.valid
+    ) {
+      alert(
+        validation.message
+      );
+
+      return;
+    }
 
     try {
 
@@ -319,36 +336,21 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
             </div>
           </div>
 
-          {/* IMAGE URL */}
-          <div>
-            <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
-              Cover Image URL
-            </label>
-            <input
-              type="text"
-              name="backgroundImage"
-              placeholder="https://example.com/image.jpg"
-              value={formData.backgroundImage}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-light-primary dark:text-dark-primary focus:outline-none focus:ring-2 focus:ring-light-accent dark:focus:ring-dark-accent"
-            />
-          </div>
-
           {/* FILE UPLOAD */}
           <div>
             <label className="block text-sm font-medium text-light-primary dark:text-dark-primary mb-2">
-              Or Upload Cover Image
+              Upload Cover Image
             </label>
 
             <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-light-accent/30 dark:border-dark-accent/30 rounded-xl cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-accent/5 dark:bg-dark-accent/5">
               <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
                 <span className="font-medium">Click to upload</span>
-                <span className="text-xs mt-1">PNG, JPG up to 5MB</span>
+                <span className="text-xs mt-1">PNG, JPG up to 2MB</span>
               </div>
 
               <input
                 type="file"
-                accept="image/*"
+                accept=".jpg,.jpeg,.png"
                 onChange={handleImageUpload}
                 className="hidden"
               />

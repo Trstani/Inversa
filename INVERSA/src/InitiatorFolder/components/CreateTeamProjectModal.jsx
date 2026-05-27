@@ -24,6 +24,7 @@ import {
 } from '../../api/client';
 
 import { supabase } from "../../lib/supabase";
+import { validateImage } from "../../utils/imageValidation";
 
 const CreateTeamProjectModal = ({
   isOpen,
@@ -109,6 +110,21 @@ const CreateTeamProjectModal = ({
       if (!file)
         return;
 
+      const validation =
+        validateImage(
+          file
+        );
+
+      if (
+        !validation.valid
+      ) {
+        alert(
+          validation.message
+        );
+
+        return;
+      }
+
       try {
 
         const reader =
@@ -167,9 +183,8 @@ const CreateTeamProjectModal = ({
                       blob
                     ) => {
 
-                      if (
-                        !blob
-                      ) return;
+                      if (!blob)
+                        return;
 
                       const fileName =
                         `${Date.now()}-${file.name}`;
@@ -187,21 +202,8 @@ const CreateTeamProjectModal = ({
                             blob
                           );
 
-                      if (
-                        error
-                      ) {
-
-                        console.error(
-                          error
-                        );
-
-                        alert(
-                          "Upload failed"
-                        );
-
-                        return;
-
-                      }
+                      if (error)
+                        throw error;
 
                       const {
                         data
@@ -215,16 +217,13 @@ const CreateTeamProjectModal = ({
                             fileName
                           );
 
-                      const imageUrl =
-                        data.publicUrl;
-
                       setFormData(
                         prev => ({
 
                           ...prev,
 
                           backgroundImage:
-                            imageUrl
+                            data.publicUrl
 
                         })
                       );
@@ -233,17 +232,16 @@ const CreateTeamProjectModal = ({
 
                     "image/jpeg",
                     0.7
-
                   );
 
-                }
-
-                catch (
-                error
-                ) {
+                } catch (error) {
 
                   console.error(
                     error
+                  );
+
+                  alert(
+                    "Upload failed"
                   );
 
                 }
@@ -259,11 +257,7 @@ const CreateTeamProjectModal = ({
           file
         );
 
-      }
-
-      catch (
-      error
-      ) {
+      } catch (error) {
 
         console.error(
           error
@@ -276,6 +270,7 @@ const CreateTeamProjectModal = ({
       }
 
     };
+
   /*
   =========================
   SUBMIT
@@ -748,62 +743,6 @@ const CreateTeamProjectModal = ({
 
           </div>
 
-          {/* IMAGE URL */}
-
-          <div>
-
-            <label
-              className="
-                block text-sm font-medium
-
-                text-light-primary
-                dark:text-dark-primary
-
-                mb-2
-              "
-            >
-              Cover Image URL
-            </label>
-
-            <input
-              type="text"
-
-              name="backgroundImage"
-
-              placeholder="https://example.com/image.jpg"
-
-              value={formData.backgroundImage}
-
-              onChange={handleChange}
-
-              className="
-                w-full
-
-                px-4 py-2
-
-                bg-light-background
-                dark:bg-dark-background
-
-                border
-                border-light-accent/20
-                dark:border-dark-accent/20
-
-                rounded-lg
-
-                text-light-primary
-                dark:text-dark-primary
-
-                placeholder-light-secondary
-                dark:placeholder-dark-secondary
-
-                focus:outline-none
-
-                focus:border-light-accent
-                dark:focus:border-dark-accent
-              "
-            />
-
-          </div>
 
           {/* FILE UPLOAD */}
 
@@ -819,7 +758,7 @@ const CreateTeamProjectModal = ({
                 mb-2
               "
             >
-              Or Upload Cover Image
+              Upload Cover Image
             </label>
 
             <label
@@ -868,7 +807,7 @@ const CreateTeamProjectModal = ({
                 </span>
 
                 <span className="text-xs mt-1">
-                  PNG, JPG up to 5MB
+                  PNG, JPG up to 2MB
                 </span>
 
               </div>
@@ -876,7 +815,7 @@ const CreateTeamProjectModal = ({
               <input
                 type="file"
 
-                accept="image/*"
+                accept=".jpg,.jpeg,.png"
 
                 onChange={handleImageUpload}
 

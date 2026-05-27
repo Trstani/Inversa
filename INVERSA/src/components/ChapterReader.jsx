@@ -6,7 +6,6 @@ import { FiArrowLeft, FiChevronLeft, FiChevronRight, FiMessageCircle } from "rea
 import ChapterComments from './ChapterComments';
 import Button from "./Button";
 import ChapterNavigation from "./ChapterNavigation";
-import ChapterList from "./ChapterList";
 
 const ChapterReader = () => {
   const { projectId, chapterId } = useParams();
@@ -267,20 +266,23 @@ const ChapterReader = () => {
 
         {/* CHAPTER LIST */}
         <div className="card p-4 sm:p-6 mb-6">
-
-          <h3 className="text-base sm:text-lg font-semibold mb-4">
-            Chapters
-          </h3>
-
-          <ChapterList
-            chapters={chapters}
-            currentChapterId={currentChapter.id}
-            onSelectChapter={(chapterId) =>
-              navigate(`/read/${projectId}/${chapterId}`)
-            }
-            readOnly={true}
-          />
-
+          <h3 className="text-base sm:text-lg font-semibold mb-4">Chapters</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+            {chapters.map((chapter, index) => (
+              <button
+                key={chapter.id}
+                onClick={() => selectChapter(chapter, index)}
+                className={`p-2 sm:p-3 rounded-lg text-left transition ${
+                  currentChapter.id === chapter.id
+                    ? "bg-light-accent text-white dark:bg-dark-accent"
+                    : "bg-light-surface dark:bg-dark-surface hover:bg-light-accent/10 dark:hover:bg-dark-accent/10"
+                }`}
+              >
+                <p className="font-medium">Chapter {chapter.chapter_number}</p>
+                <p className="text-xs opacity-75 truncate">{chapter.title}</p>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* COMMENT TOGGLE */}

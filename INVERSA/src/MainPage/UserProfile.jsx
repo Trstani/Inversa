@@ -35,6 +35,7 @@ import TeamCard from '../components/TeamCard';
 
 import FollowedList from "../section/design/FollowedList";
 import HistoryList from "../section/design/HistoryList";
+import { validateImage } from "../utils/imageValidation";
 
 const UserProfile = () => {
 
@@ -263,93 +264,102 @@ IMAGE CHANGE
 =========================
 */
 
-  const handleImageChange =
-    async (e) => {
+const handleImageChange =
+  async (e) => {
 
-      const file =
-        e.target.files?.[0];
+    const file =
+      e.target.files?.[0];
 
-      if (!file)
-        return;
+    if(!file)
+      return;
 
-      try {
+    const validation =
+      validateImage(
+        file
+      );
 
-        // simpan url lama
-        const oldImage =
-          profileData?.profile_image;
+    if(
+      !validation.valid
+    ){
+      alert(
+        validation.message
+      );
 
+      return;
+    }
 
-        // upload gambar baru
-        const imageUrl =
-          await uploadImage(
-            file
+    try{
+
+      const oldImage =
+        profileData?.profile_image;
+
+      const imageUrl =
+        await uploadImage(
+          file
+        );
+
+      const response =
+        await apiClient
+          .users
+          .update(
+            user.id,
+            {
+
+              ...profileData,
+
+              profile_image:
+                imageUrl
+
+            }
           );
 
+      if(
+        response.success
+      ){
 
-        // update DB
-        const response =
-          await apiClient
-            .users
-            .update(
-              user.id,
-              {
-                ...profileData,
+        if(
+          oldImage
+        ){
 
-                profile_image:
-                  imageUrl,
-              }
-            );
-
-
-        if (
-          response.success
-        ) {
-
-          // hapus file lama
-          if (
+          await deleteStorageFile(
             oldImage
-          ) {
-
-            await deleteStorageFile(
-              oldImage
-            );
-
-          }
-
-          setProfileData({
-
-            ...profileData,
-
-            profile_image:
-              imageUrl
-
-          });
-
-
-          setEditData({
-
-            ...editData,
-
-            profile_image:
-              imageUrl
-
-          });
+          );
 
         }
 
-      } catch (error) {
+        setProfileData({
 
-        console.error(
-          error
-        );
+          ...profileData,
 
-        alert(
-          "Failed to update profile image"
-        );
+          profile_image:
+            imageUrl
+
+        });
+
+        setEditData({
+
+          ...editData,
+
+          profile_image:
+            imageUrl
+
+        });
 
       }
 
-    };
+    }catch(error){
+
+      console.error(
+        error
+      );
+
+      alert(
+        "Failed to update profile image"
+      );
+
+    }
+
+};
 
   /*
   =========================
@@ -510,7 +520,7 @@ IMAGE CHANGE
 
                   <input
                     type="file"
-                    accept="image/*"
+                    accept=".jpg,.jpeg,.png"
                     onChange={handleImageChange}
                     className="hidden"
                   />

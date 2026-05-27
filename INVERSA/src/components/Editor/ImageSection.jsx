@@ -5,6 +5,7 @@ import { socket } from "../../socket/socket";
 import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { deleteStorageFile } from "../../utils/storage";
+import { validateImage } from "../../utils/imageValidation";
 
 const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, onMoveDown, isFirst, isLast }) => {
   const { user } = useAuth();
@@ -89,100 +90,108 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
     setHasChanges(value !== lastSavedCaption || imageUrl !== lastSavedImageUrl);
   };
 
-  const handleImageUrlChange = (e) => {
-    const value = e.target.value;
-    setImageUrl(value);
-    onUpdate(section.id, { image_url: value });
-    setHasChanges(true);
-  };
-
   const handleImageUpload = async (file) => {
 
-  if (!file) return;
+    if (
+      !file ||
+      !canEdit
+    ) return;
 
-  try {
-
-    setIsSaving(true);
-
-    // simpan image lama
-    const oldImage =
-      imageUrl;
-
-    const fileName =
-      `${Date.now()}-${file.name}`;
-
-    const {
-      error
-    } =
-    await supabase
-      .storage
-      .from("images")
-      .upload(
-        fileName,
+    const validation =
+      validateImage(
         file
       );
 
-    if (error)
-      throw error;
+    if (
+      !validation.valid
+    ) {
+      alert(
+        validation.message
+      );
+      return;
+    }
 
-    const {
-      data: {
-        publicUrl
-      }
-    } =
-    supabase
-      .storage
-      .from("images")
-      .getPublicUrl(
-        fileName
+    try {
+
+      setIsSaving(
+        true
       );
 
-    // hapus image lama kalau ada
-    if (
-      oldImage
-    ) {
+      const oldImage =
+        imageUrl;
 
-      await deleteStorageFile(
+      const fileName =
+        `${Date.now()}-${file.name}`;
+
+      const {
+        error
+      } =
+        await supabase
+          .storage
+          .from("images")
+          .upload(
+            fileName,
+            file
+          );
+
+      if (error)
+        throw error;
+
+      const {
+        data: {
+          publicUrl
+        }
+      } =
+        supabase
+          .storage
+          .from("images")
+          .getPublicUrl(
+            fileName
+          );
+
+      if (
         oldImage
+      ) {
+        await deleteStorageFile(
+          oldImage
+        );
+      }
+
+      setImageUrl(
+        publicUrl
+      );
+
+      onUpdate(
+        section.id,
+        {
+          image_url:
+            publicUrl
+        }
+      );
+
+      setHasChanges(
+        true
+      );
+
+    } catch (error) {
+
+      console.error(
+        error
+      );
+
+      alert(
+        "Failed upload image"
+      );
+
+    } finally {
+
+      setIsSaving(
+        false
       );
 
     }
 
-    setImageUrl(
-      publicUrl
-    );
-
-    onUpdate(
-      section.id,
-      {
-        image_url:
-        publicUrl
-      }
-    );
-
-    setHasChanges(
-      true
-    );
-
-  } catch (error) {
-
-    console.error(
-      error
-    );
-
-    alert(
-      "Failed upload image"
-    );
-
-  } finally {
-
-    setIsSaving(
-      false
-    );
-
-  }
-
-};
+  };
 
   const handleSave = async () => {
     if (!hasChanges) return;
@@ -215,22 +224,13 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
               ) : (
                 <div className="flex flex-col items-center">
                   <span>Click to upload</span>
-                  <span className="text-xs">PNG JPG up to 5MB</span>
+                  <span className="text-xs">PNG JPG up to 2MB</span>
                 </div>
               )}
               {canEdit && !isLocked && (
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => handleImageUpload(e.target.files[0])} />
+                <input type="file" accept=".jpg,.jpeg,.png" className="hidden" onChange={(e) => handleImageUpload(e.target.files[0])} />
               )}
             </label>
-            <input
-              type="text"
-              placeholder="Or paste image URL..."
-              value={imageUrl}
-              onFocus={handleLock}
-              onChange={handleImageUrlChange}
-              disabled={isLocked}
-              className="w-full p-3 border rounded-lg dark:bg-dark-background"
-            />
           </div>
           {isLocked && (
             <div className="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl flex items-center justify-center z-20">
