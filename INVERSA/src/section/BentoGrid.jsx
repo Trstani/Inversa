@@ -12,6 +12,7 @@ import {
 
 import FollowedList from "./design/FollowedList";
 import HistoryList from "./design/HistoryList";
+import HeroBackground from "../assets/Herobackground.png";
 
 const BentoGrid = ({
   isAuthenticated,
@@ -34,8 +35,7 @@ const BentoGrid = ({
             <div
               className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-20 transition-transform duration-700 group-hover:scale-105"
               style={{
-                backgroundImage:
-                  "url('https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=1600&auto=format&fit=crop')",
+                backgroundImage: `url(${HeroBackground})`,
               }}
             />
 

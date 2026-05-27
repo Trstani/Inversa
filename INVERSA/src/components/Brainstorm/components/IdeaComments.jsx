@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { FiSend, FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../../../context/AuthContext';
 import { apiClient } from '../../../api/client';
+import { socket } from "../../../socket/socket";
 
 const IdeaComments = ({ ideaId }) => {
   console.log('IDEA ID:', ideaId);
@@ -31,11 +32,75 @@ const IdeaComments = ({ ideaId }) => {
   };
 
   useEffect(() => {
-    if (!ideaId) {
-      console.warn('IDEA ID NULL');
-      return;
-    }
+    if (!ideaId) return;
+
     loadComments();
+
+    const handleNewComment = (data) => {
+
+      if (
+        Number(data.ideaId) !==
+        Number(ideaId)
+      ) return;
+
+      setComments(prev => {
+
+        const exists =
+          prev.some(
+            c => c.id === data.comment.id
+          );
+
+        if (exists)
+          return prev;
+
+        return [
+          ...prev,
+          data.comment
+        ];
+
+      });
+
+    };
+
+    const handleDeleteComment = (data) => {
+
+      if (
+        Number(data.ideaId) !==
+        Number(ideaId)
+      ) return;
+
+      setComments(prev =>
+        prev.filter(
+          c => c.id !== data.commentId
+        )
+      );
+
+    };
+
+    socket.on(
+      "idea_comment_added",
+      handleNewComment
+    );
+
+    socket.on(
+      "idea_comment_deleted",
+      handleDeleteComment
+    );
+
+    return () => {
+
+      socket.off(
+        "idea_comment_added",
+        handleNewComment
+      );
+
+      socket.off(
+        "idea_comment_deleted",
+        handleDeleteComment
+      );
+
+    };
+
   }, [ideaId]);
 
   const loadComments = async () => {
@@ -64,8 +129,16 @@ const IdeaComments = ({ ideaId }) => {
       });
       console.log('ADD COMMENT RESPONSE:', response);
       console.log('ADD COMMENT DATA:', response.data);
-      setInput('');
-      await loadComments();
+      setInput("");
+
+      socket.emit(
+        "idea_comment_added",
+        {
+          ideaId,
+          comment:
+            response.data
+        }
+      );
     } catch (error) {
       console.error('SUBMIT COMMENT ERROR:', error);
     }
@@ -75,7 +148,13 @@ const IdeaComments = ({ ideaId }) => {
     try {
       console.log('DELETE COMMENT:', commentId);
       await apiClient.brainstorm.deleteComment(ideaId, commentId);
-      setComments((prev) => prev.filter((comment) => comment.id !== commentId));
+      socket.emit(
+        "idea_comment_deleted",
+        {
+          ideaId,
+          commentId
+        }
+      );
     } catch (error) {
       console.error('DELETE COMMENT ERROR:', error);
     }

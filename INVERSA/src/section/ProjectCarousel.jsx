@@ -60,7 +60,7 @@ const ProjectCarousel = () => {
         {/* CAROUSEL */}
         <div className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scrollbar-hide pb-2">
           {newestProjects.map((project) => (
-            <div key={project.id} className="min-w-[100%] sm:min-w-[calc(50%-10px)] md:min-w-[calc(33.333%-12px)] flex-shrink-0">
+            <div key={project.id} className="basis-full sm:basis-[calc(50%-10px)] md:basis-[calc(33.333%-12px)] flex-shrink-0">
               <CardProject project={project} />
             </div>
           ))}

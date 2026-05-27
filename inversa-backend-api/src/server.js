@@ -209,6 +209,50 @@ io.on(
     );
 
     /*
+=========================
+IDEA COMMENTS EVENTS
+=========================
+*/
+
+    socket.on(
+      'idea_comment_added',
+      ({ ideaId, comment }) => {
+
+        io.emit(
+          'idea_comment_added',
+          {
+            ideaId,
+            comment
+          }
+        );
+
+        console.log(
+          `💬 Comment added for idea ${ideaId}`
+        );
+
+      }
+    );
+
+    socket.on(
+      'idea_comment_deleted',
+      ({ ideaId, commentId }) => {
+
+        io.emit(
+          'idea_comment_deleted',
+          {
+            ideaId,
+            commentId
+          }
+        );
+
+        console.log(
+          `🗑️ Comment deleted for idea ${ideaId}`
+        );
+
+      }
+    );
+
+    /*
     =========================
     NOTES EVENTS
     =========================
