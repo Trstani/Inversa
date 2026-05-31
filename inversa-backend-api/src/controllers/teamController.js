@@ -5,6 +5,7 @@ import {
   getTeamProjects,
   deleteTeam,
   getAllTeams,
+  updateTeam,
 } from '../services/teamService.js';
 
 /*
@@ -292,4 +293,53 @@ export const getAll =
           error.message,
       });
     }
+};
+
+export const update =
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const {
+        title,
+        description,
+        background_image,
+      } = req.body;
+
+      const team =
+        await updateTeam(
+          id,
+          {
+            title,
+            description,
+            background_image,
+          }
+        );
+
+      res.json({
+
+        success: true,
+
+        data: team,
+
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      res.status(500).json({
+
+        success: false,
+
+        message:
+          error.message,
+
+      });
+
+    }
+
 };

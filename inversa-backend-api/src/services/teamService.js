@@ -336,3 +336,39 @@ export const getAllTeams =
 
     return result.rows;
 };
+
+export const updateTeam =
+  async (
+    id,
+    {
+      title,
+      description,
+      background_image,
+    }
+  ) => {
+
+    const result =
+      await pool.query(
+        `
+        UPDATE teams
+
+        SET
+          title = $1,
+          description = $2,
+          background_image = $3,
+          updated_at = NOW()
+
+        WHERE id = $4
+
+        RETURNING *
+        `,
+        [
+          title,
+          description,
+          background_image,
+          id,
+        ]
+      );
+
+    return result.rows[0];
+};

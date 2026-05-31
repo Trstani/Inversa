@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FiArrowLeft, FiUsers, FiFolder, FiTrash2, FiPlus } from 'react-icons/fi';
+import { FiArrowLeft, FiUsers, FiFolder, FiTrash2, FiPlus, FiEdit2,} from 'react-icons/fi';
 import { apiClient } from '../api/client';
 import DashboardProjectCard from '../components/DashboardProjectCard';
 import CreateTeamProjectModal from './components/CreateTeamProjectModal';
@@ -19,6 +19,11 @@ const TeamDetailPage = () => {
   const [showCreateProjectModal, setShowCreateProjectModal] = useState(false);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [requests, setRequests] = useState([]);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editBackground, setEditBackground] = useState("");
+  const [imagePreview, setImagePreview] = useState("");
 
   useEffect(() => { loadTeamData(); }, [teamId]);
 
@@ -104,6 +109,95 @@ const TeamDetailPage = () => {
 
         alert(
           'Failed to delete team'
+        );
+
+      }
+
+    };
+
+  const handleOpenEdit =
+    () => {
+
+      setEditTitle(
+        team.title || ""
+      );
+
+      setEditDescription(
+        team.description || ""
+      );
+
+      setEditBackground(
+        team.background_image || ""
+      );
+
+      setImagePreview(
+        team.background_image || ""
+      );
+
+      setShowEditModal(
+        true
+      );
+
+    };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const validation = validateImage(file);
+    if (!validation.valid) { alert(validation.message); return; }
+    try {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from("images").upload(fileName, file);
+      if (error) { console.error(error); alert("Upload failed"); return; }
+      const { data } = supabase.storage.from("images").getPublicUrl(fileName);
+      setEditBackground(data.publicUrl);
+      setImagePreview(data.publicUrl);
+    } catch (error) { console.error(error); alert("Upload failed"); }
+  };
+
+  const handleSaveTeam =
+    async () => {
+
+      try {
+
+        if (
+          team.background_image &&
+          editBackground !==
+          team.background_image
+        ) {
+
+          await deleteStorageFile(
+            team.background_image
+          );
+
+        }
+
+        await apiClient.teams.update(
+          team.id,
+          {
+            title:
+              editTitle,
+
+            description:
+              editDescription,
+
+            background_image:
+              editBackground,
+          }
+        );
+
+        await loadTeamData();
+
+        setShowEditModal(
+          false
+        );
+
+      } catch (error) {
+
+        console.error(error);
+
+        alert(
+          "Failed to update team"
         );
 
       }
@@ -235,13 +329,45 @@ const TeamDetailPage = () => {
                   </button>
                 )}
                 {isOwner && (
-                  <button
-                    onClick={handleDeleteTeam}
-                    className="flex items-center justify-center rounded-xl bg-red-500/10 hover:bg-red-500/20 px-4 py-3 text-red-500 transition-all"
-                    title="Delete team"
-                  >
-                    <FiTrash2 className="w-5 h-5" />
-                  </button>
+                  <>
+                    <button
+                      onClick={handleOpenEdit}
+                      className="
+      flex
+      items-center
+      justify-center
+      rounded-xl
+      bg-blue-500/10
+      hover:bg-blue-500/20
+      px-4
+      py-3
+      text-blue-500
+      transition-all
+    "
+                      title="Edit team"
+                    >
+                      <FiEdit2 className="w-5 h-5" />
+                    </button>
+
+                    <button
+                      onClick={handleDeleteTeam}
+                      className="
+      flex
+      items-center
+      justify-center
+      rounded-xl
+      bg-red-500/10
+      hover:bg-red-500/20
+      px-4
+      py-3
+      text-red-500
+      transition-all
+    "
+                      title="Delete team"
+                    >
+                      <FiTrash2 className="w-5 h-5" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -344,6 +470,160 @@ const TeamDetailPage = () => {
           teamId={teamId}
         />
       )}
+
+      {showEditModal && (
+
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+
+          <div
+            className="
+        bg-white
+        dark:bg-dark-background
+        rounded-xl
+        p-6
+        w-full
+        max-w-xl
+      "
+          >
+
+            <h2 className="text-xl font-bold mb-5">
+              Edit Team
+            </h2>
+
+            <div className="mb-4">
+
+              <label className="block text-sm mb-2">
+                Team Name
+              </label>
+
+              <input
+                value={editTitle}
+                onChange={(e) =>
+                  setEditTitle(
+                    e.target.value
+                  )
+                }
+                className="
+            w-full
+            p-3
+            rounded-lg
+            border
+          "
+              />
+
+            </div>
+
+            <div className="mb-4">
+
+              <label className="block text-sm mb-2">
+                Description
+              </label>
+
+              <textarea
+                rows={5}
+                value={editDescription}
+                onChange={(e) =>
+                  setEditDescription(
+                    e.target.value
+                  )
+                }
+                className="
+            w-full
+            p-3
+            rounded-lg
+            border
+          "
+              />
+
+            </div>
+
+            <div className="mb-4">
+
+              <label className="block text-sm mb-2">
+                Background Image
+              </label>
+
+              <label
+                className="
+            flex
+            flex-col
+            items-center
+            justify-center
+            w-full
+            h-40
+            border-2
+            border-dashed
+            rounded-xl
+            cursor-pointer
+          "
+              >
+
+                <span>
+                  Click to upload
+                </span>
+
+                <input
+                  type="file"
+                  accept=".jpg,.jpeg,.png"
+                  onChange={
+                    handleImageUpload
+                  }
+                  className="hidden"
+                />
+
+              </label>
+
+            </div>
+
+            {imagePreview && (
+
+              <div className="mb-4">
+
+                <div
+                  className="
+              w-full
+              h-48
+              rounded-xl
+              bg-cover
+              bg-center
+            "
+                  style={{
+                    backgroundImage:
+                      `url(${imagePreview})`
+                  }}
+                />
+
+              </div>
+
+            )}
+
+            <div className="flex gap-3">
+
+              <Button
+                onClick={() =>
+                  setShowEditModal(
+                    false
+                  )
+                }
+                className="bg-gray-400"
+              >
+                Cancel
+              </Button>
+
+              <Button
+                onClick={handleSaveTeam}
+              >
+                Save
+              </Button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      )}
+
     </div>
   );
 };

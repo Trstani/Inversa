@@ -10,6 +10,7 @@ import {
   getUserTeamsController,
   getProjects,
   remove,
+  update,
 } from '../controllers/teamController.js';
 
 const router =
@@ -66,6 +67,14 @@ router.post(
   '/',
   authMiddleware,
   create
+);
+
+router.put(
+  '/:id',
+
+  authMiddleware,
+
+  update
 );
 
 /*
