@@ -12,7 +12,7 @@ const Recommendation = ({ type, projects }) => {
   const [visibleCount, setVisibleCount] = useState(5);
 
   useEffect(() => {
-    setVisibleCount(5);
+    setVisibleCount(6);
   }, [projects]);
 
   if (!projects || projects.length === 0)

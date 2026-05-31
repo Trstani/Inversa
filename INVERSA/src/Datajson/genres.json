@@ -4,65 +4,65 @@
       "id": "comedy",
       "name": "Comedy",
       "description": "Cerita yang menghibur dan lucu",
-      "color": "#FBBF24",
+      "color": "#FACC15",
       "textColor": "#1E293B",
-      "bgClass": "bg-amber-400"
+      "bgClass": "bg-yellow-400"
     },
     {
       "id": "horror",
       "name": "Horror",
       "description": "Cerita yang menakutkan dan misterius",
-      "color": "#EF4444",
+      "color": "#991B1B",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-red-500"
+      "bgClass": "bg-red-800"
     },
     {
       "id": "action",
       "name": "Action",
       "description": "Cerita penuh aksi dan petualangan",
-      "color": "#F97316",
+      "color": "#EA580C",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-orange-500"
+      "bgClass": "bg-orange-600"
     },
     {
       "id": "crime",
       "name": "Crime",
       "description": "Cerita tentang kejahatan dan misteri",
-      "color": "#6366F1",
+      "color": "#475569",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-indigo-500"
+      "bgClass": "bg-slate-600"
     },
     {
       "id": "adventure",
       "name": "Adventure",
       "description": "Cerita petualangan dan eksplorasi",
-      "color": "#10B981",
+      "color": "#15803D",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-emerald-500"
+      "bgClass": "bg-green-700"
     },
     {
       "id": "scifi",
       "name": "Sci-Fi",
       "description": "Cerita fiksi ilmiah dan futuristik",
-      "color": "#06B6D4",
+      "color": "#0284C7",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-cyan-500"
+      "bgClass": "bg-sky-600"
     },
     {
       "id": "romance",
       "name": "Romance",
       "description": "Cerita cinta dan hubungan",
-      "color": "#EC4899",
+      "color": "#DB2777",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-pink-500"
+      "bgClass": "bg-pink-600"
     },
     {
       "id": "documentary",
       "name": "Documentary",
       "description": "Cerita faktual dan dokumenter",
-      "color": "#8B5CF6",
+      "color": "#B45309",
       "textColor": "#FFFFFF",
-      "bgClass": "bg-violet-500"
+      "bgClass": "bg-amber-700"
     }
   ]
 }

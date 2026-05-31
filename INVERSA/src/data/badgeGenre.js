@@ -1,26 +1,74 @@
 // Fallback genres (jika JSON tidak tersedia)
 export const genres = [
-    { id: 'comedy', name: 'Comedy', description: 'Cerita yang menghibur dan lucu', color: '#FBBF24', textColor: '#1E293B', bgClass: 'bg-amber-400' },
-    { id: 'horror', name: 'Horror', description: 'Cerita yang menakutkan dan misterius', color: '#EF4444', textColor: '#FFFFFF', bgClass: 'bg-red-500' },
-    { id: 'action', name: 'Action', description: 'Cerita penuh aksi dan petualangan', color: '#F97316', textColor: '#FFFFFF', bgClass: 'bg-orange-500' },
-    { id: 'crime', name: 'Crime', description: 'Cerita tentang kejahatan dan misteri', color: '#6366F1', textColor: '#FFFFFF', bgClass: 'bg-indigo-500' },
-    { id: 'adventure', name: 'Adventure', description: 'Cerita petualangan dan eksplorasi', color: '#10B981', textColor: '#FFFFFF', bgClass: 'bg-emerald-500' },
-    { id: 'scifi', name: 'Sci-Fi', description: 'Cerita fiksi ilmiah dan futuristik', color: '#06B6D4', textColor: '#FFFFFF', bgClass: 'bg-cyan-500' },
-    { id: 'romance', name: 'Romance', description: 'Cerita cinta dan hubungan', color: '#EC4899', textColor: '#FFFFFF', bgClass: 'bg-pink-500' },
-    { id: 'documentary', name: 'Documentary', description: 'Cerita faktual dan dokumenter', color: '#8B5CF6', textColor: '#FFFFFF', bgClass: 'bg-violet-500' },
+    {
+      "id": "comedy",
+      "name": "Comedy",
+      "description": "Cerita yang menghibur dan lucu",
+      "color": "#FACC15",
+      "textColor": "#1E293B",
+      "bgClass": "bg-yellow-400"
+    },
+    {
+      "id": "horror",
+      "name": "Horror",
+      "description": "Cerita yang menakutkan dan misterius",
+      "color": "#991B1B",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-red-800"
+    },
+    {
+      "id": "action",
+      "name": "Action",
+      "description": "Cerita penuh aksi dan petualangan",
+      "color": "#EA580C",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-orange-600"
+    },
+    {
+      "id": "crime",
+      "name": "Crime",
+      "description": "Cerita tentang kejahatan dan misteri",
+      "color": "#475",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-gray-600"
+    },
+    {
+      "id": "adventure",
+      "name": "Adventure",
+      "description": "Cerita petualangan dan eksplorasi",
+      "color": "#15803D",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-green-700"
+    },
+    {
+      "id": "scifi",
+      "name": "Sci-Fi",
+      "description": "Cerita fiksi ilmiah dan futuristik",
+      "color": "#0284C7",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-sky-600"
+    },
+    {
+      "id": "romance",
+      "name": "Romance",
+      "description": "Cerita cinta dan hubungan",
+      "color": "#DB2777",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-pink-600"
+    },
+    {
+      "id": "documentary",
+      "name": "Documentary",
+      "description": "Cerita faktual dan dokumenter",
+      "color": "#B45309",
+      "textColor": "#FFFFFF",
+      "bgClass": "bg-amber-700"
+    }
 ];
 
 
 // Load genres from JSON
 export const loadGenres = async () => {
-    try {
-        const response = await fetch('/Datajson/genres.json');
-        if (response.ok) {
-            const data = await response.json();
-            return data.genres || genres;
-        }
-    } catch (error) {
-        console.warn('Failed to load genres from JSON, using fallback');
-    }
+    
     return genres;
 };
