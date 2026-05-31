@@ -6,8 +6,12 @@ import { apiClient } from '../api/client';
 import DashboardProjectCard from '../components/DashboardProjectCard';
 import CreateTeamProjectModal from './components/CreateTeamProjectModal';
 import TeamJoinRequestModal from './components/TeamJoinRequestModal';
+import Button from "../components/Button";
 import { deleteStorageFile } from "../utils/storage";
 import { cleanupProjectImages } from "../utils/projectCleanup";
+
+import { supabase } from "../lib/supabase";
+import { validateImage } from "../utils/imageValidation";
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
@@ -472,129 +476,36 @@ const TeamDetailPage = () => {
       )}
 
       {showEditModal && (
-
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-
-          <div
-            className="
-        bg-white
-        dark:bg-dark-background
-        rounded-xl
-        p-6
-        w-full
-        max-w-xl
-      "
-          >
-
-            <h2 className="text-xl font-bold mb-5">
-              Edit Team
-            </h2>
+          <div className="bg-white dark:bg-dark-background rounded-xl p-6 w-full max-w-xl">
+            <h2 className="text-xl font-bold mb-5">Edit Project</h2>
 
             <div className="mb-4">
-
-              <label className="block text-sm mb-2">
-                Team Name
-              </label>
-
-              <input
-                value={editTitle}
-                onChange={(e) =>
-                  setEditTitle(
-                    e.target.value
-                  )
-                }
-                className="
-            w-full
-            p-3
-            rounded-lg
-            border
-          "
-              />
-
+              <label className="block text-sm mb-2">Title</label>
+              <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="w-full p-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-transparent" />
             </div>
 
             <div className="mb-4">
-
-              <label className="block text-sm mb-2">
-                Description
-              </label>
-
-              <textarea
-                rows={5}
-                value={editDescription}
-                onChange={(e) =>
-                  setEditDescription(
-                    e.target.value
-                  )
-                }
-                className="
-            w-full
-            p-3
-            rounded-lg
-            border
-          "
-              />
-
+              <label className="block text-sm mb-2">Description</label>
+              <textarea rows={5} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="w-full p-3 rounded-lg border border-gray-300 dark:border-slate-700 bg-transparent" />
             </div>
 
             <div className="mb-4">
-
-              <label className="block text-sm mb-2">
-                Background Image
+              <label className="block text-sm font-medium mb-2">Background Image</label>
+              <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-light-accent/30 dark:border-dark-accent/30 rounded-xl cursor-pointer hover:border-light-accent dark:hover:border-dark-accent transition-colors bg-light-accent/5 dark:bg-dark-accent/5">
+                <div className="flex flex-col items-center justify-center text-sm text-light-secondary dark:text-dark-secondary">
+                  <span className="font-medium">Click to upload</span>
+                  <span className="text-xs mt-1">PNG, JPG up to 2MB</span>
+                </div>
+                <input type="file" accept=".jpg,.jpeg,.png" onChange={handleImageUpload} className="hidden" />
               </label>
-
-              <label
-                className="
-            flex
-            flex-col
-            items-center
-            justify-center
-            w-full
-            h-40
-            border-2
-            border-dashed
-            rounded-xl
-            cursor-pointer
-          "
-              >
-
-                <span>
-                  Click to upload
-                </span>
-
-                <input
-                  type="file"
-                  accept=".jpg,.jpeg,.png"
-                  onChange={
-                    handleImageUpload
-                  }
-                  className="hidden"
-                />
-
-              </label>
-
             </div>
 
             {imagePreview && (
-
               <div className="mb-4">
-
-                <div
-                  className="
-              w-full
-              h-48
-              rounded-xl
-              bg-cover
-              bg-center
-            "
-                  style={{
-                    backgroundImage:
-                      `url(${imagePreview})`
-                  }}
-                />
-
+                <label className="block text-sm mb-2">Preview</label>
+                <div className="w-full h-48 rounded-xl bg-cover bg-center border border-gray-300 dark:border-slate-700" style={{ backgroundImage: `url(${imagePreview})` }} />
               </div>
-
             )}
 
             <div className="flex gap-3">
