@@ -124,7 +124,7 @@ export const getChaptersByProject =
     const result =
       await pool.query(
         `
-        SELECT *
+        SELECT 
 
         c.*,
         u.name AS publisher_name
