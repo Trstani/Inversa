@@ -108,12 +108,30 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                             <p className="text-sm font-medium truncate">
                                 Chapter {index + 1}: {chapter.title}
                             </p>
-                            <p className={`text-xs mt-1 ${currentChapterId === chapter.id
-                                ? 'text-white/70'
-                                : 'text-light-secondary dark:text-dark-secondary'
-                                }`}>
-                                {chapter.status === 'published' ? '✓ Published' : '○ Draft'}
-                            </p>
+                            <div
+                                className={`text-xs mt-2 ${currentChapterId === chapter.id
+                                        ? 'text-white/70'
+                                        : 'text-light-secondary dark:text-dark-secondary'
+                                    }`}
+                            >
+                                {chapter.status === 'published' ? (
+                                    <>
+                                        <p>
+                                            ✓ Published by {chapter.publisher_name || 'Unknown'}
+                                        </p>
+
+                                        {chapter.published_at && (
+                                            <p className="text-[10px] opacity-70">
+                                                {new Date(
+                                                    chapter.published_at
+                                                ).toLocaleString()}
+                                            </p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <p>○ Draft</p>
+                                )}
+                            </div>
                         </div>
                         <div className="flex items-center gap-1 ml-2">
                             {!readOnly && canDelete && (

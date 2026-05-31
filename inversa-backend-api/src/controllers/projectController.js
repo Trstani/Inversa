@@ -12,6 +12,7 @@ import {
   getMyFollowedProjects,
   checkLikeStatus,
   checkFollowStatus,
+  updateProject,
 } from '../services/projectService.js';
 
 export const create = async (
@@ -481,5 +482,46 @@ export const getInteractions =
         message:
           error.message,
       });
+    }
+};
+
+export const update =
+  async (req, res) => {
+
+    try {
+
+      const { id } =
+        req.params;
+
+      const {
+        title,
+        description,
+        background_image,
+      } = req.body;
+
+      const project =
+        await updateProject(
+          id,
+          {
+            title,
+            description,
+            background_image,
+          }
+        );
+
+      res.json({
+        success: true,
+        data: project,
+      });
+
+    } catch (error) {
+
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+
     }
 };

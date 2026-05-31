@@ -126,14 +126,20 @@ export const getChaptersByProject =
         `
         SELECT *
 
-        FROM chapters
+        c.*,
+        u.name AS publisher_name
+
+        FROM chapters c
+
+        LEFT JOIN users u
+        ON u.id = c.published_by
 
         WHERE
-          project_id = $1
+          c.project_id = $1
 
-          AND deleted_at IS NULL
+          AND c.deleted_at IS NULL
 
-        ORDER BY chapter_number ASC
+        ORDER BY c.chapter_number ASC
         `,
         [projectId]
       );
@@ -148,7 +154,7 @@ PUBLISH CHAPTER
 */
 
 export const publishChapter =
-  async (id) => {
+  async (id, userId) => {
 
     const result =
       await pool.query(
@@ -157,13 +163,15 @@ export const publishChapter =
 
         SET
           status = 'published',
+          published_by = $2,
+          published_at = NOW(),
           updated_at = NOW()
 
         WHERE id = $1
 
         RETURNING *
         `,
-        [id]
+        [id, userId]
       );
 
     return result.rows[0];

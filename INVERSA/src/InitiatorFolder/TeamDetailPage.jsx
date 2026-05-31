@@ -195,10 +195,10 @@ const TeamDetailPage = () => {
 
         {/* BACK BUTTON */}
         <button
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate(-1)}
           className="flex items-center gap-2 mb-6 sm:mb-8 text-light-accent dark:text-dark-accent hover:opacity-80 transition-all font-medium"
         >
-          <FiArrowLeft className="w-5 h-5" /> Back to Dashboard
+          <FiArrowLeft className="w-5 h-5" /> Back
         </button>
 
         {/* HERO SECTION */}

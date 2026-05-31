@@ -24,6 +24,7 @@ import {
 
   hideProject,
   unhideProject,
+  update,
 
 } from '../controllers/projectController.js';
 
@@ -139,6 +140,19 @@ router.post(
   unhideProject
 );
 
+/*
+=========================
+UPDATE
+=========================
+*/
+
+router.put(
+  '/:id',
+
+  authMiddleware,
+
+  update
+);
 /*
 =========================
 DELETE

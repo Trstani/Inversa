@@ -86,7 +86,7 @@ export const publish =
         req.params;
 
       const chapter =
-        await publishChapter(id);
+        await publishChapter(id, req.user.id);
 
       res.json({
         success: true,
