@@ -203,14 +203,10 @@ export const useCategoriesAndGenres = () => {
           apiClient.get('/genres'),
         ]);
 
-        console.log('Categories response:', categoriesRes);
-        console.log('Genres response:', genresRes);
 
         const catsData = categoriesRes?.data || [];
         const genresData = genresRes?.data || [];
 
-        console.log('Categories data:', catsData);
-        console.log('Genres data:', genresData);
 
         if (catsData.length === 0 || genresData.length === 0) {
           console.warn('Empty data from backend API, using fallback');

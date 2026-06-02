@@ -21,26 +21,20 @@ const BadgeGenre = ({
   };
 
   return (
-
     <span
       style={{
-        backgroundColor:
-          genre.color,
-
-        color:
-          genre.text_color,
+        backgroundColor: genre.color,
+        color: '#FFFFFF',
       }}
-
       className={`
         inline-flex items-center
         rounded-full font-medium
+        !text-white
         ${sizes[size]}
         ${className}
       `}
     >
-
       {genre.name}
-
     </span>
   );
 };

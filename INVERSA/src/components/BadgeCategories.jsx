@@ -21,26 +21,20 @@ const BadgeCategories = ({
   };
 
   return (
-
     <span
       style={{
-        backgroundColor:
-          category.color,
-
-        color:
-          category.text_color,
+        backgroundColor: '#020617',
+        color: '#FFFFFF',
       }}
-
       className={`
         inline-flex items-center
         rounded-full font-medium
+        !text-white
         ${sizes[size]}
         ${className}
       `}
     >
-
       {category.name}
-
     </span>
   );
 };
