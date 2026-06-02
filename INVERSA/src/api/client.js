@@ -65,6 +65,12 @@ const makeRequest = async (method, endpoint, body = null, includeAuth = true) =>
 // ============ API CLIENT ============
 
 export const apiClient = {
+  // ============ GENERIC METHODS ============
+  get: (endpoint) => makeRequest('GET', endpoint),
+  post: (endpoint, data) => makeRequest('POST', endpoint, data),
+  put: (endpoint, data) => makeRequest('PUT', endpoint, data),
+  delete: (endpoint) => makeRequest('DELETE', endpoint),
+
   // ============ AUTH ============
   auth: {
     register: (data) => makeRequest('POST', '/auth/register', data, false),
@@ -87,6 +93,18 @@ export const apiClient = {
   admin: {
 
   getDashboard: () => makeRequest('GET', '/admin/dashboard'),
+  },
+
+  // ============ CATEGORIES ============
+  categories: {
+    getAll: () => makeRequest('GET', '/categories'),
+    getById: (id) => makeRequest('GET', `/categories/${id}`),
+  },
+
+  // ============ GENRES ============
+  genres: {
+    getAll: () => makeRequest('GET', '/genres'),
+    getById: (id) => makeRequest('GET', `/genres/${id}`),
   },
 
   // ============ PROJECTS ============

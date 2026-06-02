@@ -1,23 +1,33 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiX } from "react-icons/fi";
-import categories from "../../Datajson/categories.json";
-import genres from "../../Datajson/genres.json";
+import { useCategoriesAndGenres } from "../hooks/useCategoriesAndGenres";
 import { supabase } from "../../lib/supabase";
 import { validateImage } from "../../utils/imageValidation";
 
 const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
-  const initialState = {
+  const { categories, genres } = useCategoriesAndGenres();
+
+  const [formData, setFormData] = useState({
     title: "",
     description: "",
     abstract: "",
-    category: categories.categories[0]?.id || "",
-    genre: genres.genres[0]?.id || "",
+    category: "",
+    genre: "",
     status: "open",
     backgroundImage: "",
-  };
-
-  const [formData, setFormData] = useState(initialState);
+  });
   const [imagePreview, setImagePreview] = useState("");
+
+  // Update category dan genre defaults ketika data tersedia
+  useEffect(() => {
+    if (categories.length > 0 || genres.length > 0) {
+      setFormData(prev => ({
+        ...prev,
+        category: prev.category || categories[0]?.id || "",
+        genre: prev.genre || genres[0]?.id || "",
+      }));
+    }
+  }, [categories, genres]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -309,7 +319,7 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-light-primary dark:text-dark-primary focus:outline-none focus:ring-2 focus:ring-light-accent dark:focus:ring-dark-accent"
               >
-                {categories.categories.map(cat => (
+                {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
                   </option>
@@ -327,7 +337,7 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
                 onChange={handleChange}
                 className="w-full px-4 py-2 border border-light-border dark:border-dark-border rounded-lg bg-light-surface dark:bg-dark-surface text-light-primary dark:text-dark-primary focus:outline-none focus:ring-2 focus:ring-light-accent dark:focus:ring-dark-accent"
               >
-                {genres.genres.map(g => (
+                {genres.map(g => (
                   <option key={g.id} value={g.id}>
                     {g.name}
                   </option>

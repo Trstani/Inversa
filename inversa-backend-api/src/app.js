@@ -16,6 +16,7 @@ import brainstormRoutes from './routes/brainstorm.js';
 import commentRoutes from './routes/comments.js';
 import reportRoutes from './routes/reports.js';
 import readingHistoryRoutes from './routes/readingHistory.js';
+import categoriesGenresRoutes from './routes/categoriesGenres.js';
 
 import adminRoutes from './routes/admin.js';
 
@@ -71,6 +72,7 @@ app.use('/api/comments', commentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reading-history', readingHistoryRoutes);
+app.use('/api', categoriesGenresRoutes);
 
 app.get('/api/test-db', async (req, res) => {
   try {

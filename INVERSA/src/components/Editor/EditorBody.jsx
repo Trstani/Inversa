@@ -23,6 +23,11 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
 
     const socket = getSocket();
 
+    if (!socket) {
+      console.warn('Socket not available');
+      return;
+    }
+
     const lock = ({
       sectionId,
       userId

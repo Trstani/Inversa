@@ -1,7 +1,4 @@
-import React from 'react';
-
-import { genres }
-from '../data/badgeGenre';
+import { useCategoriesAndGenres } from '../InitiatorFolder/hooks/useCategoriesAndGenres';
 
 const BadgeGenre = ({
   genreId,
@@ -9,14 +6,13 @@ const BadgeGenre = ({
   className = '',
 }) => {
 
-  const genre =
-    genres.find(
-      (g) =>
-        g.id === genreId
-    );
+  const { genres, error } = useCategoriesAndGenres();
+  const genre = genres.find(g => g.id === genreId);
 
-  if (!genre)
+  if (!genre) {
+    if (error) console.warn('Badge error:', error);
     return null;
+  }
 
   const sizes = {
     sm: 'px-2 py-0.5 text-xs',
@@ -32,7 +28,7 @@ const BadgeGenre = ({
           genre.color,
 
         color:
-          genre.textColor,
+          genre.text_color,
       }}
 
       className={`

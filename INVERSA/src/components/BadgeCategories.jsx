@@ -1,7 +1,4 @@
-import React from 'react';
-
-import { categories }
-from '../data/badgeCategories';
+import { useCategoriesAndGenres } from '../InitiatorFolder/hooks/useCategoriesAndGenres';
 
 const BadgeCategories = ({
   categoryId,
@@ -9,14 +6,13 @@ const BadgeCategories = ({
   className = '',
 }) => {
 
-  const category =
-    categories.find(
-      (g) =>
-        g.id === categoryId
-    );
+  const { categories, error } = useCategoriesAndGenres();
+  const category = categories.find(c => c.id === categoryId);
 
-  if (!category)
+  if (!category) {
+    if (error) console.warn('Badge error:', error);
     return null;
+  }
 
   const sizes = {
     sm: 'px-2 py-0.5 text-xs',
@@ -32,7 +28,7 @@ const BadgeCategories = ({
           category.color,
 
         color:
-          category.textColor,
+          category.text_color,
       }}
 
       className={`
