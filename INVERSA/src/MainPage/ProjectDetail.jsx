@@ -16,6 +16,7 @@ import { deleteStorageFile } from "../utils/storage";
 import { cleanupProjectImages } from "../utils/projectCleanup";
 import { supabase } from "../lib/supabase";
 import { validateImage } from "../utils/imageValidation";
+import { showError, showSuccess } from "../utils/toast";
 
 const ProjectDetail = () => {
   const { projectId } = useParams();
@@ -56,7 +57,7 @@ const ProjectDetail = () => {
   }, [user?.id, projectId]);
 
   const handleLike = async () => {
-    if (!user?.id) { alert("Please login first"); return; }
+    if (!user?.id) { showError("Please login first"); return; }
     try {
       const { data } = await apiClient.projects.like(project.id);
       setIsLiked(data.liked);
@@ -65,7 +66,7 @@ const ProjectDetail = () => {
   };
 
   const handleFollow = async () => {
-    if (!user?.id) { alert("Please login first"); return; }
+    if (!user?.id) { showError("Please login first"); return; }
     try {
       const { data } = await apiClient.projects.follow(project.id);
       setIsFollowed(data.followed);
@@ -133,7 +134,7 @@ const ProjectDetail = () => {
       if (success) { setShowRequestModal(false); await loadData(); }
     } catch (error) {
       console.error("Error submitting request:", error);
-      alert("Failed to submit request");
+      showError("Failed to submit request");
     }
   };
 
@@ -142,10 +143,10 @@ const ProjectDetail = () => {
       const { success } = await apiClient.reports.create({
         project_id: project.id, reason: data.reason, note: data.note,
       });
-      if (success) { alert("Report submitted successfully"); setShowReportModal(false); }
+      if (success) { showSuccess("Report submitted successfully"); setShowReportModal(false); }
     } catch (error) {
       console.error("Error submitting report:", error);
-      alert(error.message || "Failed to submit report");
+      showError(error.message || "Failed to submit report");
     }
   };
 
@@ -154,10 +155,10 @@ const ProjectDetail = () => {
       if (project.background_image) await deleteStorageFile(project.background_image);
       await cleanupProjectImages(project.id);
       const { success } = await apiClient.projects.delete(project.id);
-      if (success) { alert("Project deleted successfully"); navigate("/dashboard"); }
+      if (success) { showSuccess("Project deleted successfully"); navigate("/dashboard"); }
     } catch (error) {
       console.error("Error deleting project:", error);
-      alert("Failed to delete project");
+      showError("Failed to delete project");
     }
   };
 
@@ -173,15 +174,15 @@ const ProjectDetail = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     const validation = validateImage(file);
-    if (!validation.valid) { alert(validation.message); return; }
+    if (!validation.valid) { showError(validation.message); return; }
     try {
       const fileName = `${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from("images").upload(fileName, file);
-      if (error) { console.error(error); alert("Upload failed"); return; }
+      if (error) { console.error(error); showError("Upload failed"); return; }
       const { data } = supabase.storage.from("images").getPublicUrl(fileName);
       setEditBackground(data.publicUrl);
       setImagePreview(data.publicUrl);
-    } catch (error) { console.error(error); alert("Upload failed"); }
+    } catch (error) { console.error(error); showError("Upload failed"); }
   };
 
   const handleSaveProject = async () => {

@@ -16,6 +16,7 @@ import { apiClient }
 
 import EditorLayout
   from "../components/Editor/EditorLayout";
+import { showError, showSuccess } from "../utils/toast";
 
 const EditorPage = () => {
 
@@ -397,7 +398,7 @@ const EditorPage = () => {
       =========================
       */
 
-      alert(
+      showSuccess(
         publishNow
           ? "Chapter published!"
           : "Draft saved!"
@@ -410,7 +411,7 @@ const EditorPage = () => {
         error
       );
 
-      alert(
+      showError(
         "Failed to save chapter"
       );
 

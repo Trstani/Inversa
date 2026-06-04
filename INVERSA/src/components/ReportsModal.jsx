@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { showError, showSuccess } from "../utils/toast";
 
 const ReportModal = ({ isOpen, onClose, onSubmit }) => {
 
@@ -10,7 +11,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
  const handleSubmit = async () => {
 
   if (!reason) {
-    alert("Please select a reason");
+    showError("Please select a reason");
     return;
   }
 
@@ -18,7 +19,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
 
     await onSubmit({ reason, note });
 
-    alert("Report submitted");
+    showSuccess("Report submitted");
 
     setReason("");
     setNote("");
@@ -27,7 +28,7 @@ const ReportModal = ({ isOpen, onClose, onSubmit }) => {
 
   } catch (err) {
 
-    alert(err.message);
+    showError(err.message);
 
   }
 

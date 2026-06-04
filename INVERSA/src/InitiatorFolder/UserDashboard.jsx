@@ -31,6 +31,7 @@ import AvailableTeamsSection
 
 import CreateTeamModal
   from "./components/CreateTeamModal";
+import { showError } from "../utils/toast";
 
 const UserDashboard = () => {
 
@@ -244,7 +245,7 @@ const UserDashboard = () => {
           error
         );
 
-        alert(
+        showError(
           'Failed to approve request'
         );
       }
@@ -275,7 +276,7 @@ const UserDashboard = () => {
           error
         );
 
-        alert(
+        showError(
           'Failed to reject request'
         );
       }

@@ -36,6 +36,7 @@ import TeamCard from '../components/TeamCard';
 import FollowedList from "../section/design/FollowedList";
 import HistoryList from "../section/design/HistoryList";
 import { validateImage } from "../utils/imageValidation";
+import { showError } from '../utils/toast';
 
 const UserProfile = () => {
 
@@ -281,7 +282,7 @@ const handleImageChange =
     if(
       !validation.valid
     ){
-      alert(
+      showError(
         validation.message
       );
 
@@ -353,7 +354,7 @@ const handleImageChange =
         error
       );
 
-      alert(
+      showError(
         "Failed to update profile image"
       );
 
@@ -394,7 +395,7 @@ const handleImageChange =
 
         console.error(error);
 
-        alert(
+        showError(
           'Failed to save profile'
         );
       }

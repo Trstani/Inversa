@@ -74,10 +74,24 @@ export const AuthProvider = ({
           const payload =
             JSON.parse(
               atob(
-                token
-                  .split('.')[1]
+                token.split('.')[1]
               )
             );
+
+          if (
+            payload.exp * 1000 <
+            Date.now()
+          ) {
+
+            clearAuthToken();
+
+            setUser(null);
+
+            setIsLoading(false);
+
+            return;
+
+          }
 
             setUser({
                 id: payload.id,
@@ -188,19 +202,14 @@ export const AuthProvider = ({
 
       if (response.success) {
 
-        const {
-          user,
-          token,
-        } = response.data;
-
-        setAuthToken(token);
-
-        setUser(user);
-
         return {
           success: true,
-          user,
+          userId:
+            response.data.userId,
+          email:
+            userData.email,
         };
+
       }
 
       return {

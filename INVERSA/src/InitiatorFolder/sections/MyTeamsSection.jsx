@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { FiUsers, FiPlus } from 'react-icons/fi';
 import TeamCard from '../../components/TeamCard';
 import { apiClient } from '../../api/client';
+import { showError } from '../../utils/toast';
 
 const MyTeamsSection = ({ projects }) => {
   const { user } = useAuth();
@@ -32,7 +33,7 @@ const MyTeamsSection = ({ projects }) => {
         await loadMyTeams();
       } catch (error) {
         console.error('Error deleting team:', error);
-        alert('Failed to delete team');
+        showError('Failed to delete team');
       }
     }
   };

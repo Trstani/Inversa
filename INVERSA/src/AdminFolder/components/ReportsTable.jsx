@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { apiClient } from "../../api/client";
+import {showSuccess, showError} from '../../utils/toast';
 
 const ReportsTable = ({
   reports,
@@ -118,7 +119,7 @@ const ReportsTable = ({
           projectId
         );
 
-        alert(
+        showSuccess(
           "Project hidden"
         );
 
@@ -128,7 +129,7 @@ const ReportsTable = ({
 
         console.error(error);
 
-        alert(
+        showError(
           "Failed to hide project"
         );
       }
@@ -149,7 +150,7 @@ const ReportsTable = ({
           projectId
         );
 
-        alert(
+        showSuccess(
           "Project restored"
         );
 
@@ -159,7 +160,7 @@ const ReportsTable = ({
 
         console.error(error);
 
-        alert(
+        showError(
           "Failed to restore project"
         );
       }

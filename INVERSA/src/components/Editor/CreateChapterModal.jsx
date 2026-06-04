@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FiX } from 'react-icons/fi';
 import Button from '../Button';
+import { showError } from '../../utils/toast';
 
 const CreateChapterModal = ({ onSubmit, onClose }) => {
   const [title, setTitle] = useState('');
@@ -9,7 +10,7 @@ const CreateChapterModal = ({ onSubmit, onClose }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!title.trim()) {
-      alert('Chapter title is required');
+      showError('Chapter title is required');
       return;
     }
     onSubmit({ title, description });

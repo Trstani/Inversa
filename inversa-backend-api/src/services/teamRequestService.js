@@ -1,6 +1,11 @@
 import pool
   from '../config/database.js';
 
+import {
+  createNotification
+}
+from './notificationService.js';
+
 /*
 =========================
 CREATE JOIN REQUEST
@@ -228,15 +233,28 @@ async (requestId) => {
   const request =
     requestResult.rows[0];
 
-  if(
-    !request
-  ){
+  if(!request){
 
     throw new Error(
       'Request not found'
     );
 
-  }
+  }  
+
+  const teamResult =
+    await pool.query(
+      `
+    SELECT title
+    FROM teams
+    WHERE id = $1
+    LIMIT 1
+    `,
+      [request.team_id]
+    );
+
+  const team =
+    teamResult.rows[0];
+
 
   /*
   =========================
@@ -340,6 +358,16 @@ async (requestId) => {
     ]
   );
 
+  await createNotification(
+
+    request.user_id,
+
+    'Team Request Accepted',
+
+    `You have joined ${team.title}`
+
+  );
+
   return true;
 
 };
@@ -353,6 +381,42 @@ REJECT REQUEST
 export const rejectRequest =
 async (requestId) => {
 
+  const requestResult =
+    await pool.query(
+      `
+      SELECT *
+      FROM team_join_requests
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [requestId]
+    );
+
+  const request =
+    requestResult.rows[0];
+
+  if (!request) {
+
+    throw new Error(
+      'Request not found'
+    );
+
+  }
+
+  const teamResult =
+    await pool.query(
+      `
+      SELECT title
+      FROM teams
+      WHERE id = $1
+      LIMIT 1
+      `,
+      [request.team_id]
+    );
+
+  const team =
+    teamResult.rows[0];
+
   await pool.query(
     `
     UPDATE team_join_requests
@@ -363,9 +427,17 @@ async (requestId) => {
 
     WHERE id=$1
     `,
-    [
-      requestId
-    ]
+    [requestId]
+  );
+
+  await createNotification(
+
+    request.user_id,
+
+    'Team Request Rejected',
+
+    `Your request to join ${team.title} was rejected`
+
   );
 
   return true;

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../../api/client";
+import {showSuccess, showError} from '../../utils/toast';
 
 const ProjectsTable = () => {
 
@@ -27,10 +28,11 @@ const ProjectsTable = () => {
     if (window.confirm('Are you sure you want to delete this project?')) {
       try {
         await apiClient.projects.delete(id);
+        showSuccess('Succesfully deleted project');
         await loadProjects();
       } catch (error) {
         console.error('Error deleting project:', error);
-        alert('Failed to delete project');
+        showError('Failed to delete project');
       }
     }
   };
@@ -46,7 +48,7 @@ const ProjectsTable = () => {
       await loadProjects();
     } catch (error) {
       console.error('Error toggling project visibility:', error);
-      alert('Failed to update project');
+      showError('Failed to update project');
     }
   };
 

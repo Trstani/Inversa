@@ -7,6 +7,7 @@ import { FiBold, FiItalic, FiList, FiArrowUp, FiArrowDown, FiSave, FiAlignLeft, 
 import { apiClient } from "../../api/client";
 import { socket } from "../../socket/socket";
 import { useAuth } from "../../context/AuthContext";
+import { showError } from "../../utils/toast";
 
 const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onMoveDown, onSave, isFirst, isLast, setEditingSectionId }) => {
   const { user } = useAuth();
@@ -65,7 +66,7 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
     const { from, to } = editor.state.selection;
     const selectedText = editor.state.doc.textBetween(from, to);
     if (!selectedText.trim()) {
-      alert("Select text first");
+      showError("Select text first");
       return;
     }
     editor.chain().focus().deleteSelection().insertContent(`<h${level}>${selectedText}</h${level}><p></p>`).run();
@@ -108,7 +109,7 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
       setEditingSectionId(null);
     } catch (error) {
       console.error(error);
-      alert("Save failed");
+      showError("Save failed");
     } finally {
       setIsSaving(false);
     }

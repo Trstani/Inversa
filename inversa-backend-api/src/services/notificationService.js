@@ -1,0 +1,65 @@
+import pool
+from '../config/database.js';
+
+export const createNotification =
+async (
+  userId,
+  title,
+  message
+) => {
+
+  await pool.query(
+    `
+    INSERT INTO notifications
+    (
+      user_id,
+      title,
+      message
+    )
+    VALUES
+    (
+      $1,
+      $2,
+      $3
+    )
+    `,
+    [
+      userId,
+      title,
+      message
+    ]
+  );
+
+};
+
+export const getNotifications =
+async (userId) => {
+
+  const result =
+    await pool.query(
+      `
+      SELECT *
+      FROM notifications
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      `,
+      [userId]
+    );
+
+  return result.rows;
+
+};
+
+export const markAsRead =
+async (notificationId) => {
+
+  await pool.query(
+    `
+    UPDATE notifications
+    SET is_read = true
+    WHERE id = $1
+    `,
+    [notificationId]
+  );
+
+};

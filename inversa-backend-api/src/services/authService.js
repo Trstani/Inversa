@@ -7,6 +7,18 @@ export const registerUser = async ({
   password,
 }) => {
 
+   await pool.query(
+    `
+    DELETE FROM users
+    WHERE
+      is_verified = false
+    AND
+      created_at <
+      NOW() - INTERVAL '3 hours'
+    `
+  );
+
+
   // cek email sudah ada atau belum
   const existingUser = await pool.query(
     'SELECT * FROM users WHERE email = $1',
@@ -62,6 +74,14 @@ export const loginUser = async ({
     throw new Error(
       'Invalid email or password'
     );
+  }
+
+  if (!user.is_verified) {
+
+    throw new Error(
+      'Please verify your email first'
+    );
+
   }
 
   return {

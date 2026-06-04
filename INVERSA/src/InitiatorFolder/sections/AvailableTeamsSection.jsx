@@ -4,6 +4,7 @@ import { apiClient } from '../../api/client';
 import { FiUsers } from 'react-icons/fi';
 import TeamCard from '../../components/TeamCard';
 import TeamJoinRequestModal from '../components/TeamJoinRequestModal';
+import { showSuccess } from '../../utils/toast';
 
 const AvailableTeamsSection = () => {
   const { user } = useAuth();
@@ -43,7 +44,7 @@ const AvailableTeamsSection = () => {
     try {
       await apiClient.teams.createRequest({ team_id: selectedTeam.id, role: formData.role, reason: formData.reason });
       await loadAvailableTeams();
-      alert('Request sent successfully!');
+      showSuccess('Request sent successfully!');
     } catch (error) { console.error('Error sending request:', error); throw error; }
   };
 

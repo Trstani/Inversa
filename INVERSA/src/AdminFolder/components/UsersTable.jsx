@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { apiClient } from "../../api/client";
+import {showSuccess, showError} from '../../utils/toast';
 
 const UsersTable = () => {
 
@@ -26,13 +27,11 @@ const UsersTable = () => {
   const suspendUser = async (id) => {
     if (window.confirm('Are you sure you want to suspend this user?')) {
       try {
-        // This would need a backend endpoint for suspending users
-        // For now, we'll just show an alert
-        alert("User suspension feature coming soon");
+        showError("User suspension feature coming soon");
         await loadUsers();
       } catch (error) {
         console.error('Error suspending user:', error);
-        alert('Failed to suspend user');
+        showError('Failed to suspend user');
       }
     }
   };

@@ -17,6 +17,7 @@ import commentRoutes from './routes/comments.js';
 import reportRoutes from './routes/reports.js';
 import readingHistoryRoutes from './routes/readingHistory.js';
 import categoriesGenresRoutes from './routes/categoriesGenres.js';
+import notificationRoutes from './routes/notification.js';
 
 import adminRoutes from './routes/admin.js';
 
@@ -73,6 +74,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/reading-history', readingHistoryRoutes);
 app.use('/api', categoriesGenresRoutes);
+app.use('/api/notification', notificationRoutes);
 
 app.get('/api/test-db', async (req, res) => {
   try {

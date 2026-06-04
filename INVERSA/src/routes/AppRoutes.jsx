@@ -10,6 +10,7 @@ import Homepage from "../MainPage/Homepage";
 import Explore from "../MainPage/Explore";
 import Login from "../MainPage/Login";
 import Register from "../MainPage/Register";
+import VerifyEmailPage from "../MainPage/VerifyEmailPage";
 import Home from "../MainPage/Home";
 import ProjectDetail from "../MainPage/ProjectDetail";
 import UserProfile from "../MainPage/UserProfile";
@@ -44,6 +45,15 @@ const AppRoutes = () => {
           element={
             <PublicRoute>
               <Register />
+            </PublicRoute>
+          }
+        />
+
+        <Route
+          path="/verify-email"
+          element={
+            <PublicRoute>
+              <VerifyEmailPage />
             </PublicRoute>
           }
         />

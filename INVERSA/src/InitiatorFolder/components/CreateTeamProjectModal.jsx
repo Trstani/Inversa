@@ -25,6 +25,7 @@ import {
 
 import { supabase } from "../../lib/supabase";
 import { validateImage } from "../../utils/imageValidation";
+import { showError, showSuccess } from '../../utils/toast';
 
 const CreateTeamProjectModal = ({
   isOpen,
@@ -118,7 +119,7 @@ const CreateTeamProjectModal = ({
       if (
         !validation.valid
       ) {
-        alert(
+        showError(
           validation.message
         );
 
@@ -240,7 +241,7 @@ const CreateTeamProjectModal = ({
                     error
                   );
 
-                  alert(
+                  showError(
                     "Upload failed"
                   );
 
@@ -263,7 +264,7 @@ const CreateTeamProjectModal = ({
           error
         );
 
-        alert(
+        showError(
           "Image upload failed"
         );
 
@@ -286,7 +287,7 @@ const CreateTeamProjectModal = ({
         !formData.title.trim()
       ) {
 
-        alert(
+        showError(
           'Project name is required'
         );
 
@@ -338,7 +339,7 @@ const CreateTeamProjectModal = ({
 
         if (response.success) {
 
-          alert(
+          showSuccess(
             'Project created successfully!'
           );
 
@@ -358,7 +359,7 @@ const CreateTeamProjectModal = ({
           error
         );
 
-        alert(
+        showError(
           'Failed to create project'
         );
 

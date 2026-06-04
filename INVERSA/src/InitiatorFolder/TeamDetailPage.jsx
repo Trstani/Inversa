@@ -12,6 +12,7 @@ import { cleanupProjectImages } from "../utils/projectCleanup";
 
 import { supabase } from "../lib/supabase";
 import { validateImage } from "../utils/imageValidation";
+import { showError, showLoading } from '../utils/toast';
 
 const TeamDetailPage = () => {
   const { teamId } = useParams();
@@ -111,7 +112,7 @@ const TeamDetailPage = () => {
           error
         );
 
-        alert(
+        showError(
           'Failed to delete team'
         );
 
@@ -148,15 +149,15 @@ const TeamDetailPage = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     const validation = validateImage(file);
-    if (!validation.valid) { alert(validation.message); return; }
+    if (!validation.valid) { showError(validation.message); return; }
     try {
       const fileName = `${Date.now()}-${file.name}`;
       const { error } = await supabase.storage.from("images").upload(fileName, file);
-      if (error) { console.error(error); alert("Upload failed"); return; }
+      if (error) { console.error(error); showError("Upload failed"); return; }
       const { data } = supabase.storage.from("images").getPublicUrl(fileName);
       setEditBackground(data.publicUrl);
       setImagePreview(data.publicUrl);
-    } catch (error) { console.error(error); alert("Upload failed"); }
+    } catch (error) { console.error(error); showError("Upload failed"); }
   };
 
   const handleSaveTeam =
@@ -200,7 +201,7 @@ const TeamDetailPage = () => {
 
         console.error(error);
 
-        alert(
+        showError(
           "Failed to update team"
         );
 
@@ -258,7 +259,7 @@ const TeamDetailPage = () => {
           error
         );
 
-        alert(
+        showError(
           'Failed to delete project'
         );
 

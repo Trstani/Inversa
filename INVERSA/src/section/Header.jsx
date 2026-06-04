@@ -3,12 +3,13 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   FiSun, FiMoon, FiMenu, FiX, FiUser, FiLogOut,
   FiHome, FiGrid, FiCompass, FiChevronDown, FiEdit,
-  FiUsers, FiCommand
+  FiUsers, FiCommand, 
 } from 'react-icons/fi';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
 import Dropdown, { DropdownItem } from '../components/Dropdown';
+import NotificationBell from '../components/NotificationBell';
 
 const Header = () => {
   const { isDark, toggleTheme } = useTheme();
@@ -124,6 +125,9 @@ const Header = () => {
 
           {/* -------------------- Right Side Actions -------------------- */}
           <div className="flex items-center space-x-4">
+            
+            <NotificationBell />
+            
             {/* Dark mode toggle */}
             <button
               onClick={toggleTheme}

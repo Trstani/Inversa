@@ -6,6 +6,7 @@ import { useAuth } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { deleteStorageFile } from "../../utils/storage";
 import { validateImage } from "../../utils/imageValidation";
+import { showError } from "../../utils/toast";
 
 const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, onMoveDown, isFirst, isLast }) => {
   const { user } = useAuth();
@@ -105,7 +106,7 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
     if (
       !validation.valid
     ) {
-      alert(
+      showError(
         validation.message
       );
       return;
@@ -179,7 +180,7 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
         error
       );
 
-      alert(
+      showError(
         "Failed upload image"
       );
 
@@ -205,7 +206,7 @@ const ImageSection = ({ section, canEdit, onDelete, onUpdate, onSave, onMoveUp, 
       await handleUnlock();
     } catch (error) {
       console.error(error);
-      alert("Failed to save");
+      showError("Failed to save");
     } finally {
       setIsSaving(false);
     }

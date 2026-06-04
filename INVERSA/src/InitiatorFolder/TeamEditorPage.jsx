@@ -20,6 +20,7 @@ import {
 
 import TeamEditorLayout
   from "../components/Editor/TeamEditorLayout";
+import { showError, showLoading, showSuccess } from "../utils/toast";
 
 const TeamEditorPage = () => {
 
@@ -162,7 +163,7 @@ const TeamEditorPage = () => {
               !userIsTeamMember
             ) {
 
-              alert(
+              showError(
                 "You don't have access to this project"
               );
 
@@ -175,7 +176,7 @@ const TeamEditorPage = () => {
             !userIsInitiator
           ) {
 
-            alert(
+            showError(
               "You don't have access to this project"
             );
 
@@ -264,7 +265,7 @@ const TeamEditorPage = () => {
               user.id
           ) {
 
-            alert(
+            showError(
               "Chapter is edited by another user"
             );
 
@@ -420,7 +421,7 @@ const TeamEditorPage = () => {
           updatedCurrent || null
         );
 
-        alert(
+        showSuccess(
           publishNow
             ? 'Chapter published!'
             : 'Draft saved!'
@@ -430,7 +431,7 @@ const TeamEditorPage = () => {
 
         console.error(error);
 
-        alert(
+        showError(
           'Failed to save chapter'
         );
 

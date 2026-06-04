@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FiX } from "react-icons/fi";
+import { showError } from "../../utils/toast";
 
 const TeamJoinRequestModal = ({ isOpen, onClose, team, onSubmit }) => {
   const [formData, setFormData] = useState({
@@ -17,7 +18,7 @@ const TeamJoinRequestModal = ({ isOpen, onClose, team, onSubmit }) => {
     e.preventDefault();
 
     if (!formData.reason.trim()) {
-      alert("Please provide a reason for joining");
+      showError("Please provide a reason for joining");
       return;
     }
 
@@ -28,7 +29,7 @@ const TeamJoinRequestModal = ({ isOpen, onClose, team, onSubmit }) => {
       onClose();
     } catch (error) {
       console.error('Error submitting request:', error);
-      alert('Failed to submit request');
+      showError('Failed to submit request');
     } finally {
       setLoading(false);
     }

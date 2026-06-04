@@ -3,6 +3,7 @@ import { FiTrash2 } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { apiClient } from '../api/client';
 import { cleanupChapterImages } from "../utils/chapterCleanup";
+import { showError } from '../utils/toast';
 
 const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId, project, readOnly=false }) => {
     const [deletingId, setDeletingId] = useState(null);
@@ -70,7 +71,7 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                     error
                 );
 
-                alert(
+                showError(
                     'Failed to delete chapter'
                 );
 

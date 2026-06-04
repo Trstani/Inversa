@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { apiClient } from '../../api/client';
 import { cleanupChapterImages } from '../../utils/chapterCleanup';
+import { showError } from '../../utils/toast';
 
 export const useChapterManagement = (
   project,
@@ -60,7 +61,7 @@ export const useChapterManagement = (
         error
       );
 
-      alert(
+      showError(
         "Failed to create chapter"
       );
 
@@ -139,7 +140,7 @@ export const useChapterManagement = (
         error
       );
 
-      alert(
+      showError(
         "Failed to delete chapter"
       );
 

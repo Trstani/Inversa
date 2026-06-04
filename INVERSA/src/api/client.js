@@ -8,6 +8,8 @@
  * const projects = await apiClient.projects.getAll();
  */
 
+import { showError } from "../utils/toast";
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 // ============ HELPER FUNCTIONS ============
@@ -33,13 +35,45 @@ const getHeaders = (includeAuth = true) => {
 };
 
 const handleResponse = async (response) => {
-  const data = await response.json();
+
+  const data =
+    await response.json();
+
+  if (
+  response.status === 401
+) {
+
+  localStorage.removeItem(
+    'authToken'
+  );
+
+  sessionStorage.removeItem(
+    'authToken'
+  );
+
+  showError(
+    'Your session has expired. Please login again.'
+  );
+
+  window.location.href =
+    '/login';
+
+  return;
+
+  }
 
   if (!response.ok) {
-    throw new Error(data.message || data.error || 'API Error');
+
+    throw new Error(
+      data.message ||
+      data.error ||
+      'API Error'
+    );
+
   }
 
   return data;
+
 };
 
 const makeRequest = async (method, endpoint, body = null, includeAuth = true) => {
@@ -75,6 +109,8 @@ export const apiClient = {
   auth: {
     register: (data) => makeRequest('POST', '/auth/register', data, false),
     login: (data) => makeRequest('POST', '/auth/login', data, false),
+    verifyEmail: (data) => makeRequest('POST', '/auth/verify-email', data),
+    resendOtp: (data) => makeRequest('POST', '/auth/resend-otp', data),
   },
 
   // ============ USERS ============
@@ -244,7 +280,14 @@ teams: {
     create: (data) => makeRequest('POST', '/reports',data),
     delete: (id) => makeRequest('DELETE', `/reports/${id}`),
   },
+
+  notifications: {
+    getAll: () => makeRequest('GET', '/notification'),
+    markAsRead: (id) => makeRequest('PATCH', `/notification/${id}/read`),
+  },
 };
+
+
 
 // ============ UTILITY FUNCTIONS ============
 

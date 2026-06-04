@@ -1,7 +1,7 @@
 import express from 'express';
 
 import {
-  register, login,
+  register, login, verifyEmail, resendEmailOTP
 } from '../controllers/authController.js';
 
 const router = express.Router();
@@ -9,5 +9,9 @@ const router = express.Router();
 router.post('/register', register);
 
 router.post('/login', login);
+
+router.post('/verify-email', verifyEmail);
+
+router.post('/resend-otp', resendEmailOTP);
 
 export default router;

@@ -3,6 +3,7 @@ import { FiX } from "react-icons/fi";
 import { useCategoriesAndGenres } from "../hooks/useCategoriesAndGenres";
 import { supabase } from "../../lib/supabase";
 import { validateImage } from "../../utils/imageValidation";
+import { dismissToast, showError, showLoading } from "../../utils/toast";
 
 const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
   const { categories, genres } = useCategoriesAndGenres();
@@ -50,7 +51,7 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
     if (
       !validation.valid
     ) {
-      alert(
+      showError(
         validation.message
       );
 
@@ -146,7 +147,7 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
                       error
                     );
 
-                    alert(
+                    showError(
                       "Upload failed"
                     );
 
@@ -225,7 +226,7 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
         error
       );
 
-      alert(
+      showError(
         "Image upload failed"
       );
 
@@ -237,7 +238,7 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      alert("Project title is required");
+      showError("Project title is required");
       return;
     }
 

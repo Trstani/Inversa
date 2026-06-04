@@ -8,6 +8,7 @@ import { getSocket } from "../../socket/socket";
 import { apiClient } from "../../api/client";
 import { supabase } from "../../lib/supabase";
 import { deleteStorageFile } from "../../utils/storage";
+import { showError, showLoading, showSuccess } from "../../utils/toast";
 
 const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBack, isInitiator, isTeamMember }) => {
   const { user } = useAuth();
@@ -238,7 +239,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
     try {
       const { data } = await apiClient.sections.create({ chapter_id: chapter.id, type: "text", content: "", section_order: sections.length + 1 });
       setSections(prev => [...prev, data]);
-    } catch (e) { console.error("Add text section failed:", e); alert("Failed to add section"); }
+    } catch (e) { console.error("Add text section failed:", e); showError("Failed to add section"); }
   };
 
   const addImageSection = async () => {
@@ -246,16 +247,16 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
     try {
       const { data } = await apiClient.sections.create({ chapter_id: chapter.id, type: "image", image_url: "", caption: "", section_order: sections.length + 1 });
       setSections(prev => [...prev, data]);
-    } catch (e) { console.error("Add image section failed:", e); alert("Failed to add section"); }
+    } catch (e) { console.error("Add image section failed:", e); showError("Failed to add section"); }
   };
 
   const updateSection = (id, newData) => canEdit && setSections(prev => prev.map(sec => sec.id === id ? { ...sec, ...newData } : sec));
 
   const saveSectionToAPI = async (sectionId, data) => {
-    if (!user) return alert("You must be logged in.");
-    if (!canEdit) return alert("You do not have permission to edit this chapter.");
+    if (!user) return showError("You must be logged in.");
+    if (!canEdit) return showError("You do not have permission to edit this chapter.");
     setSavingSection(sectionId);
-    try { await apiClient.sections.update(sectionId, data); alert("Section saved successfully!"); } catch (e) { console.error("Save section failed:", e); alert("Failed to save section: " + e.message); } finally { setSavingSection(null); }
+    try { await apiClient.sections.update(sectionId, data); showSuccess("Section saved successfully!"); } catch (e) { console.error("Save section failed:", e); showError("Failed to save section: " + e.message); } finally { setSavingSection(null); }
   };
 
   const moveSection = async (index, direction) => {
@@ -271,7 +272,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
       setHasUnsavedWorkspaceChanges(true);
       for (const sec of reordered) await apiClient.sections.reorder(sec.id, { section_order: Number(sec.section_order) });
       await loadSections();
-    } catch (e) { console.error("Reorder failed:", e); alert("Failed to reorder sections"); } finally { setIsReordering(false); }
+    } catch (e) { console.error("Reorder failed:", e); showError("Failed to reorder sections"); } finally { setIsReordering(false); }
   };
 
   const deleteSection =
@@ -388,7 +389,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
         error
       );
 
-      alert(
+      showError(
         "Failed upload image"
       );
 
@@ -397,9 +398,9 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
   };
 
   const handleSave = (publish = false) => {
-    if (!user) return alert("You must be logged in.");
-    if (!canEdit) return alert("You do not have permission to edit this chapter.");
-    if (sections.length > MAX_TOTAL) return alert("Section limit exceeded.");
+    if (!user) return showError("You must be logged in.");
+    if (!canEdit) return showError("You do not have permission to edit this chapter.");
+    if (sections.length > MAX_TOTAL) return showError("Section limit exceeded.");
     onSave({ id: chapter.id, title }, publish);
     setHasUnsavedWorkspaceChanges(false);
   };
@@ -425,7 +426,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
         )}
       </div>
       {chapters?.length > 0 && <EditorNavigation chapters={chapters} currentChapter={chapter} onSelectChapter={onSelectChapter} />}
-      <EditorActions onBack={onBack} onSaveDraft={() => { if (isReordering) { alert("Please wait until reorder finishes."); return; } handleSave(false); }} onPublish={() => handleSave(true)} loading={loading} isInitiator={isInitiator} isTeamMember={isTeamMember} chapterStatus={chapter?.status} hasActiveLocks={hasActiveLocks} hasUnsavedWorkspaceChanges={hasUnsavedWorkspaceChanges} />
+      <EditorActions onBack={onBack} onSaveDraft={() => { if (isReordering) { showError("Please wait until reorder finishes."); return; } handleSave(false); }} onPublish={() => handleSave(true)} loading={loading} isInitiator={isInitiator} isTeamMember={isTeamMember} chapterStatus={chapter?.status} hasActiveLocks={hasActiveLocks} hasUnsavedWorkspaceChanges={hasUnsavedWorkspaceChanges} />
     </>
   );
 };

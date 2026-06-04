@@ -5,6 +5,7 @@ import Button from '../../components/Button';
 import { apiClient } from '../../api/client';
 import { supabase } from "../../lib/supabase";
 import { validateImage } from "../../utils/imageValidation";
+import { dismissToast, showError, showSuccess } from '../../utils/toast';
 
 const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
   const { user } = useAuth();
@@ -38,7 +39,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
     if (
       !validation.valid
     ) {
-      alert(
+      showError(
         validation.message
       );
 
@@ -146,7 +147,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
                         error
                       );
 
-                      alert(
+                      showError(
                         "Upload failed"
                       );
 
@@ -220,7 +221,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
         error
       );
 
-      alert(
+      showError(
         "Image upload failed"
       );
 
@@ -237,7 +238,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
         !formData.title.trim()
       ) {
 
-        alert(
+        showError(
           'Team name is required'
         );
 
@@ -263,7 +264,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
 
         if (response.success) {
 
-          alert(
+          showSuccess(
             'Team created successfully!'
           );
 
@@ -283,7 +284,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
           error
         );
 
-        alert(
+        showError(
           'Failed to create team'
         );
 

@@ -1,4 +1,5 @@
 import { apiClient } from "../../api/client";
+import {showSuccess, showError} from '../utils/toast';
 
 const ReportRow = ({
   report,
@@ -24,7 +25,7 @@ const ReportRow = ({
             report.project_id
           );
 
-        alert(
+        showSuccess(
           "Project hidden"
         );
 
@@ -37,7 +38,7 @@ const ReportRow = ({
           error
         );
 
-        alert(
+        showError(
           'Failed to hide project'
         );
       }
@@ -54,7 +55,7 @@ const ReportRow = ({
             report.project_id
           );
 
-        alert(
+        showSuccess(
           "Project restored"
         );
 
@@ -67,7 +68,7 @@ const ReportRow = ({
           error
         );
 
-        alert(
+        showError(
           'Failed to restore project'
         );
       }
@@ -76,7 +77,7 @@ const ReportRow = ({
   const handleSuspendUser =
     async () => {
 
-      alert(
+      showError(
         "User suspension feature coming soon"
       );
     };

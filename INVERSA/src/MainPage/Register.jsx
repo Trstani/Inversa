@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { FiMail, FiLock, FiUser } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import Button from '../components/Button';
+import {showSuccess, showError} from '../utils/toast';
 
 const Register = () => {
     const navigate = useNavigate();
@@ -50,9 +51,16 @@ const Register = () => {
             });
 
             if (result.success) {
-                navigate('/dashboard');
-            } else {
-                setError(result.error || 'Registration failed. Please try again.');
+                navigate(
+                    '/verify-email',
+                    {
+                        state: {
+                            email:
+                                formData.email,
+                        }
+                    }
+                );
+
             }
         } catch (err) {
             setError('Registration failed. Please try again.');
