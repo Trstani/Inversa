@@ -304,8 +304,8 @@ const TeamDetailPage = () => {
         <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-light-border dark:border-dark-border bg-gradient-to-br from-light-surface via-light-background to-light-surface dark:from-slate-900 dark:via-slate-950 dark:to-slate-900 p-6 sm:p-8 md:p-10 mb-8 sm:mb-10 md:mb-12">
           {hasBackground && (
             <div className="absolute inset-0">
-              <img src={team.background_image} alt={team.title} className="w-full h-full object-cover opacity-[0.08] dark:opacity-[0.10]" />
-              <div className="absolute inset-0 bg-gradient-to-b from-white/70 via-white/85 to-white/95 dark:from-black/20 dark:via-slate-950/70 dark:to-slate-950/95" />
+              <img src={team.background_image} alt={team.title} className="w-full h-full object-cover opacity-30 dark:opacity-40" />
+              <div className="absolute inset-0 bg-gradient-to-b from-white/20 via-white/25 to-white/40 dark:from-black/20 dark:via-slate-950/70 dark:to-slate-950/95" />
             </div>
           )}
 

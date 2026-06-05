@@ -57,11 +57,11 @@ const CardProjectMini = ({
           <div className="absolute inset-0 z-0">
 
             <div
-              className="absolute inset-0 bg-cover bg-center opacity-[0.06] dark:opacity-[0.04] transition-all duration-500 scale-105 group-hover:scale-110"
+              className="absolute inset-0 bg-cover bg-center opacity-30 dark:opacity-40 transition-all duration-500 scale-105 group-hover:scale-110"
               style={{ backgroundImage: `url(${project.background_image})` }}
             />
 
-            <div className="absolute inset-0 bg-gradient-to-b from-light-surface/40 to-light-surface/95 dark:from-dark-surface/10 dark:to-dark-surface/95" />
+            <div className="absolute inset-0 bg-gradient-to-b from-light-surface/20 to-light-surface/25 dark:from-dark-surface/10 dark:to-dark-surface/95" />
 
           </div>
 

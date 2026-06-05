@@ -107,8 +107,7 @@ const DashboardProjectCard = ({
               h-full
               object-cover
 
-              opacity-[0.05]
-              dark:opacity-[0.03]
+              opacity-30 dark:opacity-40
 
               scale-105
             "
@@ -122,9 +121,9 @@ const DashboardProjectCard = ({
 
               bg-gradient-to-b
 
-              from-light-surface/70
-              via-light-surface/85
-              to-light-surface/95
+              from-light-surface/20
+              via-light-surface/20
+              to-light-surface/20
 
               dark:from-dark-surface/20
               dark:via-dark-surface/70
