@@ -1,19 +1,9 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const transporter =
-  nodemailer.createTransport({
-
-    service: 'gmail',
-
-    auth: {
-      user:
-        process.env.EMAIL_USER,
-
-      pass:
-        process.env.EMAIL_PASS,
-    },
-
-  });
+const resend =
+  new Resend(
+    process.env.RESEND_API_KEY
+  );
 
 export const sendOTPEmail =
 async (
@@ -21,31 +11,33 @@ async (
   otp
 ) => {
 
-  await transporter.sendMail({
+  const response =
+    await resend.emails.send({
 
-    from:
-      `"INVERSA" <${process.env.EMAIL_USER}>`,
+      from:
+        'INVERSA <onboarding@resend.dev>',
 
-    to:
-      email,
+      to: email,
 
-    subject:
-      'INVERSA Email Verification',
+      subject:
+        'INVERSA Email Verification',
 
-    html: `
-      <h2>Email Verification</h2>
+      html: `
+        <h2>Email Verification</h2>
 
-      <p>
-        Your verification code:
-      </p>
+        <p>Your verification code:</p>
 
-      <h1>${otp}</h1>
+        <h1>${otp}</h1>
 
-      <p>
-        This code expires in 10 minutes.
-      </p>
-    `,
+        <p>
+          This code expires in 10 minutes.
+        </p>
+      `
+    });
 
-  });
+  console.log(
+    'RESEND RESPONSE:',
+    response
+  );
 
 };
