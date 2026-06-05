@@ -56,7 +56,7 @@ const Register = () => {
                     {
                         state: {
                             email: formData.email,
-                            otp: result.data.otp
+                            otp: result.otp
                         }
                     }
                 );

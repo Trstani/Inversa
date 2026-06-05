@@ -208,6 +208,8 @@ export const AuthProvider = ({
             response.data.userId,
           email:
             userData.email,
+           otp:
+            response.data.otp, 
         };
 
       }

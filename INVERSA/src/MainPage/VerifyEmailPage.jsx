@@ -165,10 +165,10 @@ const VerifyEmailPage = () => {
         </button>
 
         <button
-          onClick={handleResend}
+          disabled
           className="text-sm text-light-accent hover:underline"
         >
-          Resend OTP
+          Resend OTP (Disabled in Beta)
         </button>
       </div>
     </div>
