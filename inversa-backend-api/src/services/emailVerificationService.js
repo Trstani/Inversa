@@ -16,16 +16,14 @@ export const generateOTP = () => {
 export const createEmailVerification =
 async (userId, email) => {
 
-
-  console.log('STEP 1');
-
   const otp = generateOTP();
-
+/*
   console.log('STEP 2');
 
     await sendOTPEmail(email, otp);
 
   console.log('STEP 3');
+  */
 
   const expiresAt =
     new Date(

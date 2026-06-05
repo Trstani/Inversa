@@ -9,6 +9,7 @@ const VerifyEmailPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || '';
+  const otpPreview = location.state?.otp;
 
   const [otp, setOtp] = useState(Array(OTP_LENGTH).fill(''));
   const [loading, setLoading] = useState(false);
@@ -103,6 +104,24 @@ const VerifyEmailPage = () => {
           <br />
           <strong>{email}</strong>
         </p>
+
+        {otpPreview && (
+          <div className="mb-6 p-4 rounded-lg border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20">
+
+            <p className="text-sm font-medium">
+              Beta Testing Mode
+            </p>
+
+            <p className="text-xs opacity-70 mt-1">
+              Use this verification code:
+            </p>
+
+            <h2 className="text-3xl font-bold mt-2 tracking-widest">
+              {otpPreview}
+            </h2>
+
+          </div>
+        )}
 
         {error && (
           <div className="mb-4 p-3 rounded bg-red-100 text-red-600 text-sm">

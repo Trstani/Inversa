@@ -35,6 +35,14 @@ async (
       `
     });
 
+  if (
+    response.error
+  ) {
+    throw new Error(
+      response.error.message
+    );
+  }
+
   console.log(
     'RESEND RESPONSE:',
     response

@@ -55,8 +55,8 @@ const Register = () => {
                     '/verify-email',
                     {
                         state: {
-                            email:
-                                formData.email,
+                            email: formData.email,
+                            otp: result.data.otp
                         }
                     }
                 );
