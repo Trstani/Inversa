@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-
+import { createNotification } from './notificationService.js';
 /*
 =========================
 CREATE CHAPTER
@@ -156,6 +156,25 @@ PUBLISH CHAPTER
 export const publishChapter =
   async (id, userId) => {
 
+
+    const existing =
+      await pool.query(
+            `
+        SELECT *
+        FROM chapters
+        WHERE id = $1
+        LIMIT 1
+        `,
+        [id]
+      );
+
+    if (
+      existing.rows[0]?.status ===
+      'published'
+    ) {
+      return existing.rows[0];
+    }
+
     const result =
       await pool.query(
         `
@@ -173,6 +192,61 @@ export const publishChapter =
         `,
         [id, userId]
       );
+
+    const chapter =
+      result.rows[0];
+
+    await pool.query(
+          `
+      UPDATE projects
+      SET
+        has_published_chapters = true
+      WHERE id = $1
+      `,
+      [chapter.project_id]
+    );  
+
+    const projectResult =
+      await pool.query(
+            `
+        SELECT title
+        FROM projects
+        WHERE id = $1
+        `,
+        [chapter.project_id]
+      );
+
+    const project =
+      projectResult.rows[0];  
+
+    const followers =
+      await pool.query(
+            `
+        SELECT user_id
+        FROM project_follows
+        WHERE
+          project_id = $1
+          AND user_id != $2
+
+        `,
+        [chapter.project_id, userId]
+      ); 
+
+
+
+    for (const follower of followers.rows) {
+
+      await createNotification(
+
+        follower.user_id,
+
+        'New Chapter Published',
+
+        `${project.title} has a new chapter: ${chapter.title}`
+
+      );
+
+    }  
 
     return result.rows[0];
 };

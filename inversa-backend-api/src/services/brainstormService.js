@@ -1,5 +1,5 @@
 import pool from '../config/database.js';
-
+import { createNotification } from './notificationService.js';
 /*
 =========================
 SESSION
@@ -103,7 +103,63 @@ export const createIdeaService = async ({
     [brainstorm.id, title, description, user_id, user_name, chapter_id]
   );
 
-  return result.rows[0];
+  const idea = result.rows[0];
+
+  const projectResult =
+  await pool.query(
+    `
+    SELECT
+      p.title AS project_title,
+      p.team_id,
+      t.title AS team_name
+    FROM projects p
+
+    LEFT JOIN teams t
+    ON t.id = p.team_id
+
+    WHERE p.id = $1
+
+    LIMIT 1
+    `,
+    [projectId]
+  );
+
+  const members =
+  await pool.query(
+    `
+    SELECT user_id
+    FROM team_collaborators
+    WHERE team_id = $1
+    `,
+    [
+      projectResult.rows[0].team_id
+    ]
+  );
+
+for (
+  const member
+  of members.rows
+) {
+
+  if (
+    member.user_id === user_id
+  ) {
+    continue;
+  }
+
+  await createNotification(
+
+    member.user_id,
+
+    'New Story Idea',
+
+    `${user_name} added "${title}" to ${projectResult.rows[0].project_title}`
+
+  );
+
+}
+
+return idea;
 };
 
 export const deleteIdeaService = async (id) => {
@@ -189,18 +245,59 @@ export const createTaskService = async ({
   const taskId = inserted.rows[0].id;
 
   const result = await pool.query(
+  `
+  SELECT
+    t.*,
+    u.name AS assigned_name
+  FROM tasks t
+  LEFT JOIN users u ON t.assigned_to = u.id
+  WHERE t.id = $1
+  `,
+  [taskId]
+);
+
+const task =
+  result.rows[0];
+
+  const creatorResult =
+  await pool.query(
     `
-    SELECT
-      t.*,
-      u.name AS assigned_name
-    FROM tasks t
-    LEFT JOIN users u ON t.assigned_to = u.id
-    WHERE t.id = $1
+    SELECT name
+    FROM users
+    WHERE id = $1
+    LIMIT 1
     `,
-    [taskId]
+    [created_by]
   );
 
-  return result.rows[0];
+  const projectResult =
+  await pool.query(
+    `
+    SELECT title
+    FROM projects
+    WHERE id = $1
+    LIMIT 1
+    `,
+    [projectId]
+  );
+
+  if (
+  assigned_to &&
+  assigned_to !== created_by
+) {
+
+  await createNotification(
+
+    assigned_to,
+
+    'New Task Assigned',
+
+    `${creatorResult.rows[0].name} assigned "${title}" in ${projectResult.rows[0].title} to you`
+
+  );
+
+}
+return task;
 };
 
 export const updateTaskService = async (id, status) => {
