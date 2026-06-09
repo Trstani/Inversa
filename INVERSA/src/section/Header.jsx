@@ -66,6 +66,7 @@ const Header = () => {
           {/* -------------------- Desktop Navigation -------------------- */}
           <nav className="hidden md:flex items-center space-x-6">
             <Link
+              id='tutorial-home'
               to="/Home"
               className={isActive('/Home', true) ? activeLinkClass : defaultLinkClass}
             >
@@ -74,6 +75,7 @@ const Header = () => {
             </Link>
 
             <Link
+              id='tutorial-explore'
               to="/explore"
               className={isActive('/explore') ? activeLinkClass : defaultLinkClass}
             >
@@ -84,7 +86,7 @@ const Header = () => {
             {isAuthenticated && (
               <Dropdown
                 trigger={
-                  <button
+                  <button id="tutorial-dashboard"
                     className={
                       isActive('/dashboard')
                         ? activeLinkClass + ' cursor-pointer'
@@ -147,7 +149,7 @@ const Header = () => {
             <div className="hidden md:flex items-center space-x-3">
               {isAuthenticated ? (
                 <>
-                  <button
+                  <button id="tutorial-profile"
                     onClick={() => navigate('/profile')}
                     className="flex items-center space-x-2 px-3 py-1.5 bg-light-surface dark:bg-dark-surface rounded-lg hover:bg-light-accent/10 dark:hover:bg-dark-accent/10 transition-colors"
                   >

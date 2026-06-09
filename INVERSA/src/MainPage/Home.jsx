@@ -5,6 +5,7 @@ import { apiClient } from '../api/client';
 import BentoGrid from "../section/BentoGrid";
 import ProjectCarousel from "../section/ProjectCarousel";
 import Recommendation from "../section/Recommendation";
+import HomeTutorial from "../components/tutorial/HomeTutorial";
 
 const Home = () => {
 
@@ -13,7 +14,21 @@ const Home = () => {
   const [projects, setProjects] = useState([]);
   const [follows, setFollows] = useState([]);
   const [readingHistory, setReadingHistory] = useState([]);
+  const [showTutorial, setShowTutorial] = useState(false);
+  const [tutorialStep, setTutorialStep] = useState(0);
  
+  useEffect(() => {
+
+    const done =
+      localStorage.getItem(
+        'inversa_home_tutorial'
+      );
+
+    if (!done) {
+      setShowTutorial(true);
+    }
+
+  }, []);
 
   useEffect(() => {
 
@@ -66,6 +81,41 @@ const Home = () => {
 
   }, [isAuthenticated, user]);
 
+  const handleTutorialNext =
+  () => {
+
+    if (
+      tutorialStep >= 6
+    ) {
+
+      localStorage.setItem(
+        'inversa_home_tutorial',
+        'done'
+      );
+
+      setShowTutorial(false);
+
+      return;
+    }
+
+    setTutorialStep(
+      prev => prev + 1
+    );
+
+  };
+
+  const handleTutorialSkip =
+  () => {
+
+    localStorage.setItem(
+      'inversa_home_tutorial',
+      'done'
+    );
+
+    setShowTutorial(false);
+
+  };
+
 
   // TRENDING
   const trending = [...projects]
@@ -103,8 +153,20 @@ const Home = () => {
         type="likes"
         projects={mostLiked}
       />
+      {
+        showTutorial && (
+
+          <HomeTutorial
+            step={tutorialStep}
+            onNext={handleTutorialNext}
+            onSkip={handleTutorialSkip}
+          />
+
+        )
+      }
 
     </div>
+    
   );
 
 };

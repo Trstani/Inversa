@@ -24,7 +24,7 @@ export const howitWorksData = [
     id: 3,
     icon: FiUsers,
     title: "Collaborate",
-    description: "Collaborator dapat mengedit dan memberi saran."
+    description: "Berkolaborasi tanpa takut overwriting."
   },
   {
     id: 4,

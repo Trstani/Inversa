@@ -24,7 +24,7 @@ const BentoGrid = ({
   const navigate = useNavigate();
 
   return (
-    <section className="py-10 md:py-14">
+    <section id="tutorial-bento-dashboard" className="py-10 md:py-14">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
@@ -211,7 +211,7 @@ const BentoGrid = ({
 
           {/* FOLLOWED */}
 
-          <div className=" rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 flex flex-col">
+          <div id="tutorial-followed-projects" className=" rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 flex flex-col">
 
             <h4 className=" mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-widetext-slate-500">
               <FiStar className="h-4 w-4" />
@@ -227,7 +227,7 @@ const BentoGrid = ({
           </div>
 
           {/* HISTORY */}
-          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 flex flex-col">
+          <div id="tutorial-reading-history" className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-5 flex flex-col">
             <h4 className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-slate-500">
               <FiClock className="h-4 w-4" />
               Recently Read

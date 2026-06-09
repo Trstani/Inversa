@@ -4,16 +4,16 @@ export const featureData = [
   {
     id: 1,
     icon: FiEdit3,
-    title: "Structured Draft System",
+    title: "Cell-Based Writing",
     description:
-      "Edit hanya saat draft, simpan perubahan, dan publish final. Tidak bisa diubah setelah publish."
+      "Edit chapter dalam cell cell section, untuk pengalaman menulis yang optimal."
   },
   {
     id: 2,
     icon: FiUsers,
-    title: "Asynchronous Collaboration",
+    title: "Asynchronous and Synchronous Collaboration",
     description:
-      "Tidak perlu realtime. Gantian edit dengan flow yang jelas dan terstruktur."
+      "Tidak perlu selalu realtime. Gantian edit dengan flow yang jelas dan terstruktur."
   },
   {
     id: 3,

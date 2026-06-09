@@ -60,3 +60,12 @@
   font-size: 1.5rem;
   font-weight: 600;
 }
+
+.tutorial-highlight {
+  position: relative;
+  z-index: 10001 !important;
+  outline: 3px solid rgb(59 130 246);
+  outline-offset: 6px;
+  border-radius: 12px;
+  transition: outline 0.2s ease;
+}
