@@ -16,6 +16,7 @@ import { apiClient }
 
 import EditorLayout
   from "../components/Editor/EditorLayout";
+import EditorTutorial from "../components/tutorial/EditorTutorial";
 import { showError, showSuccess } from "../utils/toast";
 
 const EditorPage = () => {
@@ -59,6 +60,33 @@ const EditorPage = () => {
     isTeamMember,
     setIsTeamMember,
   ] = useState(false);
+
+  const [showEditorTutorial, setShowEditorTutorial] = useState(false);
+  const [editorTutorialStep, setEditorTutorialStep] = useState(0);
+
+  useEffect(() => {
+    const done = localStorage.getItem('inversa_editor_tutorial');
+    if (!done) setShowEditorTutorial(true);
+  }, []);
+
+  const handleEditorTutorialNext = () => {
+    if (editorTutorialStep >= 2) {
+      localStorage.setItem('inversa_editor_tutorial', 'done');
+      setShowEditorTutorial(false);
+      return;
+    }
+    setEditorTutorialStep(prev => prev + 1);
+  };
+
+  const handleEditorTutorialSkip = () => {
+    localStorage.setItem('inversa_editor_tutorial', 'done');
+    setShowEditorTutorial(false);
+  };
+
+  const handleEditorTutorialPrevious = () => {
+    if (editorTutorialStep > 0) setEditorTutorialStep(prev => prev - 1);
+  };
+
 
   /*
   =========================
@@ -459,33 +487,40 @@ const EditorPage = () => {
   */
 
   return (
+    <>
+      <EditorLayout
+        project={project}
+        chapters={chapters}
+        currentChapter={
+          currentChapter
+        }
+        onSelectChapter={
+          setCurrentChapter
+        }
+        onSave={handleSave}
+        loading={loading}
+        onBack={() =>
+          navigate(
+            `/project/${projectId}`
+          )
+        }
+        onChaptersChange={
+          handleChaptersChange
+        }
+        isInitiator={
+          isInitiator
+        }
+        isTeamMember={
+          isTeamMember
+        }
 
-    <EditorLayout
-      project={project}
-      chapters={chapters}
-      currentChapter={
-        currentChapter
-      }
-      onSelectChapter={
-        setCurrentChapter
-      }
-      onSave={handleSave}
-      loading={loading}
-      onBack={() =>
-        navigate(
-          `/project/${projectId}`
-        )
-      }
-      onChaptersChange={
-        handleChaptersChange
-      }
-      isInitiator={
-        isInitiator
-      }
-      isTeamMember={
-        isTeamMember
-      }
-    />
+      />
+      {/* TUTORIALS */}
+      {showEditorTutorial && (
+        <EditorTutorial step={editorTutorialStep} onNext={handleEditorTutorialNext} onSkip={handleEditorTutorialSkip} onPrevious={handleEditorTutorialPrevious} />
+      )}
+    </>
+    
 
   );
 };

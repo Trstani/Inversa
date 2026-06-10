@@ -88,7 +88,7 @@ const StoryIdeaSection = ({
 
           {/* Right: Add Button – sejajar dengan textarea */}
           <div className="sm:self-end">
-            <button
+            <button id='story-idea'
               onClick={onAddIdea}
               disabled={!newIdeaInput.title?.trim()}
               className="w-full sm:w-auto px-6 py-2 rounded bg-light-accent dark:bg-dark-accent text-white hover:opacity-90 disabled:opacity-50 transition font-medium flex items-center justify-center gap-2 whitespace-nowrap"

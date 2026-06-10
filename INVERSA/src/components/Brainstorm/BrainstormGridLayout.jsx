@@ -43,6 +43,9 @@ import StoryIdeaSection from './components/StoryIdeaSection';
 import TaskManagerSection from './components/TaskManagerSection';
 
 import useBrainstorm from '../../InitiatorFolder/hooks/useBrainstorm';
+import BrainstormTutorialIdea from "../tutorial/BrainstormTutorialIdea";  
+import BrainstormTutorialTask from "../tutorial/BrainstormTutorialTask";
+
 
 import { apiClient } from '../../api/client';
 
@@ -57,7 +60,6 @@ const BrainstormGridLayout = ({
   STATES
   =========================
   */
-
   const [
     activeView,
     setActiveView
@@ -70,6 +72,65 @@ const BrainstormGridLayout = ({
     );
 
   });
+
+  const [showBrainstormIdeaTutorial, setshowBrainstormIdeaTutorial] = useState(false);
+  const [showBrainstormTaskTutorial, setshowBrainstormTaskTutorial] = useState(false);
+  const [brainstormideaTutorialStep, setbrainstormideaTutorialStep] = useState(0);
+  const [brainstormtaskTutorialStep, setbrainstormtaskTutorialStep] = useState(0);
+
+  // BrainstormIdea TUTORIAL
+  useEffect(() => {
+    if (
+      activeView !== 'brainstorm'
+    ) {
+      return;
+    }
+    const done = localStorage.getItem('inversa_brainstormidea_tutorial');
+    if (!done) setshowBrainstormIdeaTutorial(true);
+  }, [activeView]);
+
+  const handleBrainstormIdeaTutorialNext = () => {
+    if (brainstormideaTutorialStep >= 3) {
+      localStorage.setItem('inversa_brainstormidea_tutorial', 'done');
+      setshowBrainstormIdeaTutorial(false);
+      return;
+    }
+    setbrainstormideaTutorialStep(prev => prev + 1);
+  };
+
+  const handleBrainstormIdeaTutorialSkip = () => {
+    localStorage.setItem('inversa_brainstormidea_tutorial', 'done');
+    setshowBrainstormIdeaTutorial(false);
+  };
+
+  const handleBrainstormIdeaTutorialPrevious = () => {
+    if (brainstormideaTutorialStep > 0) setbrainstormideaTutorialStep(prev => prev - 1);
+  };
+
+
+  useEffect(() => {
+    if (activeView !== 'tasks') {return;}
+    const done = localStorage.getItem('inversa_brainstormtask_tutorial');
+    if (!done) setshowBrainstormTaskTutorial(true);
+  }, [activeView]);
+
+  const handleBrainstormTaskTutorialNext = () => {
+    if (brainstormtaskTutorialStep >= 3) {
+      localStorage.setItem('inversa_brainstormtask_tutorial', 'done');
+      setshowBrainstormTaskTutorial(false);
+      return;
+    }
+    setbrainstormtaskTutorialStep(prev => prev + 1);
+  };
+
+  const handleBrainstormTaskTutorialSkip = () => {
+    localStorage.setItem('inversa_brainstormtask_tutorial', 'done');
+    setshowBrainstormTaskTutorial(false);
+  };
+
+  const handleBrainstormTaskTutorialPrevious = () => {
+    if (brainstormtaskTutorialStep > 0) setbrainstormtaskTutorialStep(prev => prev - 1);
+  };
 
   const [chapters, setChapters] = useState([]);
   const [sections, setSections] = useState([]);
@@ -1040,7 +1101,7 @@ SOCKET.IO SETUP
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
 
-          <DiscussionPanel
+          <DiscussionPanel 
             projectId={projectId}
             brainstorm={session}
             user={user}
@@ -1075,6 +1136,25 @@ SOCKET.IO SETUP
         </div>
 
       </div>
+      {
+        showBrainstormIdeaTutorial && (
+          <BrainstormTutorialIdea
+            step={brainstormideaTutorialStep}
+            onNext={handleBrainstormIdeaTutorialNext}
+            onSkip={handleBrainstormIdeaTutorialSkip}
+          />
+        )
+      }
+
+      {
+        showBrainstormTaskTutorial && (
+          <BrainstormTutorialTask
+            step={brainstormtaskTutorialStep}
+            onNext={handleBrainstormTaskTutorialNext}
+            onSkip={handleBrainstormTaskTutorialSkip}
+          />
+        )
+      }
 
     </div>
 

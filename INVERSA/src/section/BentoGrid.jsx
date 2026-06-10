@@ -26,7 +26,7 @@ const BentoGrid = ({
   return (
     <section id="tutorial-bento-dashboard" className="py-10 md:py-14">
       <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div id="tutorial-bento-dashboard" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
           {/* HERO */}
           <div className="relative sm:col-span-2 sm:row-span-2 overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 min-h-[420px] group">

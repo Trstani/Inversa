@@ -101,7 +101,7 @@ const DiscussionPanel=({
 
   return(
 
-    <div className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">
+    <div id="discussion" className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">
 
       <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4 flex items-center gap-2">
 

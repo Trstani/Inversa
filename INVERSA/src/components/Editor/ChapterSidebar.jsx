@@ -16,7 +16,7 @@ const ChapterSidebar = ({
 
   return (
 
-    <div className="card p-4 sm:p-6 h-fit sticky top-20">
+    <div id="chapter-sidebar" className="card p-4 sm:p-6 h-fit sticky top-20">
 
       {/* Header */}
 
@@ -27,7 +27,7 @@ const ChapterSidebar = ({
         </h3>
 
         {(isInitiator || isTeamMember) && (
-          <button
+          <button id="add-chapter"
             onClick={onCreateChapter}
             className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             title="New Chapter"

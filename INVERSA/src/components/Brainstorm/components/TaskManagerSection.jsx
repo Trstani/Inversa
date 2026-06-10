@@ -638,7 +638,7 @@ const TaskManagerSection = ({
 
           {/* BUTTON */}
 
-          <button
+          <button id='add-task'
             onClick={onAddTask}
 
             disabled={
@@ -710,7 +710,15 @@ const TaskManagerSection = ({
 
             return (
 
-              <div key={status}>
+              <div key={status}
+                id={
+                  status === 'pending'
+                    ? 'in-pending'
+                    : status === 'in-progress'
+                      ? 'in-progress'
+                      : 'completed'
+                }
+              >
 
                 {/* COLUMN HEADER */}
 

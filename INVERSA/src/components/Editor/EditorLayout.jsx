@@ -136,7 +136,7 @@ const EditorLayout = ({
 
                 {canEdit && (
 
-                  <button
+                  <button id="create-chapter"
                     onClick={() =>
                       setShowCreateModal(
                         true

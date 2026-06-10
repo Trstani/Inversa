@@ -147,9 +147,9 @@ const TeamEditorPage = () => {
               team?.members?.some(
                 (member) =>
                   member.user_id ===
-                    user.id &&
+                  user.id &&
                   member.status ===
-                    'approved'
+                  'approved'
               );
 
             /*
@@ -258,11 +258,11 @@ const TeamEditorPage = () => {
           LOCK CHECK
           =========================
           */
-
+         
           if (
             chapter?.locked_by &&
             chapter.locked_by !==
-              user.id
+            user.id
           ) {
 
             showError(
@@ -329,7 +329,7 @@ const TeamEditorPage = () => {
             }
           );
 
-       
+
         /*
         =========================
         PUBLISH
