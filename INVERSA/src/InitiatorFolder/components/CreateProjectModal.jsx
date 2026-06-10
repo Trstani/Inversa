@@ -8,7 +8,7 @@ import { dismissToast, showError, showLoading } from "../../utils/toast";
 const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
   const { categories, genres } = useCategoriesAndGenres();
 
-  const [formData, setFormData] = useState({
+  const initialState = {
     title: "",
     description: "",
     abstract: "",
@@ -16,7 +16,11 @@ const CreateProjectModal = ({ isOpen, onClose, onCreate }) => {
     genre: "",
     status: "open",
     backgroundImage: "",
-  });
+  };
+
+  const [formData, setFormData] =
+    useState(initialState);
+
   const [imagePreview, setImagePreview] = useState("");
 
   // Update category dan genre defaults ketika data tersedia

@@ -8,6 +8,7 @@ import React, {
 import {
   useNavigate,
   useParams,
+  useLocation,
 } from "react-router-dom";
 
 import {
@@ -40,6 +41,8 @@ const TeamEditorPage = () => {
 
   const navigate =
     useNavigate();
+  
+    const location = useLocation();
 
   /*
   =========================
@@ -524,9 +527,7 @@ const TeamEditorPage = () => {
       onSave={handleSave}
       loading={loading}
       onBack={() =>
-        navigate(
-          `/project/${projectId}`
-        )
+        navigate(-1)
       }
       onChaptersChange={
         handleChaptersChange

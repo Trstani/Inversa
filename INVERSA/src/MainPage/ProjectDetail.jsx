@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation, } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { apiClient } from "../api/client";
 import {
@@ -22,6 +22,7 @@ const ProjectDetail = () => {
   const { projectId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [project, setProject] = useState(null);
   const [chapters, setChapters] = useState([]);
@@ -198,6 +199,11 @@ const ProjectDetail = () => {
     } catch (error) { console.error(error); }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
+
   // ---------- RENDER ----------
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-light-background dark:bg-dark-background">
@@ -225,7 +231,7 @@ const ProjectDetail = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 md:px-8">
 
         {/* Back Button */}
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 mb-6 sm:mb-8 text-light-accent dark:text-dark-accent hover:opacity-80 transition-all font-medium">
+        <button onClick={handleBack} className="flex items-center gap-2 mb-6 sm:mb-8 text-light-accent dark:text-dark-accent hover:opacity-80 transition-all font-medium">
           <FiArrowLeft className="w-5 h-5" /> Back
         </button>
 
@@ -275,7 +281,7 @@ const ProjectDetail = () => {
                     </button>
                   </>
                 )}
-                
+
               </div>
             </div>
 
@@ -297,19 +303,19 @@ const ProjectDetail = () => {
               <h2 className="font-semibold mb-4">Members</h2>
               {project.is_team_project
                 ? teamMembers.map(member => (
-                    <div key={member.user_id} className="flex gap-2 mb-3">
-                      <div className="w-9 h-9 overflow-hidden rounded-full bg-gray-300 dark:bg-slate-700 flex items-center justify-center shrink-0">
-                        {member.profile_image ? <img src={member.profile_image} alt={member.name} className="w-full h-full object-cover" /> : <span className="text-xs font-bold text-white">{member.name?.charAt(0)?.toUpperCase()}</span>}
-                      </div>
-                      <div><p className="text-sm">{member.name}</p><p className="text-xs text-gray-500">{member.role}</p></div>
+                  <div key={member.user_id} className="flex gap-2 mb-3">
+                    <div className="w-9 h-9 overflow-hidden rounded-full bg-gray-300 dark:bg-slate-700 flex items-center justify-center shrink-0">
+                      {member.profile_image ? <img src={member.profile_image} alt={member.name} className="w-full h-full object-cover" /> : <span className="text-xs font-bold text-white">{member.name?.charAt(0)?.toUpperCase()}</span>}
                     </div>
-                  ))
+                    <div><p className="text-sm">{member.name}</p><p className="text-xs text-gray-500">{member.role}</p></div>
+                  </div>
+                ))
                 : approvedCollaborators.map(collab => (
-                    <div key={collab.user_id} className="flex gap-2 mb-3">
-                      <div className="w-8 h-8 bg-gray-400 rounded-full" />
-                      <div><p className="text-sm">{collab.name}</p><p className="text-xs text-gray-500">{collab.role}</p></div>
-                    </div>
-                  ))
+                  <div key={collab.user_id} className="flex gap-2 mb-3">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full" />
+                    <div><p className="text-sm">{collab.name}</p><p className="text-xs text-gray-500">{collab.role}</p></div>
+                  </div>
+                ))
               }
             </div>
           )}
@@ -322,7 +328,17 @@ const ProjectDetail = () => {
                   <p className="text-sm text-gray-500 mt-1">{chapters.length} chapter{chapters.length !== 1 ? 's' : ''}</p>
                 </div>
                 {canEdit && (
-                  <Button onClick={() => navigate(`/editor/${projectId}`)} className="flex items-center gap-2">
+                  <Button
+                    onClick={() =>
+                      navigate(
+                        `/editor/${projectId}`,
+                        {
+                          state: location.state,
+                        }
+                      )
+                    }
+                    className="flex items-center gap-2"
+                  >
                     <FiEdit2 /> Manage Chapters
                   </Button>
                 )}

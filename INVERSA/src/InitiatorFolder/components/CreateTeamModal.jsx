@@ -380,7 +380,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
           )}
 
           {/* Buttons */}
-          <div className="flex gap-3 pt-4 border-t border-light-accent/20 dark:border-dark-accent/20">
+          <div className="flex gap-3 pt-4 border-t border-light-border dark:border-dark-border">
             <Button
               type="submit"
               disabled={loading}
@@ -392,7 +392,7 @@ const CreateTeamModal = ({ isOpen, onClose, onSuccess }) => {
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 bg-light-surface dark:bg-dark-surface text-light-primary dark:text-dark-primary hover:bg-light-accent/10 dark:hover:bg-dark-accent/10"
+              className="flex-1 px-4 py-2 border border-light-border dark:border-dark-border text-light-primary dark:text-dark-primary rounded-lg font-medium hover:bg-light-surface dark:hover:bg-dark-surface transition"
             >
               Cancel
             </Button>

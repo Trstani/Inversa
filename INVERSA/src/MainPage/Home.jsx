@@ -16,6 +16,22 @@ const Home = () => {
   const [readingHistory, setReadingHistory] = useState([]);
   const [showTutorial, setShowTutorial] = useState(false);
   const [tutorialStep, setTutorialStep] = useState(0);
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+// Fungsi async untuk membuka menu dan menunggu animasi selesai
+const handleOpenMobileMenu = () => {
+  return new Promise((resolve) => {
+    setMobileMenuOpen(true);
+    // Sesuaikan timeout dengan durasi animasi buka menu (misal 350ms)
+    setTimeout(resolve, 350);
+  });
+};
+
+// Fungsi untuk menutup menu
+const handleCloseMobileMenu = () => {
+  setMobileMenuOpen(false);
+};
  
   useEffect(() => {
 
@@ -115,6 +131,10 @@ const Home = () => {
     setShowTutorial(false);
 
   };
+  const handleTutorialPrevious = () => {
+    if (tutorialStep > 0) setTutorialStep(prev => prev - 1);
+  };
+
 
 
   // TRENDING
@@ -160,6 +180,9 @@ const Home = () => {
             step={tutorialStep}
             onNext={handleTutorialNext}
             onSkip={handleTutorialSkip}
+            onPrevious={handleTutorialPrevious}
+            openMobileMenu={handleOpenMobileMenu}
+            closeMobileMenu={handleCloseMobileMenu}
           />
 
         )

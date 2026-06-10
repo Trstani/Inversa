@@ -17,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 const DashboardProjectCard = ({
   project,
   onDelete,
+  teamId,
 }) => {
 
   const navigate =
@@ -331,7 +332,11 @@ const DashboardProjectCard = ({
 
           <button
             onClick={() =>
-              navigate(`/project/${project.id}`)
+              navigate(`/project/${project.id}`, {
+                state: {
+                  fromTeam: teamId,
+                },
+              })
             }
             className="
               flex-1

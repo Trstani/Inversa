@@ -445,7 +445,7 @@ const TeamDetailPage = () => {
               ) : (
                 <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
                   {projects.map(project => (
-                    <DashboardProjectCard key={project.id} project={project} onDelete={handleDeleteProject} />
+                    <DashboardProjectCard key={project.id} project={project} onDelete={handleDeleteProject} teamId={teamId} />
                   ))}
                 </div>
               )}

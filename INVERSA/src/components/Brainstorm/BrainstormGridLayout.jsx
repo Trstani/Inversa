@@ -78,6 +78,23 @@ const BrainstormGridLayout = ({
   const [brainstormideaTutorialStep, setbrainstormideaTutorialStep] = useState(0);
   const [brainstormtaskTutorialStep, setbrainstormtaskTutorialStep] = useState(0);
 
+   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Fungsi async untuk membuka menu dan menunggu animasi selesai
+  const handleOpenMobileMenu = () => {
+    return new Promise((resolve) => {
+      setMobileMenuOpen(true);
+      // Sesuaikan timeout dengan durasi animasi buka menu (misal 350ms)
+      setTimeout(resolve, 350);
+    });
+  };
+  
+  // Fungsi untuk menutup menu
+  const handleCloseMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+   
+
   // BrainstormIdea TUTORIAL
   useEffect(() => {
     if (
@@ -1142,6 +1159,9 @@ SOCKET.IO SETUP
             step={brainstormideaTutorialStep}
             onNext={handleBrainstormIdeaTutorialNext}
             onSkip={handleBrainstormIdeaTutorialSkip}
+            onPrevious={handleBrainstormIdeaTutorialPrevious}
+            openMobileMenu={handleOpenMobileMenu}
+            closeMobileMenu={handleCloseMobileMenu}
           />
         )
       }
@@ -1152,6 +1172,9 @@ SOCKET.IO SETUP
             step={brainstormtaskTutorialStep}
             onNext={handleBrainstormTaskTutorialNext}
             onSkip={handleBrainstormTaskTutorialSkip}
+            onPrevious={handleBrainstormIdeaTutorialPrevious}
+            openMobileMenu={handleOpenMobileMenu}
+            closeMobileMenu={handleCloseMobileMenu}
           />
         )
       }

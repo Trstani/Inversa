@@ -204,7 +204,7 @@ const ChapterReader = () => {
         {/* HEADER */}
         <div className="mb-6 sm:mb-8">
           <button
-            onClick={() => navigate(`/project/${projectId}`)}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-light-accent dark:text-dark-accent hover:opacity-80 mb-3 sm:mb-4 text-sm sm:text-base"
           >
             <FiArrowLeft />
@@ -225,7 +225,7 @@ const ChapterReader = () => {
 
         {/* CONTENT */}
         <div className="card p-4 sm:p-6 md:p-8 mb-6 sm:mb-8 prose dark:prose-invert max-w-none">
-          <div className="text-light-primary dark:text-dark-primary leading-relaxed text-sm sm:text-base space-y-8">
+          <div className="text-light-primary dark:text-dark-primary leading-relaxed text-sm sm:text-base space-y-8 [&_a]:text-blue-600 [&_a]:underline [&_a]:font-medium dark:[&_a]:text-blue-400 hover:[&_a]:text-blue-700 dark:hover:[&_a]:text-blue-300">
             {currentChapter.sections?.map((section) => {
               if (section.type === "text") {
                 return (

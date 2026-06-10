@@ -45,7 +45,7 @@ const StoryIdeaSection = ({
       </div>
 
       {/* INPUT CARD */}
-      <div className="p-4 rounded-lg bg-light-background dark:bg-dark-background border border-light-accent/10 dark:border-dark-accent/10 mb-6 space-y-3">
+      <div className="p-4 rounded-lg bg-light-border border-light-background dark:bg-dark-background border-light-accent/10 dark:border-dark-accent/10 mb-6 space-y-3">
         {/* Chapter Select */}
         <select
           value={selectedChapter || ''}

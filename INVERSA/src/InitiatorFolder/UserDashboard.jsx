@@ -38,6 +38,22 @@ const UserDashboard = () => {
   const [showTeamTutorial, setShowTeamTutorial] = useState(false);
   const [soloTutorialStep, setSoloTutorialStep] = useState(0);
   const [teamTutorialStep, setTeamTutorialStep] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Fungsi async untuk membuka menu dan menunggu animasi selesai
+  const handleOpenMobileMenu = () => {
+    return new Promise((resolve) => {
+      setMobileMenuOpen(true);
+      // Sesuaikan timeout dengan durasi animasi buka menu (misal 350ms)
+      setTimeout(resolve, 350);
+    });
+  };
+  
+  // Fungsi untuk menutup menu
+  const handleCloseMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+   
 
   // SOLO TUTORIAL
   useEffect(() => {
@@ -292,10 +308,10 @@ const UserDashboard = () => {
 
       {/* TUTORIALS */}
       {showSoloTutorial && (
-        <DashboardTutorialSolo step={soloTutorialStep} onNext={handleSoloTutorialNext} onSkip={handleSoloTutorialSkip} onPrevious={handleSoloTutorialPrevious} />
+        <DashboardTutorialSolo step={soloTutorialStep} onNext={handleSoloTutorialNext} onSkip={handleSoloTutorialSkip} onPrevious={handleSoloTutorialPrevious} openMobileMenu={handleOpenMobileMenu} closeMobileMenu={handleCloseMobileMenu} />
       )}
       {showTeamTutorial && (
-        <DashboardTutorialTeam step={teamTutorialStep} onNext={handleTeamTutorialNext} onSkip={handleTeamTutorialSkip} onPrevious={handleTeamTutorialPrevious} />
+        <DashboardTutorialTeam step={teamTutorialStep} onNext={handleTeamTutorialNext} onSkip={handleTeamTutorialSkip} onPrevious={handleTeamTutorialPrevious} openMobileMenu={handleOpenMobileMenu} closeMobileMenu={handleCloseMobileMenu} />
       )}
     </div>
   );

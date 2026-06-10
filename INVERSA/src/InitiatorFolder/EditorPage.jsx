@@ -63,6 +63,22 @@ const EditorPage = () => {
 
   const [showEditorTutorial, setShowEditorTutorial] = useState(false);
   const [editorTutorialStep, setEditorTutorialStep] = useState(0);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Fungsi async untuk membuka menu dan menunggu animasi selesai
+  const handleOpenMobileMenu = () => {
+    return new Promise((resolve) => {
+      setMobileMenuOpen(true);
+      // Sesuaikan timeout dengan durasi animasi buka menu (misal 350ms)
+      setTimeout(resolve, 350);
+    });
+  };
+  
+  // Fungsi untuk menutup menu
+  const handleCloseMobileMenu = () => {
+    setMobileMenuOpen(false);
+  };
+   
 
   useEffect(() => {
     const done = localStorage.getItem('inversa_editor_tutorial');
@@ -500,9 +516,7 @@ const EditorPage = () => {
         onSave={handleSave}
         loading={loading}
         onBack={() =>
-          navigate(
-            `/project/${projectId}`
-          )
+          navigate(-1)
         }
         onChaptersChange={
           handleChaptersChange
@@ -517,7 +531,7 @@ const EditorPage = () => {
       />
       {/* TUTORIALS */}
       {showEditorTutorial && (
-        <EditorTutorial step={editorTutorialStep} onNext={handleEditorTutorialNext} onSkip={handleEditorTutorialSkip} onPrevious={handleEditorTutorialPrevious} />
+        <EditorTutorial step={editorTutorialStep} onNext={handleEditorTutorialNext} onSkip={handleEditorTutorialSkip} onPrevious={handleEditorTutorialPrevious} openMobileMenu={handleOpenMobileMenu} closeMobileMenu={handleCloseMobileMenu} />
       )}
     </>
     
