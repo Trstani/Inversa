@@ -42,13 +42,13 @@ const NotesPanel = ({
   };
 
   return (
-    <div id="notes" className="card p-4 h-full flex flex-col bg-light-surface dark:bg-dark-surface">
+    <div id="notes" className="card p-4 h-[400px] flex flex-col bg-light-surface dark:bg-dark-surface">
       <h3 className="font-semibold text-light-primary dark:text-dark-primary mb-4 flex items-center gap-2">
         <FiFileText className="w-4 h-4" />
         Notes
       </h3>
 
-      <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-0">
+      <div className="flex-1 overflow-y-auto space-y-3 mb-4 min-h-0 no-scrollbar">
         {notes.length === 0 ? (
           <div className="text-center py-8 text-light-secondary dark:text-dark-secondary text-sm">
             No notes yet
@@ -57,12 +57,12 @@ const NotesPanel = ({
           notes.map((note) => (
             <div
               key={note.id}
-              className="group relative bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-l-4 border-yellow-400 dark:border-yellow-600"
+              className="group relative bg-indigo-50 dark:bg-dark-background p-3 rounded-lg shadow-sm hover:shadow-md transition-all duration-200 border-l-4 border-light-accent dark:border-dark-accent"
             >
               <div className="flex justify-between items-start gap-3">
                 <div className="flex-1">
                   <p className="font-medium text-xs text-gray-700 dark:text-gray-200 flex items-center gap-1">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-yellow-400 dark:bg-yellow-500"></span>
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-light-accent dark:bg-dark-accent"></span>
                     {note.name || 'Unknown'}
                   </p>
                   <p className="text-sm mt-2 whitespace-pre-wrap text-gray-800 dark:text-gray-100 font-sans">

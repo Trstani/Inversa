@@ -183,7 +183,7 @@ const ContributionPanel = ({
       className="
         card p-4
 
-        h-full
+        h-[400px]
 
         flex flex-col
 
@@ -224,6 +224,7 @@ const ContributionPanel = ({
           space-y-2
 
           min-h-0
+          overflow-y-scroll no-scrollbar
         "
       >
 
