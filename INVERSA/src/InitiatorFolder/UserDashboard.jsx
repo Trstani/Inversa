@@ -17,7 +17,7 @@ import { showError } from "../utils/toast";
 const UserDashboard = () => {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-
+  const [projectToDelete,setProjectToDelete] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCreateTeamModal, setShowCreateTeamModal] = useState(false);
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'solo');
@@ -206,7 +206,7 @@ const UserDashboard = () => {
               <h2 id="tutorial-my-projects" className="text-xl sm:text-2xl font-bold text-light-primary dark:text-dark-primary mb-4">
                 My Solo Projects
               </h2>
-              <MyProjectsSection projects={myProjects} onDelete={removeProject} onCreateNew={() => setShowCreateModal(true)} />
+              <MyProjectsSection projects={myProjects}  onDelete={(projectId) => setProjectToDelete(projectId)} onCreateNew={() => setShowCreateModal(true)} />
             </div>
           </div>
         )}
@@ -305,6 +305,66 @@ const UserDashboard = () => {
       {showCreateTeamModal && (
         <CreateTeamModal isOpen={showCreateTeamModal} onClose={() => setShowCreateTeamModal(false)} onSuccess={() => { setShowCreateTeamModal(false); setActiveTab('teams-my'); }} />
       )}
+      {
+        projectToDelete && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+            <div
+              className="bg-white dark:bg-dark-surface rounded-2xl p-6 w-full max-w-md mx-4"
+            >
+              <h3 className="text-lg font-semibold mb-3">
+                Delete Project?
+              </h3>
+
+              <p className="text-sm text-light-secondary dark:text-dark-secondary mb-6">
+                This action cannot be undone.
+                Are you sure you want to delete this project?
+              </p>
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() =>
+                    setProjectToDelete(null)
+                  }
+                  className="px-4 py-2 rounded-lg border border-light-border dark:border-dark-border"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={async () => {
+
+                    try {
+
+                      await removeProject(
+                        projectToDelete
+                      );
+
+                    } finally {
+
+                      setProjectToDelete(
+                        null
+                      );
+
+                    }
+
+                  }}
+                  className="
+              px-4 py-2
+              rounded-lg
+
+              bg-red-500
+              text-white
+
+              hover:bg-red-600
+            "
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
 
       {/* TUTORIALS */}
       {showSoloTutorial && (

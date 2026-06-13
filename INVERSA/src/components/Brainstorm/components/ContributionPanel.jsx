@@ -224,7 +224,7 @@ const ContributionPanel = ({
           space-y-2
 
           min-h-0
-          overflow-y-scroll no-scrollbar
+         no-scrollbar
         "
       >
 

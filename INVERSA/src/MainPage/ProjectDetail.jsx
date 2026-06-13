@@ -362,12 +362,12 @@ const ProjectDetail = () => {
       )}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-[#1e293b] rounded-lg p-6 max-w-md w-full">
-            <h2 className="text-xl font-bold mb-4">Delete Project?</h2>
-            <p className="mb-6">Are you sure you want to delete this project?</p>
+          <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-3">Delete Project?</h3>
+            <p className="text-sm text-light-secondary dark:text-dark-secondary mb-6">This Action Cannot be Undone, Are you sure you want to delete this project?</p>
             <div className="flex gap-3">
-              <Button onClick={() => setShowDeleteConfirm(false)} className="bg-gray-400">Cancel</Button>
-              <Button onClick={() => { handleDeleteProject(); setShowDeleteConfirm(false); }} className="bg-red-500 hover:bg-red-600 text-white">Delete</Button>
+              <button onClick={() => setShowDeleteConfirm(false)} className="px-4 py-2 rounded-lg border border-light-border dark:border-dark-border">Cancel</button>
+              <button onClick={() => { handleDeleteProject(); setShowDeleteConfirm(false); }} className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white">Delete</button>
             </div>
           </div>
         </div>
