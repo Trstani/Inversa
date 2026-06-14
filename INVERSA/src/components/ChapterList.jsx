@@ -6,6 +6,7 @@ import { cleanupChapterImages } from "../utils/chapterCleanup";
 import { showError } from '../utils/toast';
 
 const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersChange, projectId, project, readOnly=false }) => {
+    const [chapterToDelete,setChapterToDelete] = useState(null);
     const [deletingId, setDeletingId] = useState(null);
     const { user } = useAuth();
 
@@ -21,69 +22,53 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
     const canDelete = isInitiator || isCollaborator || isTeamMember;
 
     const handleDeleteChapter =
-        async (
-            chapterId,
-            e
-        ) => {
+  async () => {
 
-            e.stopPropagation();
+    if (!chapterToDelete) {
+      return;
+    }
 
-            if (
-                !window.confirm(
-                    'Are you sure you want to delete this chapter? This action cannot be undone.'
-                )
-            ) {
-                return;
-            }
+    setDeletingId(
+      chapterToDelete
+    );
 
-            setDeletingId(
-                chapterId
-            );
+    try {
 
-            try {
+      await cleanupChapterImages(
+        chapterToDelete
+      );
 
-                console.log(
-                    "CALL CLEANUP:",
-                    chapterId
-                );
+      await apiClient
+        .chapters
+        .delete(
+          chapterToDelete
+        );
 
-                await cleanupChapterImages(
-                    chapterId
-                );
+      onChaptersChange();
 
-                console.log(
-                    "DELETE CHAPTER:",
-                    chapterId
-                );
+      setChapterToDelete(
+        null
+      );
 
-                await apiClient
-                    .chapters
-                    .delete(
-                        chapterId
-                    );
+    } catch (error) {
 
-                onChaptersChange();
+      console.error(
+        'Failed to delete chapter:',
+        error
+      );
 
-            } catch (error) {
+      showError(
+        'Failed to delete chapter'
+      );
 
-                console.error(
-                    'Failed to delete chapter:',
-                    error
-                );
+    } finally {
 
-                showError(
-                    'Failed to delete chapter'
-                );
+      setDeletingId(
+        null
+      );
 
-            } finally {
-
-                setDeletingId(
-                    null
-                );
-
-            }
-
-        };
+    }
+  };
 
     if (chapters.length === 0) {
         return (
@@ -137,7 +122,7 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                         <div className="flex items-center gap-1 ml-2">
                             {!readOnly && canDelete && (
                                 <button
-                                    onClick={(e) => handleDeleteChapter(chapter.id, e)}
+                                    onClick={(e) => {e.stopPropagation(); setChapterToDelete (chapter.id, e);}}
                                     disabled={deletingId === chapter.id}
                                     className={`p-1.5 rounded transition-colors ${currentChapterId === chapter.id
                                         ? 'hover:bg-white/20'
@@ -153,6 +138,24 @@ const ChapterList = ({ chapters, currentChapterId, onSelectChapter, onChaptersCh
                     </div>
                 </div>
             ))}
+            {chapterToDelete && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 w-full max-w-md mx-4">
+                        <h3 className="text-lg font-semibold mb-3">Delete Chapter?</h3>
+                        <p className="text-sm text-light-secondary dark:text-dark-secondary mb-6">
+                            This action cannot be undone. Are you sure you want to delete this chapter?
+                        </p>
+                        <div className="flex gap-3 justify-end">
+                            <button onClick={() => setChapterToDelete(null)} className="px-4 py-2 rounded-lg border border-light-border dark:border-dark-border">
+                                Cancel
+                            </button>
+                            <button onClick={handleDeleteChapter} disabled={deletingId === chapterToDelete} className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white disabled:opacity-50">
+                                {deletingId === chapterToDelete ? 'Deleting...' : 'Delete'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

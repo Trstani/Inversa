@@ -17,6 +17,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
   const [savingSection, setSavingSection] = useState(null);
   const [editingSectionId, setEditingSectionId] = useState(null);
   const [isReordering, setIsReordering] = useState(false);
+  const [sectionToDelete,setSectionToDelete] = useState(null);
   const [hasUnsavedWorkspaceChanges, setHasUnsavedWorkspaceChanges] = useState(false);
   const MAX_TOTAL = 20, MAX_TEXT = 15, MAX_IMAGE = 5;
 
@@ -275,10 +276,20 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
     } catch (e) { console.error("Reorder failed:", e); showError("Failed to reorder sections"); } finally { setIsReordering(false); }
   };
 
-  const deleteSection =
-    async (id) => {
+  const confirmDeleteSection =
+  (id) => {
 
-      if (!canEdit)
+    if (!canEdit)
+      return;
+
+    setSectionToDelete(id);
+
+  };
+
+  const deleteSection =
+    async () => {
+
+      if (!sectionToDelete)
         return;
 
       try {
@@ -286,7 +297,7 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
         const targetSection =
           sections.find(
             sec =>
-              sec.id === id
+              sec.id === sectionToDelete
           );
 
         console.log(
@@ -314,15 +325,19 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
         await apiClient
           .sections
           .delete(
-            id
+            sectionToDelete
           );
 
         setSections(
           prev =>
             prev.filter(
               sec =>
-                sec.id !== id
+                sec.id !== sectionToDelete
             )
+        );
+
+        setSectionToDelete(
+          null
         );
 
       } catch (error) {
@@ -419,13 +434,37 @@ const EditorBody = ({ chapter, chapters, onSelectChapter, onSave, loading, onBac
       <div className="space-y-8">
         {sections.map((section, index) =>
           section.type === "text" ? (
-            <TextEditorSection key={section.id} section={section} canEdit={canEdit} setEditingSectionId={setEditingSectionId} onDelete={deleteSection} onUpdate={updateSection} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
+            <TextEditorSection key={section.id} section={section} canEdit={canEdit} setEditingSectionId={setEditingSectionId} onDelete={confirmDeleteSection} onUpdate={updateSection} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
           ) : section.type === "image" ? (
-            <ImageSection key={section.id} section={section} canEdit={canEdit} onDelete={deleteSection} onUpdate={updateSection} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
+            <ImageSection key={section.id} section={section} canEdit={canEdit} onDelete={confirmDeleteSection} onUpdate={updateSection} onSave={saveSectionToAPI} onMoveUp={() => moveSection(index, "up")} onMoveDown={() => moveSection(index, "down")} isFirst={index === 0} isLast={index === sections.length - 1} />
           ) : null
         )}
       </div>
       {chapters?.length > 0 && <EditorNavigation chapters={chapters} currentChapter={chapter} onSelectChapter={onSelectChapter} />}
+      {sectionToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-3">Delete Section?</h3>
+            <p className="text-sm text-light-secondary dark:text-dark-secondary mb-6">
+              This action cannot be undone. Are you sure you want to delete this section?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setSectionToDelete(null)}
+                className="px-4 py-2 rounded-lg border border-light-border dark:border-dark-border"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={deleteSection}
+                className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <EditorActions onBack={onBack} onSaveDraft={() => { if (isReordering) { showError("Please wait until reorder finishes."); return; } handleSave(false); }} onPublish={() => handleSave(true)} loading={loading} isInitiator={isInitiator} isTeamMember={isTeamMember} chapterStatus={chapter?.status} hasActiveLocks={hasActiveLocks} hasUnsavedWorkspaceChanges={hasUnsavedWorkspaceChanges} />
     </>
   );

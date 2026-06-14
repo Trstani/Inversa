@@ -29,7 +29,8 @@ const TeamDetailPage = () => {
   const [editDescription, setEditDescription] = useState("");
   const [editBackground, setEditBackground] = useState("");
   const [imagePreview, setImagePreview] = useState("");
-
+  const [showDeleteTeamModal, setShowDeleteTeamModal] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState(null);
   useEffect(() => { loadTeamData(); }, [teamId]);
 
   const loadTeamData = async () => {
@@ -51,11 +52,6 @@ const TeamDetailPage = () => {
   const handleDeleteTeam =
     async () => {
 
-      if (
-        !window.confirm(
-          'Delete this team permanently?'
-        )
-      ) return;
 
       try {
 
@@ -212,12 +208,6 @@ const TeamDetailPage = () => {
   const handleDeleteProject =
     async (projectId) => {
 
-      if (
-        !window.confirm(
-          'Delete this project?'
-        )
-      ) return;
-
       try {
 
         const projectToDelete =
@@ -355,7 +345,7 @@ const TeamDetailPage = () => {
                     </button>
 
                     <button
-                      onClick={handleDeleteTeam}
+                      onClick={()=>setShowDeleteTeamModal(true)}
                       className="
       flex
       items-center
@@ -445,7 +435,7 @@ const TeamDetailPage = () => {
               ) : (
                 <div className="flex flex-col gap-4 sm:gap-5 md:gap-6">
                   {projects.map(project => (
-                    <DashboardProjectCard key={project.id} project={project} onDelete={handleDeleteProject} teamId={teamId} />
+                    <DashboardProjectCard key={project.id} project={project} onDelete={(projectId) =>setProjectToDelete(projectId)} teamId={teamId} />
                   ))}
                 </div>
               )}
@@ -535,6 +525,40 @@ const TeamDetailPage = () => {
         </div>
 
       )}
+      {showDeleteTeamModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-3">Delete Team?</h3>
+            <p className="text-sm text-light-secondary dark:text-dark-secondary mb-6">
+              This action cannot be undone. All team projects and team data will be permanently removed.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setShowDeleteTeamModal(false)} className="px-4 py-2 rounded-lg border border-light-border dark:border-dark-border">Cancel</button>
+              <button onClick={() => { handleDeleteTeam(); setShowDeleteTeamModal(false); }} className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white">Delete Team</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {projectToDelete && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-dark-surface rounded-2xl p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-semibold mb-3">Delete Project?</h3>
+            <p className="text-sm text-light-secondary dark:text-dark-secondary mb-6">
+              This action cannot be undone. Are you sure you want to delete this project?
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setProjectToDelete(null)} className="px-4 py-2 rounded-lg border border-light-border dark:border-dark-border">Cancel</button>
+              <button
+                onClick={async () => { await handleDeleteProject(projectToDelete); setProjectToDelete(null); }}
+                className="px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+              >
+                Delete Project
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
     </div>
   );

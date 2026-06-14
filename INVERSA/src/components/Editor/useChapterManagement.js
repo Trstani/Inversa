@@ -15,6 +15,11 @@ export const useChapterManagement = (
     setShowCreateModal
   ] = useState(false);
 
+  const [
+    chapterToDelete,
+    setChapterToDelete
+  ] = useState(null);
+
   const handleCreateChapter =
   async(chapterData)=>{
 
@@ -69,95 +74,88 @@ export const useChapterManagement = (
 
   };
 
-
   const handleDeleteChapter =
-  async(chapterId)=>{
+    (chapterId) => {
 
-    if(
-      !window.confirm(
-      "Are you sure you want to delete this chapter?"
-      )
-    ){
-      return;
-    }
-
-    try{
-
-      console.log(
-        "START CLEANUP:",
+      setChapterToDelete(
         chapterId
       );
 
-      await cleanupChapterImages(
-        chapterId
-      );
+    };
 
-      console.log(
-        "DELETE CHAPTER:",
-        chapterId
-      );
 
-      await apiClient
-      .chapters
-      .delete(
-        chapterId
-      );
+  const confirmDeleteChapter =
+    async () => {
 
-      if(
-        onChaptersChange
-      ){
+      if (!chapterToDelete)
+        return;
 
-        await onChaptersChange();
+      try {
 
-      }
-
-      if(
-        chapters.length > 1
-      ){
-
-        const remaining=
-        chapters.filter(
-          c=>
-          c.id!==chapterId
+        await cleanupChapterImages(
+          chapterToDelete
         );
 
-        onSelectChapter(
-          remaining[0]
-        );
+        await apiClient
+          .chapters
+          .delete(
+            chapterToDelete
+          );
 
-      }else{
+        if (onChaptersChange) {
 
-        onSelectChapter(
+          await onChaptersChange();
+
+        }
+
+        if (chapters.length > 1) {
+
+          const remaining =
+            chapters.filter(
+              c =>
+                c.id !== chapterToDelete
+            );
+
+          onSelectChapter(
+            remaining[0]
+          );
+
+        } else {
+
+          onSelectChapter(
+            null
+          );
+
+        }
+
+        setChapterToDelete(
           null
         );
 
+      } catch (error) {
+
+        console.error(error);
+
+        showError(
+          "Failed to delete chapter"
+        );
+
       }
 
-    }catch(error){
-
-      console.error(
-        "Error deleting chapter:",
-        error
-      );
-
-      showError(
-        "Failed to delete chapter"
-      );
-
-    }
-
-  };
+    };
 
 
   return {
 
     showCreateModal,
-
     setShowCreateModal,
 
-    handleCreateChapter,
+    chapterToDelete,
+    setChapterToDelete,
 
+    handleCreateChapter,
     handleDeleteChapter,
+    confirmDeleteChapter,
 
   };
 
