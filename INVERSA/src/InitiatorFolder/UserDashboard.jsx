@@ -274,10 +274,13 @@ const UserDashboard = () => {
                         <div>
                           <p className="font-medium text-light-primary dark:text-dark-primary">
                             {request.name}
-                            <span className="text-xs text-light-accent dark:text-dark-accent mt-1 block">
-                              Team: {myTeams.find(t => t.id === request.team_id)?.title || 'Unknown Team'}
-                            </span>
                           </p>
+                          <p className="text-xs text-light-accent dark:text-dark-accent mt-1">
+                              Requested Role: {request.role}
+                          </p>
+                          <span className="text-xs text-light-accent dark:text-dark-accent mt-1 block">
+                            Team: {myTeams.find(t => t.id === request.team_id)?.title || 'Unknown Team'}
+                          </span>
                           <p className="text-sm text-light-secondary dark:text-dark-secondary mt-1">{request.reason}</p>
                         </div>
                         <div className="flex gap-2">
