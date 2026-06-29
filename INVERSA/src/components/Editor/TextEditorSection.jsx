@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -13,8 +13,9 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [lastSavedContent, setLastSavedContent] = useState(section.content || "");
   const [locking, setLocking] = useState(false);
+  const autoSaveTimer = useRef(null);
+  const lastSavedRef = useRef(section.content || "");
   const isLocked = !!section.locked_by && section.locked_by !== user?.id;
 
   const handleLock = async () => {
@@ -30,14 +31,20 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
     }
   };
 
-  const handleUnlock = async () => {
-    try {
-      await apiClient.sections.unlock(section.id);
-      socket.emit("unlock_section", { sectionId: section.id });
-    } catch (error) {
-      console.error(error);
-    }
+
+  const saveContent = async () => {
+    if (!editor || isSaving) return;
+    const content = editor.getHTML();
+    if (content === lastSavedRef.current) return;
+    await onSave(section.id, { content });
+    socket.emit("section_updated", {
+      sectionId: section.id,
+      content,
+    });
+    lastSavedRef.current = content;
+    setHasChanges(false);
   };
+
 
   const editor = useEditor({
     extensions: [
@@ -57,9 +64,21 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
     onUpdate: ({ editor }) => {
       const content = editor.getHTML();
       onUpdate(section.id, { content });
-      setHasChanges(content !== lastSavedContent);
+      const changed = content !== lastSavedRef.current;
+      setHasChanges(changed);
+          if(changed){
+            autoSave();
+          }else {
+            clearTimeout(autoSaveTimer.current);
+          }
     },
   });
+
+  useEffect(() => {
+    if (!editor) return;
+
+    editor.setEditable(canEdit && !isLocked);
+  }, [editor, canEdit, isLocked]);
 
   const insertHeading = (level) => {
     if (!editor) return;
@@ -88,32 +107,35 @@ const TextEditorSection = ({ section, canEdit, onDelete, onUpdate, onMoveUp, onM
     if (editor && section.content !== editor.getHTML()) {
       editor.commands.setContent(section.content ?? "");
     }
+    lastSavedRef.current = section.content ?? "";
   }, [section.content]);
 
   useEffect(() => {
     return () => {
-      setEditingSectionId(null);
-      handleUnlock();
+       if(autoSaveTimer.current){
+        clearTimeout(
+            autoSaveTimer.current
+        );
+    }
     };
   }, []);
 
+
   const handleSave = async () => {
-    if (!editor || !hasChanges) return;
+    if (isSaving) return;
     setIsSaving(true);
     try {
-      const content = editor.getHTML();
-      await onSave(section.id, { content });
-      setLastSavedContent(content);
-      setHasChanges(false);
-      await handleUnlock();
-      setEditingSectionId(null);
-    } catch (error) {
-      console.error(error);
-      showError("Save failed");
+      await saveContent();
     } finally {
       setIsSaving(false);
     }
   };
+
+  const autoSave = () => {
+    clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(saveContent, 3000);
+  }
+
 
   if (!editor) return null;
 

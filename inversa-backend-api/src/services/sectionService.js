@@ -75,7 +75,12 @@ export const updateSection =
         content = $1,
         image_url = $2,
         caption = $3,
-        updated_at = CURRENT_TIMESTAMP
+        updated_at = CURRENT_TIMESTAMP,
+        locked_at = CASE
+          WHEN locked_by IS NOT NULL
+          THEN CURRENT_TIMESTAMP
+          ELSE locked_at
+        END
 
       WHERE id = $4
 
@@ -114,12 +119,6 @@ export const reorderSection =
     section_order,
   }) => {
 
-    console.log(
-      'REORDER:',
-      id,
-      section_order
-    );
-
     const result = await pool.query(
       `
       UPDATE sections
@@ -138,11 +137,6 @@ export const reorderSection =
       ]
     );
 
-    console.log(
-      'UPDATED:',
-      result.rows[0]
-    );
-
     return result.rows[0];
 };
 
@@ -155,7 +149,9 @@ export const lockSection =
     const existing =
       await pool.query(
         `
-        SELECT locked_by
+        SELECT
+          locked_by,
+          locked_at
         FROM sections
         WHERE id = $1
         `,
@@ -165,15 +161,30 @@ export const lockSection =
     const section =
       existing.rows[0];
 
-    // already locked by another user
+    if (!section) {
+      throw new Error("Section not found");
+    }
+
+    const LOCK_TIMEOUT =
+      1 * 60 * 1000;
+
+    const expired =
+      section.locked_at &&
+      (
+        Date.now() -
+        new Date(section.locked_at).getTime()
+      ) > LOCK_TIMEOUT;
+
     if (
       section.locked_by &&
-      section.locked_by !== userId
+      section.locked_by !== userId &&
+      !expired
     ) {
 
       throw new Error(
-        'Section already locked'
+        "Section already locked"
       );
+
     }
 
     const result =
@@ -183,7 +194,7 @@ export const lockSection =
 
         SET
           locked_by = $1,
-          locked_at = NOW()
+          locked_at = CURRENT_TIMESTAMP
 
         WHERE id = $2
 
@@ -226,4 +237,32 @@ export const unlockSection =
       );
 
     return result.rows[0];
+};
+
+/*
+=========================
+FORCE UNLOCK SECTION
+=========================
+*/
+
+export const forceUnlockSectionsByUser =
+  async (userId) => {
+
+    const result =
+      await pool.query(
+        `
+        UPDATE sections
+
+        SET
+          locked_by = NULL,
+          locked_at = NULL
+
+        WHERE locked_by = $1
+
+        RETURNING id
+        `,
+        [userId]
+      );
+
+    return result.rows;
 };

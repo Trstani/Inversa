@@ -4,6 +4,7 @@ import app from './app.js';
 import env from './config/env.js';
 
 import { Server } from 'socket.io';
+import {forceUnlockSectionsByUser} from './services/sectionService.js';
 
 const PORT = env.PORT;
 
@@ -23,7 +24,6 @@ export const io =
   });
 
 // ============ BRAINSTORM ROOMS ============
-
 const brainstormRooms = new Map();
 
 io.on(
@@ -361,11 +361,13 @@ IDEA COMMENTS EVENTS
     */
 
     socket.on(
-      'lock_section',
+      "lock_section",
       (data) => {
 
+        socket.userId = data.userId;
+
         socket.broadcast.emit(
-          'section_locked',
+          "section_locked",
           data
         );
 
@@ -379,11 +381,11 @@ IDEA COMMENTS EVENTS
     */
 
     socket.on(
-      'unlock_section',
+      "unlock_section",
       (data) => {
 
         socket.broadcast.emit(
-          'section_unlocked',
+          "section_unlocked",
           data
         );
 
@@ -414,14 +416,45 @@ IDEA COMMENTS EVENTS
     */
 
     socket.on(
-      'disconnect',
-      () => {
+      "disconnect",
+      async () => {
 
         console.log(
-          '❌ User disconnected:',
+          "❌ User disconnected:",
           socket.id
         );
 
+        try {
+
+          if (socket.userId) {
+
+            const unlockedSections =
+              await forceUnlockSectionsByUser(
+                socket.userId
+              );
+
+            unlockedSections.forEach(section => {
+
+              socket.broadcast.emit(
+                "section_unlocked",
+                {
+                  sectionId: section.id
+                }
+              );
+
+            });
+
+          }
+
+        } catch (error) {
+
+          console.error(
+            "Force unlock failed:",
+            error
+          );
+
+        }
+        
         // Clean up from all brainstorm rooms
         brainstormRooms.forEach((users, roomName) => {
           const remainingUsers = [...users];
